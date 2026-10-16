@@ -8,7 +8,7 @@ First exploration prototype implemented. Hosting, multiplayer and player limits 
 
 Download `play.html` and open it in a desktop browser. No installation, account or server is needed. Use WASD or arrow keys to move. Click **New dungeon** for a different layout. The small map shows your position.
 
-The goblin and dungeon art are temporary. This version has no guards, loot, crafting or multiplayer.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version has no guards, loot, crafting or multiplayer.
 
 ## Development
 

@@ -1,7 +1,10 @@
-import { CONFIG } from './config.js';
+import { CONFIG, GOBLIN_ART } from './config.js';
 import { isFloor } from './world.js';
 
-export function createRenderer(canvas, mapCanvas) {
+export async function createRenderer(canvas, mapCanvas) {
+  const goblin = new Image();
+  goblin.src = GOBLIN_ART.src;
+  await goblin.decode();
   const ctx = canvas.getContext('2d');
   const map = mapCanvas.getContext('2d');
   let width = 0, height = 0;
@@ -30,16 +33,13 @@ export function createRenderer(canvas, mapCanvas) {
         }
       }
     }
-    // Temporary pixel goblin. Feet/shadow are tied to world position; only art hops.
+    // Feet and shadow stay on the floor; only the supplied sprite hops.
     const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
     const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
     rect(sx - 7, sy - 2, 14, 4, '#182222');
-    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing, 1);
-    rect(-5, -6, 4, 6, '#887746'); rect(2, -6, 4, 6, '#887746');
-    rect(-6, -13, 12, 9, '#9b743f'); rect(-5, -12, 10, 3, '#c4a45c');
-    rect(-7, -22, 14, 10, '#8ab64f'); rect(-10, -20, 4, 5, '#729d43'); rect(7, -20, 4, 5, '#729d43');
-    rect(-6, -23, 11, 3, '#b0d36b'); rect(-4, -19, 3, 3, '#172c27'); rect(3, -19, 3, 3, '#172c27');
-    rect(0, -15, 5, 1, '#466137'); rect(-8, -11, 3, 5, '#729d43'); rect(6, -11, 3, 5, '#729d43');
+    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+    const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
+    ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
     ctx.restore();
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);

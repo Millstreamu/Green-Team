@@ -9,11 +9,14 @@
 </head>
 <body><main>
 <header><div><div class="eyebrow">GREEN TEAM / FIRST FOOTSTEPS</div><h1>Dungeon playground</h1><p>A little goblin. A different dungeon. See how it feels.</p></div><button id="regenerate">New dungeon ↻</button></header>
-<div class="layout"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. Use W A S D or arrow keys to move."></canvas><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><p class="note">Temporary pixel art.<br>Single-player movement test.<br>The map shows the whole layout for testing.</p></aside></div>
+<div class="layout"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. Use W A S D or arrow keys to move."></canvas><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><p class="note">Your goblin art.<br>Single-player movement test.<br>The map shows the whole layout for testing.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
 </main><script type="module">
 // Content values live together so a future builder can edit them.
-const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 3, hopRate: 12 });
+const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 6, hopRate: 12 });
+
+// Supplied sprite faces left; keep orientation explicit.
+const GOBLIN_ART = Object.freeze({ src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA80lEQVR4AaSSPQ4BQRiGh2SsKPQSLQdwAgqtSkmhVbiCaBxBq1O5AzqdBg1BRWcTF1h5Rj6Z/ZmNjU3e/f7e75nsZPPqzycTYLwaBtHzUgEsIJaIk9YsR24rBsAoWi9Pxjta9IKkZYYxAEbEsNmtEVIVA4hbIFK7ohPQbzfMhfmPl9mV2hTWKxHAHeC5TLfKnx+NqKVPLkoEyLBcKioRPT4rCokBMGBk4ReFAFmXOSAEsE/eXZ9qc7h/Rc2C7aEOAWiIPK2Vp7Xan285T39ymdnRCSgWtEKYiYg8KicganTViQD+/dqgriqdqtkjUtM3Dev1BgAA///TN/+eAAAABklEQVQDAKw1V6nJjzp3AAAAAElFTkSuQmCC', width: 16, height: 16, scale: 2, faces: -1 });
 
 
 function generateDungeon(seed, config = CONFIG) {
@@ -95,7 +98,10 @@ function createInput(target) {
 }
 
 
-function createRenderer(canvas, mapCanvas) {
+async function createRenderer(canvas, mapCanvas) {
+  const goblin = new Image();
+  goblin.src = GOBLIN_ART.src;
+  await goblin.decode();
   const ctx = canvas.getContext('2d');
   const map = mapCanvas.getContext('2d');
   let width = 0, height = 0;
@@ -124,16 +130,13 @@ function createRenderer(canvas, mapCanvas) {
         }
       }
     }
-    // Temporary pixel goblin. Feet/shadow are tied to world position; only art hops.
+    // Feet and shadow stay on the floor; only the supplied sprite hops.
     const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
     const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
     rect(sx - 7, sy - 2, 14, 4, '#182222');
-    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing, 1);
-    rect(-5, -6, 4, 6, '#887746'); rect(2, -6, 4, 6, '#887746');
-    rect(-6, -13, 12, 9, '#9b743f'); rect(-5, -12, 10, 3, '#c4a45c');
-    rect(-7, -22, 14, 10, '#8ab64f'); rect(-10, -20, 4, 5, '#729d43'); rect(7, -20, 4, 5, '#729d43');
-    rect(-6, -23, 11, 3, '#b0d36b'); rect(-4, -19, 3, 3, '#172c27'); rect(3, -19, 3, 3, '#172c27');
-    rect(0, -15, 5, 1, '#466137'); rect(-8, -11, 3, 5, '#729d43'); rect(6, -11, 3, 5, '#729d43');
+    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+    const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
+    ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
     ctx.restore();
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
@@ -146,7 +149,13 @@ function createRenderer(canvas, mapCanvas) {
 
 const canvas = document.querySelector('#game');
 const input = createInput(window);
-const render = createRenderer(canvas, document.querySelector('#map'));
+let render;
+try {
+  render = await createRenderer(canvas, document.querySelector('#map'));
+} catch (error) {
+  document.querySelector('#status').textContent = 'Goblin art could not load. Download play.html again, or keep assets/goblin.png alongside the source files.';
+  throw error;
+}
 let world, player, previous = 0;
 const reset = () => {
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];

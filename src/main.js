@@ -4,7 +4,13 @@ import { createRenderer } from './render.js';
 
 const canvas = document.querySelector('#game');
 const input = createInput(window);
-const render = createRenderer(canvas, document.querySelector('#map'));
+let render;
+try {
+  render = await createRenderer(canvas, document.querySelector('#map'));
+} catch (error) {
+  document.querySelector('#status').textContent = 'Goblin art could not load. Download play.html again, or keep assets/goblin.png alongside the source files.';
+  throw error;
+}
 let world, player, previous = 0;
 const reset = () => {
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];

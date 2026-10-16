@@ -2,7 +2,7 @@
 
 ## Current task: first exploration prototype
 
-Implemented on a feature branch for review. User acceptance and browser visual verification pending.
+The user confirmed the first prototype works in their browser. The next revision uses their supplied left-facing goblin and raises hop height from 3 to 6 drawing pixels; review of this revision is pending.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -23,3 +23,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 Ask the user to try play.html and describe anything that differs from their intended view or feel. In particular, check the hop and room/corridor proportions before adding more mechanics. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
+
+## Sprite revision
+
+Original Goblin.png is preserved unchanged as assets/goblin.png. Art faces left and is mirrored for rightward movement, rendered at an integer scale with smoothing disabled. Its feet stay anchored to the same collision position. The standalone build embeds the PNG, so no extra download is needed. Hop cadence and movement speed are unchanged. No Proplet importer is implied.
