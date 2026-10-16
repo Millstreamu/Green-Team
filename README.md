@@ -2,17 +2,23 @@
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
-Exploration with looping routes, sack, guard patrol/chase/attacks and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
+Exploration with looping routes, searchable furniture, sack, guard patrol/chase/attacks and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
 
 ## Play
 
-Download `play.html` and open it in a desktop browser. No installation, account or server is needed. Use WASD or arrow keys to move. E packs the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack stays visible at the lower right.
+Download `play.html` and open it in a desktop browser. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack stays visible at the lower right.
 
 Return to the secret tunnel where you started (gold marker on the map) and press E to finish the run. At the tunnel, E means leave; while holding an item it still means drop. The haul screen lists only loot packed in your sack. **Start next run** generates a new dungeon and an empty sack.
 
 **Abandon / new dungeon** discards an unfinished run after confirmation. The small map shows your position. This prototype shows the current haul only; no permanent stash or save system has been added.
 
 The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and one temporary guard, with no crafting or multiplayer.
+
+## Searching
+
+Valuables begin inside searchable furniture, not scattered around each room. Get close, hold E and watch the progress bar while guards continue patrolling. Moving, releasing E, getting hit, lifting another item or going down cancels the search and resets progress. A searched object opens/dims and cannot spill its contents again. A full sack does not block searching: items stay on the floor for packing later.
+
+Initial times: crate 1.5 seconds, chest 2.5 seconds, cupboard 3.5 seconds. These are provisional balancing values in SEARCH in src/config.js. Furniture uses temporary drawings and does not yet add solid collision. This step adds time spent searching, not a furniture physics system.
 
 ## Dungeon routes
 
@@ -37,6 +43,7 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `src/config.js`: dungeon dimensions, room count, movement speed and hop values.
 - `src/world.js`: base generation and collision rules; `src/dungeon-layout.js`: room entrances and useful bypass connections, independent of browser drawing.
 - `src/input.js`: keyboard controls; `src/render.js`: temporary visuals; `src/main.js`: connects them.
+- `src/search.js`: searchable objects, contents, targeting and timed holds; `src/search-view.js`: object art and progress feedback; spilled items reuse existing loot rules/visuals.
 - `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
 - `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
 - `COMBAT` in `src/config.js`: provisional health, speeds, sight, notice/search duration, attack range and timing.
@@ -57,4 +64,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: review V6's alternate routes while slipping around the guard. V5 was reported to work pretty well. Layout, guard/navigation/combat and event-wiring checks pass; rendered route feel and chase balance still need browser playtesting. Server setup and multiplayer testing are deferred.
+Next: review V7's search → spill → pack loop under guard pressure. The user approved V6 routes and requested searching before builder/balance tools. Search, layout, guard/navigation/combat and event-wiring checks pass; rendered search timing and interaction feel still need browser playtesting. Server setup and multiplayer testing are deferred.

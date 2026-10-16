@@ -54,14 +54,9 @@ export function selectTarget(world, player, ground, pointer = null) {
   return candidates.sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y))[0] ?? null;
 }
 
-export function createLoot(world) {
-  const types = Object.keys(LOOT_TYPES), ground = [];
-  // A varied cluster in the starting room makes the sack easy to try immediately.
-  const offsets = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1]];
-  const add = (type, x, y) => ground.push({ id: `${world.seed}-${ground.length}`, type, rotation: 0, x, y });
-  offsets.forEach(([dx, dy], i) => add(types[i], world.spawn.x + dx, world.spawn.y + dy));
-  world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], room.cx + 0.5, room.cy + 0.5));
-  return { ground, bag: [], held: null };
+export function createLoot() {
+  // New valuables come from searches; floor items exist only after a spill/drop.
+  return { ground: [], bag: [], held: null };
 }
 
 export function autoPickup(state, id) {

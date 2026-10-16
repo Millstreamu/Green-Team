@@ -1,7 +1,8 @@
+import { createLooseLoot as createLoot } from './fixtures.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, canStand } from '../src/world.js';
-import { LOOT_TYPES, itemCells, fits, findSpace, bagItemAt, createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld } from '../src/loot.js';
+import { LOOT_TYPES, itemCells, fits, findSpace, bagItemAt, selectTarget, autoPickup, liftItem, placeHeld, dropHeld } from '../src/loot.js';
 
 const piece = (type, id = type, x = 0, y = 0, rotation = 0) => ({ id, type, x, y, rotation });
 const stateWith = (...ground) => ({ ground, bag: [], held: null });

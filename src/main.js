@@ -6,6 +6,8 @@ import { createSackView } from './sack-view.js';
 import { createRun, atTunnel, finishRun, loseRun } from './run.js';
 import { createResultsView } from './results-view.js';
 import { createGuard, updateGuard, createVitality, tickVitality } from './guard.js';
+import { createSearchables, createSearchSession, selectInteraction, beginSearch, cancelSearch, updateSearch, SEARCHABLE_TYPES } from './search.js';
+import { updateSearchPanel } from './search-view.js';
 
 const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
@@ -20,11 +22,14 @@ try {
   throw error;
 }
 let world, player, loot, run, guard, previous = 0, target = null, dragStart = null;
+let objects = [], searchSession = createSearchSession(), searchTarget = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
-  target = selectTarget(world, player, loot.ground, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
+  const interaction = searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
+  target = interaction?.kind === 'loot' ? interaction.item : null;
+  searchTarget = interaction?.kind === 'search' ? interaction.item : null;
 };
 const reset = () => {
   if (world && run.phase === 'exploring' && !window.confirm('Abandon this run? This resets the sack and all dungeon loot.')) { canvas.focus(); return; }
@@ -32,16 +37,17 @@ const reset = () => {
   world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
   player = { ...world.spawn, ...createVitality(), facing: 1, phase: 0, moving: false };
   guard = createGuard(world);
-  loot = createLoot(world); dragStart = null;
+  loot = createLoot(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
   run = createRun(world, performance.now());
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
-  tell('A guard patrols these rooms. Gather loot, avoid its sight, and return to the secret tunnel.');
+  tell('Hold E beside a highlighted chest, cupboard or crate. Search it, collect the spilled loot, then return to the tunnel.');
   canvas.focus(); updateTarget();
 };
 const showRunResult = (result, message) => {
   if (!result) return;
+  cancelSearch(searchSession);
   input.clear(); dragStart = null; player.moving = false; player.phase = 0;
   results.open(result); tell(message);
 };
@@ -65,6 +71,7 @@ document.addEventListener('pointerdown', e => {
   trackPointer(e);
   if (e.target !== canvas && e.target !== sackCanvas) return;
   e.preventDefault(); canvas.focus();
+  cancelSearch(searchSession);
   const wasHolding = !!loot.held;
   if (e.target === sackCanvas) {
     if (loot.held) placeAtPointer();
@@ -74,12 +81,12 @@ document.addEventListener('pointerdown', e => {
     }
   } else if (loot.held) drop();
   else {
-    updateTarget();
     const at = screenToWorld(canvas, player, pointer);
-    if (target && Math.hypot(target.x - at.x, target.y - at.y) <= 0.8) {
-      liftItem(loot, 'ground', target.id);
-      tell(`${LOOT_TYPES[target.type].name} lifted. R rotates; click the sack to place.`);
-    } else tell('Click loot within reach, or use E for the highlighted item.');
+    const clicked = selectTarget(world, player, loot.ground, at);
+    if (clicked && Math.hypot(clicked.x - at.x, clicked.y - at.y) <= 0.8) {
+      liftItem(loot, 'ground', clicked.id);
+      tell(`${LOOT_TYPES[clicked.type].name} lifted. R rotates; click the sack to place.`);
+    } else tell('Hold E beside a highlighted object to search. Click spilled loot to lift it.');
   }
   if (!wasHolding && loot.held) dragStart = { x: e.clientX, y: e.clientY, id: loot.held.id };
 });
@@ -90,7 +97,10 @@ document.addEventListener('pointerup', e => {
   if (e.target === sackCanvas) placeAtPointer();
   else if (e.target === canvas) drop();
 });
-window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; });
+window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); });
+window.addEventListener('keyup', e => {
+  if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
+});
 window.addEventListener('keydown', e => {
   if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
   if (e.code === 'KeyR' && loot.held) {
@@ -106,7 +116,11 @@ window.addEventListener('keydown', e => {
     return;
   }
   updateTarget();
-  if (!target) { tell('No loot within reach. Move closer.'); return; }
+  if (searchTarget) {
+    if (beginSearch(searchSession, world, player, loot, searchTarget)) tell(`Searching ${SEARCHABLE_TYPES[searchTarget.type].name}. Keep E held and stay still.`);
+    return;
+  }
+  if (!target) { tell('No loot or unsearched object within reach. Move closer.'); return; }
   const name = LOOT_TYPES[target.type].name;
   if (autoPickup(loot, target.id)) tell(`${name} packed into your sack.`);
   else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
@@ -120,19 +134,32 @@ const frame = time => {
     movePlayer(world, player, input.read(), dt); tickVitality(player, dt);
     const events = updateGuard(world, guard, player, dt);
     if (events.spotted) tell('Spotted! Get out of sight or make for the tunnel.');
-    if (events.hit) tell(`Hit! ${player.health} health left. Keep moving—the next strike takes a moment.`);
+    if (events.hit) { cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Keep moving—the next strike takes a moment.`); }
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
+    else {
+      for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
+      const searched = updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
+      if (searched?.type === 'completed') tell(`Found ${searched.count} items. Release E, then press again to pack loot, or click to lift it.`);
+      else if (searched?.type === 'cancelled') tell('Search cancelled. Hold E while standing still beside the object.');
+    }
   }
   const tunnelReady = atTunnel(run, world, player) && !loot.held;
-  updateTarget(); render(world, player, loot, target, run, tunnelReady, guard); sack.paint(loot, pointer);
-  const targetText = run.phase === 'results' ? run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete' : loot.held ? 'Item in hand · R rotate · E drop' : tunnelReady ? 'Secret tunnel · E to leave with your sack' : target ? `${LOOT_TYPES[target.type].name} · E pack / click to lift` : 'Find loot, then return to the gold tunnel marker';
+  updateTarget(); render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer); updateSearchPanel(searchSession);
+  let targetText;
+  if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
+  else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
+  else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
+  else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
+  else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
+  else if (target) targetText = `${LOOT_TYPES[target.type].name} · E pack / click to lift`;
+  else targetText = 'Find a chest, cupboard or crate to search';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
   const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;
   if (document.querySelector('#health-label').textContent !== healthText) document.querySelector('#health-label').textContent = healthText;
   const guardText = run.phase === 'results' ? 'Run ended' : guard.windup > 0 ? 'Guard winding up a strike—move!' : guard.state === 'chase' ? 'GUARD CHASING · get to safety' : guard.state === 'search' ? 'Guard searching the last place it saw you' : guard.state === 'suspicious' ? 'Guard noticing you… break its sight' : 'Guard on patrol';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
-    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to pack loot with E, or click nearby loot to lift it.' : 'WASD move · E pack highlighted loot · Return to the secret tunnel to escape';
+    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);

@@ -1,8 +1,9 @@
-import { CONFIG, GOBLIN_ART } from './config.js';
+import { CONFIG, GOBLIN_ART, SEARCH } from './config.js';
 import { isFloor } from './world.js';
 import { itemCells } from './loot.js';
 import { drawItem } from './item-view.js';
 import { drawGuardVision, drawGuard } from './guard-view.js';
+import { drawSearchables } from './search-view.js';
 
 export function screenToWorld(canvas, player, pointer) {
   const bounds = canvas.getBoundingClientRect();
@@ -23,7 +24,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guard) => {
+  return (world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -50,11 +51,13 @@ export async function createRenderer(canvas, mapCanvas) {
     ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText('SECRET TUNNEL', tx, ty - 30);
     if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
+    drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
     for (const item of loot.ground) {
       const cells = itemCells(item), size = 7;
       const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
       const x = Math.round(item.x * t + ox - w / 2), y = Math.round(item.y * t + oy - h / 2);
-      drawItem(ctx, item, x, y, size);
+      const fall = item.spillAge === undefined ? 0 : Math.round(Math.sin(Math.min(1, item.spillAge / SEARCH.spillTime) * Math.PI) * 8);
+      drawItem(ctx, item, x, y - fall, size);
       if (target?.id === item.id && !loot.held && !tunnelReady) {
         ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
         ctx.strokeRect(x - 3.5, y - 3.5, w + 7, h + 7);

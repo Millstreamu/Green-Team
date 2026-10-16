@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: looping dungeon routes with retained dead ends
+## Current task: search-before-looting loop
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule; The user reported V5 works pretty well and approved looping dungeon routes next. V6 now awaits route playtesting.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. V7 implements searching and awaits browser feedback.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art, sack and the first guard loop have positive user feedback. Ask the user to try V6's looped routes around guards. V6 implements the extra entrances and loops while preserving dead ends. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack, guard loop and V6 routes have positive user feedback. Ask the user to try V7's timed furniture search, spills and pickup under guard pressure. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -65,3 +65,15 @@ Adds src/dungeon-layout.js as a post-process of the existing connected generator
 Validation: 28 tests pass. Across seeds 0–199 the defaults produced three shortcuts and preserved two single-entrance rooms on every map. Each recorded shortcut shortened its previous route by at least eight tiles; an independent test blocks a multi-entrance room and verifies its outside entrances still connect around it. This proves a physical bypass, not just added room graph metadata. Existing 200-seed connectivity and spawn checks, 100-map guard path/collision checks, ten actual guard patrol simulations, combat, loot and full event-wiring checks pass on the new layouts. Zero/one-loop configuration and unchanged room placement also pass. Standalone build/module syntax pass. Browser visuals and escape-route feel still need user playtest.
 
 Download: green-team-loops-v6.html. Canonical generated file remains play.html. The current diagnostic map remains as before; the future openable map without player/tunnel markers is not implemented. No additional mechanics, server or multiplayer changes.
+
+## V7 searching handoff
+
+Adds src/search.js (seeded searchable furniture/contents, shared interaction targeting, search sessions and guarded one-time spills) and src/search-view.js (temporary objects and progress feedback). New loot state starts empty; valuables enter the floor only through search completion or player drops. Input tracks held E with blur/visibility clearing. Searches require continuous E and remaining beside the object; movement, release, reach/path loss, a hit, item lifting or downed/run completion interrupts and resets them. Guards continue updating.
+
+Completion marks searched before releasing contents; no repeat spill. The held key is not reused for automatic pickup. Released items carry stable IDs and a brief spill animation; all pickup/rotation/packing/drop rules and drawItem visuals are reused. New interaction selection chooses either loose loot or an unsearched object by cursor/reach, with matching prompts/reticles. Existing held-item drop and tunnel E priority are retained.
+
+SEARCH values: reach 1.6 tiles, movement tolerance 0.08, crate/chest/cupboard 1.5/2.5/3.5 seconds. These are provisional, not final balance. Furniture is non-solid in this chunk so existing navigation and corridor collision remain untouched. Contents are deterministic test data; there is no Proplet importer or asset change.
+
+Validation: 34 tests pass. Search generation and all spills checked across 100 maps for valid accessible floor and unique IDs. Cases cover partial holds, release/movement/distance/wall/held-item/downed cancellation, restart timing, full sacks, target preference and one-time release. Existing dungeon loops, guard navigation/combat, inventory and run tests pass. Packing/run unit tests now use explicit loose-loot fixtures, while the real event-wiring smoke searches actual furniture before pickup, checks release cancellation and no auto-pack, then packing, extraction, a second search, guard downing/lost cursor loot and healthy restart. Build and standalone module syntax pass. No rendered browser QA was available; timing/visual feel need user review.
+
+Download: green-team-search-v7.html. Canonical generated file remains play.html. No builder panel or balance pass, persistent stash, lair, traps, new map view, hosting or multiplayer added.

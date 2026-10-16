@@ -1,8 +1,9 @@
+import { createLooseLoot as createLoot } from './fixtures.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon } from '../src/world.js';
 import { createRun, atTunnel, finishRun } from '../src/run.js';
-import { createLoot, autoPickup, liftItem, dropHeld } from '../src/loot.js';
+import { autoPickup, liftItem, dropHeld } from '../src/loot.js';
 
 test('tunnel is at the entrance, requires proximity, and cannot be used through a wall', () => {
   const world = generateDungeon(42), run = createRun(world);

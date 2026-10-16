@@ -1,0 +1,39 @@
+import { CONFIG } from './config.js';
+import { SEARCHABLE_TYPES } from './search.js';
+
+export function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
+  const t = CONFIG.tile;
+  for (const object of objects) {
+    const x = Math.round(object.x * t + ox), y = Math.round(object.y * t + oy);
+    const definition = SEARCHABLE_TYPES[object.type];
+    const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
+    ctx.save(); if (object.searched) ctx.globalAlpha = 0.5;
+    rect(-11, -4, 22, 11, '#182124');
+    if (object.type === 'chest') {
+      rect(-11, -14, 22, 18, '#67503a'); rect(-10, -13, 20, 5, definition.color);
+      rect(-10, -6, 20, 9, '#936a40'); rect(-2, -8, 4, 6, '#e1c981');
+      if (object.searched) { rect(-10, -18, 20, 5, definition.color); rect(-9, -12, 18, 6, '#172022'); }
+    } else if (object.type === 'cupboard') {
+      rect(-10, -27, 20, 30, '#40534a'); rect(-9, -26, 18, 27, definition.color);
+      rect(-1, -24, 2, 24, '#4c6254'); rect(-4, -13, 2, 4, '#dac484'); rect(3, -13, 2, 4, '#dac484');
+      if (object.searched) rect(-7, -23, 7, 21, '#1b2c27');
+    } else {
+      rect(-10, -14, 20, 18, '#694b36'); rect(-9, -13, 18, 16, definition.color);
+      rect(-9, -6, 18, 2, '#6c5037'); rect(-2, -13, 3, 16, '#d0ae7e');
+      if (object.searched) { rect(-7, -11, 14, 7, '#1b2423'); rect(-11, -19, 21, 3, definition.color); }
+    }
+    ctx.restore();
+    if (activeTarget?.id === object.id) {
+      ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - 30.5, 29, 38);
+      ctx.fillStyle = '#d1f69b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(session.active?.id === object.id ? 'SEARCHING' : 'HOLD E', x, y - 34);
+    }
+  }
+}
+
+export function updateSearchPanel(session) {
+  const panel = document.querySelector('#search-panel'); panel.hidden = !session.active;
+  if (!session.active) return;
+  document.querySelector('#search-label').textContent = `Searching ${SEARCHABLE_TYPES[session.active.type].name}…`;
+  document.querySelector('#search-progress').value = Math.min(1, session.elapsed / SEARCHABLE_TYPES[session.active.type].duration);
+}

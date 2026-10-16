@@ -1,3 +1,4 @@
+import { createLooseLoot as createLoot } from './fixtures.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, canStand } from '../src/world.js';
@@ -5,7 +6,7 @@ import { COMBAT } from '../src/config.js';
 import { createGuard, createVitality, tickVitality, hurtPlayer, seesPlayer, updateGuard } from '../src/guard.js';
 import { findPath, followPath } from '../src/navigation.js';
 import { createRun, finishRun, loseRun } from '../src/run.js';
-import { createLoot, autoPickup, liftItem } from '../src/loot.js';
+import { autoPickup, liftItem } from '../src/loot.js';
 
 const arena = () => ({ width: 20, height: 20, tiles: Uint8Array.from({ length: 400 }, (_, i) => i % 20 > 0 && i % 20 < 19 && Math.floor(i / 20) > 0 && Math.floor(i / 20) < 19 ? 1 : 0), spawn: { x: 4.5, y: 4.5 }, rooms: [{ x: 2, y: 2, w: 5, h: 5, cx: 4, cy: 4 }, { x: 10, y: 10, w: 5, h: 5, cx: 12, cy: 12 }] });
 const enemy = world => ({ ...createGuard(world), x: 5.5, y: 5.5, angle: 0 });
