@@ -114,3 +114,13 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - User approved the sliding sack and requested the search loading bar appear over the actual searched cupboard/chest/crate as a little pixel bar.
 - V9 draws a small pixel progress bar attached to that object's world position. It moves with the camera, fills from the existing search timer, and disappears on cancellation/completion.
 - Remove the separate search progress panel. Search controls, timings, cancellation rules, loot and inventory behaviour are unchanged.
+
+## Predictable local guard patterns — agreed 16 October 2026
+
+- User wants traps brought into runs to help manage guards, plus predictability in guard routines and a sense that exploring an unknown area is the danger.
+- Agreed next step: some rooms have no guard; a fixed lookout alternates between two viewing directions; a room patrol follows a short repeating route with pauses. Previously explored areas become understandable, rather than new danger constantly wandering through them.
+- Quiet rooms are normally unguarded, not invulnerable zones: a pursuing guard may follow the goblin into them. After losing/searching for the goblin, it returns to its assigned post or route.
+- V10 uses three guards in distinct non-entrance rooms (two lookouts and one room patrol) and leaves other rooms unassigned. This is prototype placement/count data. Watch direction comes from room entrances; timing is regular and configured in GUARD_PATTERNS.
+- Existing notice, chase, search, attacks, health and solo downed outcome are reused. Multiple guards share the goblin's damage-immunity window, avoiding simultaneous stacked damage.
+- No fog-of-war/exploration tracker or global alarm introduced. The current viewport and absence of guard markers on the diagnostic map are unchanged.
+- Traps are planned after reviewing guard patterns. The initial proposed direction is a placeable item that briefly holds or stuns a guard for an escape window. Loadout, sack space, placement controls, duration, crafting and replenishment still need defining; no trap implementation in V10.

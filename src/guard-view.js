@@ -2,7 +2,7 @@ import { CONFIG, COMBAT } from './config.js';
 import { isFloor } from './world.js';
 
 export function drawGuardVision(ctx, world, guard, ox, oy) {
-  if (!['patrol', 'suspicious'].includes(guard.state)) return;
+  if (!['patrol', 'suspicious', 'return'].includes(guard.state)) return;
   const t = CONFIG.tile;
   ctx.beginPath(); ctx.moveTo(guard.x * t + ox, guard.y * t + oy);
   for (let ray = 0; ray <= 24; ray++) {
@@ -28,16 +28,20 @@ export function drawGuard(ctx, guard, ox, oy) {
     ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
   }
   rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
-  rect(-7, -17, 14, 13, '#a65f49'); rect(-5, -15, 10, 3, '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
+  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
   rect(-5, -24, 11, 10, '#a9b2b2'); rect(-6, -23, 13, 3, '#d2d5c6'); rect(-4, -19, 9, 3, '#283b3e');
   rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
   ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x + Math.cos(guard.angle) * 12, y - 12 + Math.sin(guard.angle) * 12); ctx.stroke();
   if (guard.state !== 'patrol') {
     ctx.fillStyle = alert ? '#f19a91' : '#efd18a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'search' ? '…' : '!', x, y - 29);
+    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
   }
   if (guard.state === 'suspicious') {
     rect(-9, -29, 18, 2, '#242e29'); rect(-9, -29, Math.round(18 * guard.suspicion), 2, '#efd18a');
+  }
+  if (guard.state === 'patrol') {
+    ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
   }
 }

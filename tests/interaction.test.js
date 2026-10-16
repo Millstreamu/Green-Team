@@ -84,13 +84,29 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
-  // Search again, lift an actual spilled item, return and let the real guard
-  // arrive. The main loop must show loss rather than an escaped haul.
+  // Search again, lift actual spilled loot and deliberately approach a lookout.
+  // Guards no longer wander into the starting room on their normal routine.
   key('KeyD'); for (let i = 0; i < 14; i++) tick(); release('KeyD');
   key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
   doc.send('pointerdown', { target: elements.get('game'), clientX: 445, clientY: 324 }); tick();
   assert.match(elements.get('held-label').textContent, /Holding Ruby/);
   key('KeyA'); for (let i = 0; i < 14; i++) tick(); release('KeyA');
+  const { generateDungeon } = await import('../src/world.js');
+  const { createGuards } = await import('../src/guard.js');
+  const { findPath } = await import('../src/navigation.js');
+  const map = generateDungeon(42), post = createGuards(map)[0];
+  const route = findPath(map, map.spawn, post);
+  const simulated = { ...map.spawn };
+  for (const goal of route) {
+    for (let i = 0; i < 100 && Math.hypot(goal.x - simulated.x, goal.y - simulated.y) > 0.05 && !elements.get('run-results').open; i++) {
+      const dx = goal.x - simulated.x, dy = goal.y - simulated.y;
+      const horizontal = Math.abs(dx) > 0.045;
+      const code = horizontal ? dx > 0 ? 'KeyD' : 'KeyA' : dy > 0 ? 'KeyS' : 'KeyW';
+      key(code); tick(); release(code);
+      if (horizontal) simulated.x += Math.sign(dx) * 4.5 * 0.016; else simulated.y += Math.sign(dy) * 4.5 * 0.016;
+    }
+    if (elements.get('run-results').open) break;
+  }
   for (let i = 0; i < 4000 && !elements.get('run-results').open; i++) tick();
   assert.equal(elements.get('run-results').open, true);
   assert.equal(elements.get('results-title').textContent, 'You went down.');

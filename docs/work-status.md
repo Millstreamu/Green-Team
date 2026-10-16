@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: pixel search bar over the searched object
+## Current task: predictable lookouts and room patrols
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; V10 now awaits pattern playtesting.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to check V9's pixel search bar above objects. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to observe V10's lookouts, paused room patrols and quiet-room/pursuit distinction. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -95,3 +95,15 @@ src/search-view.js now draws a compact pixel bar immediately above the active ob
 Validation: the 39 existing tests pass, including search cancellation/completion and the interaction smoke (now checking the shared search-state prompt instead of the deleted panel). Standalone build/module syntax pass, and generated HTML has no old search panel/call. Visual placement still needs user browser review. No new test suite for this small display change and no gameplay/data changes.
 
 Download: green-team-pixel-search-v9.html. Git canonical build remains play.html.
+
+## V10 guard-pattern handoff
+
+Extends the existing guard.js actor/state/pathfinding system. createGuard takes behaviour/roomIndex, stores an immutable home point and local route, watch directions and pause timers. createGuards assigns three distinct non-starting rooms spread by route distance: two fixed blue lookouts and one brown two-point room patrol. Other rooms have no assigned guard. No routine roams between rooms anymore.
+
+Lookouts alternate two entrance-derived directions at a regular cadence with a short smooth turn. Room patrols pause at each end and remain inside their assigned room while undisturbed. Notice/chase/last-seen search/attacks remain shared. Search completion now enters a return state and navigates to the assigned home before restarting the pattern. Suspicion fading during a return resumes returning. Main loop/render accept an actor array; vitality ticks once per frame and damage immunity is shared across guard strikes.
+
+GUARD_PATTERNS defaults: count 3, lookout interval 2.6s, room endpoint pause 2s, turn speed 2π radians/s. These are provisional. Normal HUD explains patterns without broadcasting remote facing rotations; small actor labels and different tunic colours aid observation. No trap, fog-of-war, map redesign, new alarm or multiplayer added.
+
+Validation: 44 tests pass. New checks cover deterministic three-room assignments across 100 maps, unassigned entrance/quiet rooms, fixed lookout position and repeated timed directions, paused in-room patrols, pursuit leaving the assigned room then returning to its own post, and simultaneous strikes respecting one immunity window. Existing 100-map route/collision tests now cover all guard actors. Mock-DOM smoke still searches/packs/escapes, then deliberately walks to a lookout to test downing/lost-loot/restart, since guards no longer roam into the entrance room. Build and standalone syntax pass. No rendered browser QA; sight/turn timing, local routes and combined difficulty need user playtesting.
+
+Download: green-team-guard-patterns-v10.html. Git canonical generated file remains play.html. Traps are next by agreement, but no loadout/crafting/placement rules are chosen yet. Builder, persistence and multiplayer remain deferred.

@@ -5,7 +5,7 @@ import { createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld, ba
 import { createSackView } from './sack-view.js';
 import { createRun, atTunnel, finishRun, loseRun } from './run.js';
 import { createResultsView } from './results-view.js';
-import { createGuard, updateGuard, createVitality, tickVitality } from './guard.js';
+import { createGuards, updateGuard, createVitality, tickVitality } from './guard.js';
 import { createSearchables, createSearchSession, selectInteraction, beginSearch, cancelSearch, updateSearch, SEARCHABLE_TYPES } from './search.js';
 
 const canvas = document.querySelector('#game');
@@ -20,7 +20,7 @@ try {
   document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
   throw error;
 }
-let world, player, loot, run, guard, previous = 0, target = null, dragStart = null;
+let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
 let objects = [], searchSession = createSearchSession(), searchTarget = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
@@ -35,7 +35,7 @@ const reset = () => {
   results.close();
   world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
   player = { ...world.spawn, ...createVitality(), facing: 1, phase: 0, moving: false };
-  guard = createGuard(world);
+  guards = createGuards(world);
   loot = createLoot(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
   run = createRun(world, performance.now());
   sack.reset();
@@ -138,7 +138,11 @@ const frame = time => {
   previous = time;
   if (run.phase === 'exploring') {
     movePlayer(world, player, input.read(), dt); tickVitality(player, dt);
-    const events = updateGuard(world, guard, player, dt);
+    const events = { hit: false, spotted: false };
+    for (const guard of guards) {
+      const event = updateGuard(world, guard, player, dt);
+      events.hit ||= event.hit; events.spotted ||= event.spotted;
+    }
     if (events.spotted) tell('Spotted! Get out of sight or make for the tunnel.');
     if (events.hit) { cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Keep moving—the next strike takes a moment.`); }
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
@@ -152,7 +156,7 @@ const frame = time => {
   const tunnelReady = atTunnel(run, world, player) && !loot.held;
   updateTarget();
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' }, dt);
-  render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer);
+  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession); sack.paint(loot, pointer);
   let targetText;
   if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
@@ -164,7 +168,7 @@ const frame = time => {
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
   const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;
   if (document.querySelector('#health-label').textContent !== healthText) document.querySelector('#health-label').textContent = healthText;
-  const guardText = run.phase === 'results' ? 'Run ended' : guard.windup > 0 ? 'Guard winding up a strike—move!' : guard.state === 'chase' ? 'GUARD CHASING · get to safety' : guard.state === 'search' ? 'Guard searching the last place it saw you' : guard.state === 'suspicious' ? 'Guard noticing you… break its sight' : 'Guard on patrol';
+  const guardText = run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search') ? 'A guard is searching the last place it saw you' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Observe lookouts and room patrols · learn their pauses';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
     const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';

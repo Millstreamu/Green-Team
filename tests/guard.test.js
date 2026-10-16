@@ -2,8 +2,8 @@ import { createLooseLoot as createLoot } from './fixtures.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, canStand } from '../src/world.js';
-import { COMBAT } from '../src/config.js';
-import { createGuard, createVitality, tickVitality, hurtPlayer, seesPlayer, updateGuard } from '../src/guard.js';
+import { COMBAT, GUARD_PATTERNS } from '../src/config.js';
+import { createGuard, createGuards, createVitality, tickVitality, hurtPlayer, seesPlayer, updateGuard } from '../src/guard.js';
 import { findPath, followPath } from '../src/navigation.js';
 import { createRun, finishRun, loseRun } from '../src/run.js';
 import { autoPickup, liftItem } from '../src/loot.js';
@@ -15,7 +15,8 @@ const step = (world, guard, player, dt = 0.05) => { tickVitality(player, dt); re
 
 test('guard routes stay on walkable tiles and reach all patrol goals across 100 generated maps', () => {
   for (let seed = 0; seed < 100; seed++) {
-    const world = generateDungeon(seed), guard = createGuard(world);
+    const world = generateDungeon(seed);
+    for (const guard of createGuards(world)) {
     assert.ok(canStand(world, guard.x, guard.y, COMBAT.guardRadius));
     for (const goal of guard.patrol) {
       const path = findPath(world, guard, goal);
@@ -25,6 +26,7 @@ test('guard routes stay on walkable tiles and reach all patrol goals across 100 
         assert.ok(canStand(world, guard.x, guard.y, COMBAT.guardRadius));
       }
       assert.ok(Math.hypot(guard.x - goal.x, guard.y - goal.y) < 0.01);
+    }
     }
   }
 });
@@ -71,7 +73,7 @@ test('lost sight searches the last seen position and eventually resumes patrol',
   player.x = -100; player.y = -100;
   step(world, guard, player);
   assert.equal(guard.state, 'search'); assert.deepEqual(guard.lastSeen, seen);
-  for (let i = 0; i < 200; i++) step(world, guard, player);
+  for (let i = 0; i < 1400 && guard.state !== 'patrol'; i++) step(world, guard, player);
   assert.equal(guard.state, 'patrol'); assert.equal(guard.lastSeen, null);
 });
 
@@ -118,4 +120,72 @@ test('solo downed outcome loses bag and cursor loot exactly once and cannot extr
 test('navigation returns safely for unreachable goals', () => {
   const world = arena(); world.tiles[5 * 20 + 8] = 0;
   assert.deepEqual(findPath(world, { x: 5.5, y: 5.5 }, { x: 8.5, y: 5.5 }), []);
+});
+
+test('guard placement is deterministic, leaves the starting room unassigned and retains quiet rooms', () => {
+  for (let seed = 0; seed < 100; seed++) {
+    const world = generateDungeon(seed), guards = createGuards(world);
+    assert.equal(guards.length, GUARD_PATTERNS.count);
+    assert.equal(new Set(guards.map(g => g.roomIndex)).size, guards.length);
+    assert.ok(guards.every(g => g.roomIndex !== 0));
+    assert.ok(world.rooms.length - guards.length >= 2);
+    assert.ok(guards.some(g => g.behaviour === 'lookout') && guards.some(g => g.behaviour === 'room'));
+    assert.deepEqual(guards, createGuards(world));
+  }
+});
+
+test('lookouts remain on their post and repeat two timed directions without random turns', () => {
+  const world = arena(), guard = createGuard(world, { roomIndex: 1, behaviour: 'lookout' });
+  const other = createGuard(world, { roomIndex: 1, behaviour: 'lookout' }), player = goblin(-100, -100);
+  const position = { x: guard.x, y: guard.y }, seenAngles = new Set();
+  for (let i = 0; i < 250; i++) {
+    step(world, guard, player); step(world, other, player);
+    assert.equal(guard.x, position.x); assert.equal(guard.y, position.y); assert.equal(guard.moving, false);
+    assert.equal(guard.angle, other.angle); assert.equal(guard.watchIndex, other.watchIndex);
+    seenAngles.add(guard.watchIndex);
+    if (guard.watchLeft < GUARD_PATTERNS.lookPause - 0.6) {
+      const target = guard.watchAngles[guard.watchIndex];
+      assert.ok(Math.abs(Math.atan2(Math.sin(guard.angle - target), Math.cos(guard.angle - target))) < 0.001);
+    }
+  }
+  assert.equal(seenAngles.size, 2);
+});
+
+test('room patrols pause at their ends and stay inside their assigned room while undisturbed', () => {
+  const world = arena(), guard = createGuard(world, { roomIndex: 1, behaviour: 'room' }), player = goblin(-100, -100);
+  const room = guard.homeRoom, home = { ...guard.home }; let walking = 0, waiting = 0; const endpoints = new Set();
+  for (let i = 0; i < 900; i++) {
+    step(world, guard, player);
+    if (i < 20) { assert.equal(guard.x, home.x); assert.equal(guard.y, home.y); }
+    assert.ok(guard.x >= room.x && guard.x < room.x + room.w && guard.y >= room.y && guard.y < room.y + room.h);
+    assert.ok(canStand(world, guard.x, guard.y, COMBAT.guardRadius));
+    if (guard.moving) walking++; else waiting++;
+    guard.patrol.forEach((point, index) => { if (Math.hypot(guard.x - point.x, guard.y - point.y) < 0.1) endpoints.add(index); });
+  }
+  assert.ok(walking > 0 && waiting > 0); assert.equal(endpoints.size, 2);
+});
+
+test('pursuit can leave an assigned room, then a lost player sends the guard back to its own post', () => {
+  const world = arena(), guard = createGuard(world, { roomIndex: 1, behaviour: 'lookout' }), player = goblin(8.5, 12.5);
+  guard.state = 'chase'; guard.lastSeen = { x: player.x, y: player.y };
+  for (let i = 0; i < 20; i++) step(world, guard, player);
+  assert.ok(guard.x < guard.homeRoom.x); // The unassigned room boundary is not a magical chase barrier.
+  player.x = -100; player.y = -100; let returning = false;
+  for (let i = 0; i < 900; i++) {
+    step(world, guard, player); returning ||= guard.state === 'return';
+    if (returning && guard.state === 'patrol') break;
+  }
+  assert.ok(returning); assert.equal(guard.state, 'patrol');
+  assert.ok(Math.hypot(guard.x - guard.home.x, guard.y - guard.home.y) < 0.01);
+  const returned = { x: guard.x, y: guard.y };
+  for (let i = 0; i < 200; i++) step(world, guard, player);
+  assert.equal(guard.x, returned.x); assert.equal(guard.y, returned.y);
+});
+
+test('simultaneous guard strikes share player damage immunity instead of stacking hits', () => {
+  const world = arena(), player = goblin(6.2, 5.5), guards = [enemy(world), enemy(world)];
+  for (const guard of guards) { guard.state = 'chase'; guard.windup = 0.01; }
+  tickVitality(player, 0.05);
+  const events = guards.map(guard => updateGuard(world, guard, player, 0.05));
+  assert.equal(events.filter(event => event.hit).length, 1); assert.equal(player.health, 2);
 });

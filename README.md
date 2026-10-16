@@ -12,7 +12,7 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Abandon / new dungeon** discards an unfinished run after confirmation. The small map shows your position. This prototype shows the current haul only; no permanent stash or save system has been added.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and one temporary guard, with no crafting or multiplayer.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and three temporary guards with fixed room assignments, with no crafting or multiplayer.
 
 ## Searching
 
@@ -28,7 +28,9 @@ Tune `extraConnections`, `preserveDeadEnds`, `minLoopDetour` and `maxLoopLength`
 
 ## Guard test
 
-One guard patrols room centres using floor paths. Walls block sight. A question mark and filling bar give notice before a chase; breaking sight makes it search the last place it saw you before resuming patrol. The faint cone is a prototype sight aid.
+Two blue lookouts stay at fixed posts, alternating between two directions with regular pauses. One brown room guard walks between two points within its assigned room, pausing at each end. Most rooms, including the entrance room, have no assigned guard. Watch the local routine before moving into an unfamiliar room.
+
+Walls block sight. A question mark and filling bar give notice before a chase. Guards may pursue into otherwise quiet rooms; breaking sight sends them to the last seen position, then back to their own post/route. Quiet rooms are not magical safe zones. The faint cone and small labels are prototype observation aids.
 
 The guard attacks at close range with a visible wind-up and red strike circle. Move away to make it miss. You have three health points with a short gap between damaging hits. Zero health puts you down. In this solo test there is no teammate left to recover you, so the run ends and bag/cursor loot is lost. Start next run restores health; getting close to a guard is not an instant failure.
 
@@ -48,6 +50,7 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
 - `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
 - `COMBAT` in `src/config.js`: provisional health, speeds, sight, notice/search duration, attack range and timing.
+- `GUARD_PATTERNS` in `src/config.js`: guard count, regular lookout/room pauses and turn speed.
 
 Proplet imports will be designed after inspecting real export examples. No import format is assumed here.
 
@@ -65,4 +68,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: review V9's small pixel loading bar above the searched object. The user approved V8's sliding sack. Search rules and timings are unchanged; the new progress display still needs a browser visual check. Server setup and multiplayer testing are deferred.
+Next: observe V10's predictable lookouts and room patrols, then try slipping through their pauses and losing a pursuit in a known area. Traps to bring into a run are the next planned feature after reviewing these guard patterns; trap equipment/placement details still need defining. Server setup and multiplayer testing are deferred.
