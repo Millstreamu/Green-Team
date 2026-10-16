@@ -28,7 +28,7 @@ export function drawGuard(ctx, guard, ox, oy) {
     ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
   }
   rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
-  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
+  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : guard.behaviour === 'roamer' ? '#81729b' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : guard.behaviour === 'roamer' ? '#b2a0ca' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
   rect(-5, -24, 11, 10, '#a9b2b2'); rect(-6, -23, 13, 3, '#d2d5c6'); rect(-4, -19, 9, 3, '#283b3e');
   rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
   ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
@@ -43,7 +43,7 @@ export function drawGuard(ctx, guard, ox, oy) {
     rect(-9, -29, 18, 2, '#242e29'); rect(-9, -29, Math.round(18 * guard.suspicion), 2, '#efd18a');
   }
   if (guard.state === 'patrol') {
-    ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
+    ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : guard.behaviour === 'roamer' ? '#c4b5dc' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.behaviour === 'roamer' ? guard.pauseLeft > 0 ? 'ROAMER / PAUSED' : 'ROAMER' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
   }
 }

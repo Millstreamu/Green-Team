@@ -176,3 +176,12 @@ Item counts save locally to browser storage when available, with an in-memory fa
 **Agreed:** user says the run feels good but wants less loot, occasional materials and containers that turn out empty so players move to the next one. Stash/crafting UI improvements remain deferred.
 
 **Tuning for review:** SEARCH_LOOT controls 60% empty containers, 15% two-item chance among nonempty results (otherwise one), and 45% materials among found items. Valuables reuse each object's existing pool; materials are scrap/cloth. Remove both V15 entrance guarantees. Rewards are seeded/generated once, not rerolled by searching. Full-duration empty searches mark the container searched and say “Nothing worth taking. Try the next one.” No repeat searches, bag drops or auto-pickup for an empty result. New-lair starter supplies remain unchanged.
+
+
+## V17: one local roaming guard — 17 October 2026
+
+**Agreed:** add a guard that patrols several connected rooms alongside existing lookouts/single-room patrols, to make door timing, alternate routes and snares more useful. User approved this next slice.
+
+**Implementation choices for review:** retain two blue lookouts and one brown room patrol; add one purple roamer on normal layouts. Deterministic two/three-room out-and-back route, three-second stop pauses, normal patrol speed. Choose cached adjacent tile centres through actual corridors, excluding the entrance room and limiting outbound path length to 55 points. Most rooms remain outside all normal routines. Prefer a separate home room from existing guards. Skip extra guard safely if layout cannot support such a route.
+
+Uses existing guard actor/state/vision/combat/trail/return/snare code. An unsuccessful search sends it home to restart the fixed route. Pursuit/return can go outside routine territory as with other guards. No new room locking, alarm or multiplayer mechanic. Parameters live in GUARD_PATTERNS; guard-routes.js only chooses the local route.

@@ -1,3 +1,4 @@
+import { createRoamingRoute } from './guard-routes.js';
 import { CONFIG, COMBAT, GUARD_PATTERNS } from './config.js';
 import { canStand } from './world.js';
 import { clearPath } from './loot.js';
@@ -17,10 +18,10 @@ export function createGuard(world, options = {}) {
     .sort((a, b) => Math.hypot(a.room.cx - world.rooms[0].cx, a.room.cy - world.rooms[0].cy) - Math.hypot(b.room.cx - world.rooms[0].cx, b.room.cy - world.rooms[0].cy));
   const roomIndex = options.roomIndex ?? nearest[0]?.index ?? 0;
   const homeRoom = world.rooms[roomIndex], behaviour = options.behaviour ?? 'room';
-  const patrol = behaviour === 'lookout' ? [{ x: homeRoom.cx + 0.5, y: homeRoom.cy + 0.5 }] : [
+  const patrol = options.patrol ?? (behaviour === 'lookout' ? [{ x: homeRoom.cx + 0.5, y: homeRoom.cy + 0.5 }] : [
     { x: homeRoom.x + 1.5, y: homeRoom.cy + 0.5 },
     { x: homeRoom.x + homeRoom.w - 1.5, y: homeRoom.cy + 0.5 }
-  ];
+  ]);
   const doorAngles = { north: -Math.PI / 2, east: 0, south: Math.PI / 2, west: Math.PI };
   const sides = [...new Set((homeRoom.entrances ?? []).map(door => door.side))];
   const firstAngle = doorAngles[sides[0]] ?? 0;
@@ -38,7 +39,16 @@ export function createGuards(world) {
     .sort((a, b) => a.distance - b.distance);
   const count = Math.min(GUARD_PATTERNS.count, rooms.length);
   const selected = Array.from({ length: count }, (_, i) => count === 1 ? 0 : Math.round(i * (rooms.length - 1) / (count - 1))); 
-  return selected.filter(index => rooms[index]).map((index, i) => createGuard(world, { roomIndex: rooms[index].index, behaviour: i === 1 ? 'room' : 'lookout' }));
+  const guards = selected.filter(index => rooms[index]).map((index, i) => createGuard(world, { roomIndex: rooms[index].index, behaviour: i === 1 ? 'room' : 'lookout' }));
+  if (GUARD_PATTERNS.roamerEnabled) {
+    const route = createRoamingRoute(world, guards.map(guard => guard.roomIndex));
+    if (route) {
+      const guard = createGuard(world, { roomIndex: route.homeRoomIndex, behaviour: 'roamer', patrol: route.stops });
+      guard.roamRoute = route.points; guard.roamRooms = route.roomIndices; guard.roamIndex = 1; guard.pauseLeft = GUARD_PATTERNS.roamPause;
+      guards.push(guard);
+    }
+  }
+  return guards;
 }
 
 function turnGuard(guard, angle, dt) {
@@ -49,6 +59,7 @@ function turnGuard(guard, angle, dt) {
 function resetGuardRoutine(guard) {
   guard.watchIndex = 0; guard.watchLeft = GUARD_PATTERNS.lookPause; guard.pauseLeft = GUARD_PATTERNS.roomPause;
   guard.patrolIndex = guard.behaviour === 'lookout' ? 0 : 1; guard.path = []; guard.goal = null; guard.repath = 0;
+  if (guard.behaviour === 'roamer') { guard.roamIndex = 1; guard.pauseLeft = GUARD_PATTERNS.roamPause; }
   clearGuardTrail(guard);
 }
 
@@ -74,6 +85,7 @@ function recordGuardTrail(world, guard, player, dt) {
 }
 
 function updateRoutine(world, guard, dt) {
+  if (guard.behaviour === 'roamer') { updateRoamingRoutine(world, guard, dt); return; }
   if (guard.behaviour === 'lookout') {
     guard.watchLeft -= dt;
     if (guard.watchLeft <= 0) { guard.watchLeft += GUARD_PATTERNS.lookPause; guard.watchIndex = (guard.watchIndex + 1) % 2; }
@@ -90,6 +102,25 @@ function updateRoutine(world, guard, dt) {
     guard.watchIndex = (guard.watchIndex + 1) % 2; guard.pauseLeft = GUARD_PATTERNS.roomPause; guard.repath = 0; return;
   }
   setGuardGoal(world, guard, goal, dt);
+  guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+}
+
+function updateRoamingRoutine(world, guard, dt) {
+  const route = guard.roamRoute;
+  if (!route?.length) return;
+  let goal = route[guard.roamIndex];
+  if (guard.pauseLeft > 0) {
+    guard.pauseLeft = Math.max(0, guard.pauseLeft - dt);
+    turnGuard(guard, Math.atan2(goal.y - guard.y, goal.x - guard.x), dt);
+    return;
+  }
+  if (Math.hypot(goal.x - guard.x, goal.y - guard.y) < .01) {
+    guard.x = goal.x; guard.y = goal.y;
+    const stop = guard.patrol.some(point => Math.hypot(point.x - goal.x, point.y - goal.y) < .01);
+    guard.roamIndex = (guard.roamIndex + 1) % route.length; goal = route[guard.roamIndex];
+    if (stop) { guard.pauseLeft = GUARD_PATTERNS.roamPause; return; }
+  }
+  guard.path = [{ ...goal }];
   guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
 }
 

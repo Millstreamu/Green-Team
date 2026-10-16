@@ -12,7 +12,7 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Return to lair** during a run abandons carried loot/traps after confirmation; stock already at home is safe. The small map shows your position. Lair stock carries between runs and saves locally in this browser when browser storage is available. The footer reports whether saving works. Active dungeon runs are not saved; reloading returns home with the supplies already spent when that run started.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and three temporary guards with fixed room assignments, with basic snare crafting and no multiplayer.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with basic snare crafting and no multiplayer.
 
 ## Searching
 
@@ -28,7 +28,7 @@ Tune `extraConnections`, `preserveDeadEnds`, `minLoopDetour` and `maxLoopLength`
 
 ## Guard test
 
-Two blue lookouts stay at fixed posts, alternating between two directions with regular pauses. One brown room guard walks between two points within its assigned room, pausing at each end. Most rooms, including the entrance room, have no assigned guard. Watch the local routine before moving into an unfamiliar room.
+Two blue lookouts stay at fixed posts, alternating between two directions with regular pauses. One brown room guard walks between two points within its assigned room, pausing at each end. One purple roaming guard repeats a route through two or three connected rooms, pausing for three seconds at its stops before retracing the same corridors. Several rooms have no normal guard route; the entrance room is excluded from all normal routines. Chases may still reach it. Watch the local routine before moving into an unfamiliar room.
 
 Walls block sight. A question mark and filling bar give notice before a chase. Guards may pursue into otherwise quiet rooms; breaking sight starts a brief invisible trail of the goblin's next movements. The guard follows it at a slower search pace, including around corners into rooms, then looks around at the end before returning to its post/route. Hidden movements stop adding clues after 2.5 seconds. Actual sight resumes the chase; another later sight break starts a new brief trail. Quiet rooms are not magical safe zones. The faint cone and small labels are prototype observation aids.
 
@@ -50,7 +50,7 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
 - `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
 - `COMBAT` in `src/config.js`: provisional health, speeds (including slower search), 2.5-second trail window, trail spacing, sight, notice/search duration, attack range and timing.
-- `GUARD_PATTERNS` in `src/config.js`: guard count, regular lookout/room pauses and turn speed.
+- `GUARD_PATTERNS` in `src/config.js`: the three existing local guards, optional one-roamer switch, route room/length limits, regular pauses and turn speed.
 
 Proplet imports will be designed after inspecting real export examples. No import format is assumed here.
 
@@ -114,3 +114,12 @@ User requested less loot, occasional materials, and searches that sometimes find
 The entrance chest no longer guarantees ruby/coin and the entrance crate no longer guarantees a full snare recipe. Empty searches still take their normal time, finish/dim the container and cannot be repeated. They say “Nothing worth taking. Try the next one.” Starter supplies in a new lair are retained. No crafting or guard timing changes.
 
 Verified: 64 automated tests, including sparse reward distribution across 200 maps, completed empty searches, repeat prevention and an actual empty-search event flow. Standalone build and bundled syntax check pass; browser feel still needs review. Download green-team-sparse-loot-v16.html.
+
+
+## V17: local roaming guard
+
+Adds one purple guard while retaining the two blue lookouts and brown single-room patrol. A deterministic route builder chooses two or three connected rooms and caches the actual corridor path, then retraces it in a repeating out-and-back routine. Stops pause for three seconds and face the next leg. Routine movement uses the existing collision/path-following code and normal patrol speed. The entrance room is excluded, and most rooms remain outside normal routes. Small/unusual layouts skip the extra guard if no safe local route exists.
+
+The same sight, suspicion, chase, attack, invisible trail, return-home and snare rules apply. After an unsuccessful search, it returns home and restarts its routine. A chase/return may pass outside normal patrol territory; unpatrolled rooms are not invulnerable zones. `guard-routes.js` builds routes; `guard.js` uses them within the existing patrol state. No extra loot, alarm, UI or multiplayer system added.
+
+Tune `roamerEnabled`, `roamRooms` (3), `roamMaxLength` (55 outbound path points) and `roamPause` (3 seconds) in GUARD_PATTERNS. Those are provisional balance settings. Verified: 68 tests, including 200 generated routes, actual repeated movement/pauses, snare interruption, investigation/return and blocked-layout fallback. Standalone build and bundled syntax pass; rendered browser difficulty/feel await playtest. Download green-team-roaming-guard-v17.html.

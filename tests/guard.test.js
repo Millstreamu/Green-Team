@@ -125,7 +125,8 @@ test('navigation returns safely for unreachable goals', () => {
 test('guard placement is deterministic, leaves the starting room unassigned and retains quiet rooms', () => {
   for (let seed = 0; seed < 100; seed++) {
     const world = generateDungeon(seed), guards = createGuards(world);
-    assert.equal(guards.length, GUARD_PATTERNS.count);
+    assert.equal(guards.filter(g => g.behaviour !== 'roamer').length, GUARD_PATTERNS.count);
+    assert.equal(guards.filter(g => g.behaviour === 'roamer').length, 1);
     assert.equal(new Set(guards.map(g => g.roomIndex)).size, guards.length);
     assert.ok(guards.every(g => g.roomIndex !== 0));
     assert.ok(world.rooms.length - guards.length >= 2);

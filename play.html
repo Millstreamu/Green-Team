@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Sparse loot V16</title>
+<title>Green Team · Roaming guard V17</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
 
@@ -21,8 +21,8 @@
 </style>
 </head>
 <body><main>
-<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Sparse loot · V16</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><button id="regenerate">Return to lair</button></header>
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected snare<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench or tunnel.<br>Searches can come up empty.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Choose your traps before each run.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Roaming guard · V17</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><button id="regenerate">Return to lair</button></header>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected snare<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench or tunnel.<br>Searches can come up empty.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Choose your traps before each run.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span id="save-status">LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
 </main><dialog id="lair-panel" class="results" aria-labelledby="lair-title"><div class="eyebrow">YOUR LITTLE LAIR</div><h2 id="lair-title">Lair stash</h2><p id="lair-description"></p><ul id="stash-list" class="item-list" aria-label="Lair stash contents"></ul><p id="stash-empty" hidden>Your stash is empty. Bring back loot from the dungeon.</p><button id="craft-snare">Craft snare · 2 scrap + 1 cloth</button><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="run-setup" class="results" aria-labelledby="setup-title"><div class="eyebrow">BEFORE THE RUN</div><h2 id="setup-title">Pack your traps</h2><p>Choose what goes into your sack. Each trap uses its own square. Set 0 to leave it behind.</p><label class="loadout-row" for="snare-count"><span>Snare trap · 1 square each</span><input id="snare-count" type="number" min="0" max="9" step="1" value="1" aria-describedby="loadout-total"></label><p id="snare-stock"></p><label class="debug-toggle"><input id="debug-supplies" type="checkbox"> Debug: free test traps</label><p class="note">Debug traps do not use stash stock and cannot be banked.</p><p id="loadout-total" role="status"></p><button id="start-run">Start run →</button><button id="cancel-loadout" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
@@ -36,7 +36,7 @@ const COMBAT = Object.freeze({ health: 3, invulnerable: 1.0, patrolSpeed: 1.8, c
 
 const SEARCH = Object.freeze({ reach: 1.6, movementTolerance: 0.08, chestTime: 2.5, cupboardTime: 3.5, crateTime: 1.5, spillTime: 0.4 });
 
-const GUARD_PATTERNS = Object.freeze({ count: 3, lookPause: 2.6, roomPause: 2.0, turnSpeed: Math.PI * 2 });
+const GUARD_PATTERNS = Object.freeze({ count: 3, roamerEnabled: true, roamRooms: 3, roamMaxLength: 55, roamPause: 3, lookPause: 2.6, roomPause: 2.0, turnSpeed: Math.PI * 2 });
 
 const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, triggerRadius: 0.32, clearMargin: 0.15, armDelay: 0.25 });
 
@@ -594,6 +594,41 @@ function followPath(world, actor, path, distance, radius = 0.26) {
 }
 
 
+const roomContains = (room, point) => point.x >= room.x && point.x < room.x + room.w && point.y >= room.y && point.y < room.y + room.h;
+function createRoamingRoute(world, occupiedRooms = []) {
+  if (world.rooms.length < 3) return null;
+  // This view is used only to choose the routine; pursuit still uses the real map.
+  const tiles = world.tiles.slice(), entrance = world.rooms[0];
+  for (let y = entrance.y; y < entrance.y + entrance.h; y++) for (let x = entrance.x; x < entrance.x + entrance.w; x++) tiles[y * world.width + x] = 0;
+  const routineWorld = { ...world, tiles };
+  const pathBetween = (from, to) => {
+    const path = findPath(routineWorld, from, to);
+    return path.length ? [{ ...from }, ...path] : [];
+  };
+  const candidates = world.rooms.map((room, index) => ({ index, point: { x: room.cx + .5, y: room.cy + .5 } })).filter(entry => entry.index !== 0 && !occupiedRooms.includes(entry.index));
+  const touched = path => world.rooms.map((room, index) => path.some(point => roomContains(room, point)) ? index : -1).filter(index => index >= 0);
+  const pairs = candidates.flatMap((a, i) => candidates.slice(i + 1).map(b => ({ a, b, distance: Math.hypot(a.point.x - b.point.x, a.point.y - b.point.y) }))).sort((a, b) => a.distance - b.distance || a.a.index - b.a.index || a.b.index - b.b.index);
+  for (const { a, b } of pairs) {
+    let path = pathBetween(a.point, b.point);
+    if (!path.length || path.length > GUARD_PATTERNS.roamMaxLength) continue;
+    let roomIndices = touched(path);
+    if (roomIndices.length > GUARD_PATTERNS.roamRooms) continue;
+    const stops = [{ ...a.point }, { ...b.point }];
+    // Add one nearby stop if the entire out-and-back route still stays local.
+    const extra = candidates.filter(entry => !roomIndices.includes(entry.index)).sort((c, d) => Math.hypot(c.point.x - b.point.x, c.point.y - b.point.y) - Math.hypot(d.point.x - b.point.x, d.point.y - b.point.y) || c.index - d.index);
+    for (const c of extra) {
+      const leg = pathBetween(b.point, c.point);
+      const combined = [...path, ...leg.slice(1)], nextRooms = touched(combined);
+      if (!leg.length || combined.length > GUARD_PATTERNS.roamMaxLength || nextRooms.length > GUARD_PATTERNS.roamRooms) continue;
+      path = combined; roomIndices = nextRooms; stops.push({ ...c.point }); break;
+    }
+    // Mirror the same corridor path to produce an observable repeating routine.
+    return { points: [...path, ...path.slice(1, -1).reverse().map(point => ({ ...point }))], stops, roomIndices, homeRoomIndex: a.index };
+  }
+  return null; // Small/unusual layouts keep the existing guards rather than force a bad route.
+}
+
+
 function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active' }; }
 function tickVitality(player, dt) { player.invulnerable = Math.max(0, player.invulnerable - dt); }
 function hurtPlayer(player, damage = 1) {
@@ -608,10 +643,10 @@ function createGuard(world, options = {}) {
     .sort((a, b) => Math.hypot(a.room.cx - world.rooms[0].cx, a.room.cy - world.rooms[0].cy) - Math.hypot(b.room.cx - world.rooms[0].cx, b.room.cy - world.rooms[0].cy));
   const roomIndex = options.roomIndex ?? nearest[0]?.index ?? 0;
   const homeRoom = world.rooms[roomIndex], behaviour = options.behaviour ?? 'room';
-  const patrol = behaviour === 'lookout' ? [{ x: homeRoom.cx + 0.5, y: homeRoom.cy + 0.5 }] : [
+  const patrol = options.patrol ?? (behaviour === 'lookout' ? [{ x: homeRoom.cx + 0.5, y: homeRoom.cy + 0.5 }] : [
     { x: homeRoom.x + 1.5, y: homeRoom.cy + 0.5 },
     { x: homeRoom.x + homeRoom.w - 1.5, y: homeRoom.cy + 0.5 }
-  ];
+  ]);
   const doorAngles = { north: -Math.PI / 2, east: 0, south: Math.PI / 2, west: Math.PI };
   const sides = [...new Set((homeRoom.entrances ?? []).map(door => door.side))];
   const firstAngle = doorAngles[sides[0]] ?? 0;
@@ -629,7 +664,16 @@ function createGuards(world) {
     .sort((a, b) => a.distance - b.distance);
   const count = Math.min(GUARD_PATTERNS.count, rooms.length);
   const selected = Array.from({ length: count }, (_, i) => count === 1 ? 0 : Math.round(i * (rooms.length - 1) / (count - 1))); 
-  return selected.filter(index => rooms[index]).map((index, i) => createGuard(world, { roomIndex: rooms[index].index, behaviour: i === 1 ? 'room' : 'lookout' }));
+  const guards = selected.filter(index => rooms[index]).map((index, i) => createGuard(world, { roomIndex: rooms[index].index, behaviour: i === 1 ? 'room' : 'lookout' }));
+  if (GUARD_PATTERNS.roamerEnabled) {
+    const route = createRoamingRoute(world, guards.map(guard => guard.roomIndex));
+    if (route) {
+      const guard = createGuard(world, { roomIndex: route.homeRoomIndex, behaviour: 'roamer', patrol: route.stops });
+      guard.roamRoute = route.points; guard.roamRooms = route.roomIndices; guard.roamIndex = 1; guard.pauseLeft = GUARD_PATTERNS.roamPause;
+      guards.push(guard);
+    }
+  }
+  return guards;
 }
 
 function turnGuard(guard, angle, dt) {
@@ -640,6 +684,7 @@ function turnGuard(guard, angle, dt) {
 function resetGuardRoutine(guard) {
   guard.watchIndex = 0; guard.watchLeft = GUARD_PATTERNS.lookPause; guard.pauseLeft = GUARD_PATTERNS.roomPause;
   guard.patrolIndex = guard.behaviour === 'lookout' ? 0 : 1; guard.path = []; guard.goal = null; guard.repath = 0;
+  if (guard.behaviour === 'roamer') { guard.roamIndex = 1; guard.pauseLeft = GUARD_PATTERNS.roamPause; }
   clearGuardTrail(guard);
 }
 
@@ -665,6 +710,7 @@ function recordGuardTrail(world, guard, player, dt) {
 }
 
 function updateRoutine(world, guard, dt) {
+  if (guard.behaviour === 'roamer') { updateRoamingRoutine(world, guard, dt); return; }
   if (guard.behaviour === 'lookout') {
     guard.watchLeft -= dt;
     if (guard.watchLeft <= 0) { guard.watchLeft += GUARD_PATTERNS.lookPause; guard.watchIndex = (guard.watchIndex + 1) % 2; }
@@ -681,6 +727,25 @@ function updateRoutine(world, guard, dt) {
     guard.watchIndex = (guard.watchIndex + 1) % 2; guard.pauseLeft = GUARD_PATTERNS.roomPause; guard.repath = 0; return;
   }
   setGuardGoal(world, guard, goal, dt);
+  guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+}
+
+function updateRoamingRoutine(world, guard, dt) {
+  const route = guard.roamRoute;
+  if (!route?.length) return;
+  let goal = route[guard.roamIndex];
+  if (guard.pauseLeft > 0) {
+    guard.pauseLeft = Math.max(0, guard.pauseLeft - dt);
+    turnGuard(guard, Math.atan2(goal.y - guard.y, goal.x - guard.x), dt);
+    return;
+  }
+  if (Math.hypot(goal.x - guard.x, goal.y - guard.y) < .01) {
+    guard.x = goal.x; guard.y = goal.y;
+    const stop = guard.patrol.some(point => Math.hypot(point.x - goal.x, point.y - goal.y) < .01);
+    guard.roamIndex = (guard.roamIndex + 1) % route.length; goal = route[guard.roamIndex];
+    if (stop) { guard.pauseLeft = GUARD_PATTERNS.roamPause; return; }
+  }
+  guard.path = [{ ...goal }];
   guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
 }
 
@@ -1044,7 +1109,7 @@ function drawGuard(ctx, guard, ox, oy) {
     ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
   }
   rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
-  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
+  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : guard.behaviour === 'roamer' ? '#81729b' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : guard.behaviour === 'roamer' ? '#b2a0ca' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
   rect(-5, -24, 11, 10, '#a9b2b2'); rect(-6, -23, 13, 3, '#d2d5c6'); rect(-4, -19, 9, 3, '#283b3e');
   rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
   ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
@@ -1059,8 +1124,8 @@ function drawGuard(ctx, guard, ox, oy) {
     rect(-9, -29, 18, 2, '#242e29'); rect(-9, -29, Math.round(18 * guard.suspicion), 2, '#efd18a');
   }
   if (guard.state === 'patrol') {
-    ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
+    ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : guard.behaviour === 'roamer' ? '#c4b5dc' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.behaviour === 'roamer' ? guard.pauseLeft > 0 ? 'ROAMER / PAUSED' : 'ROAMER' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
   }
 }
 
@@ -1448,7 +1513,7 @@ const frame = time => {
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
   const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;
   if (document.querySelector('#health-label').textContent !== healthText) document.querySelector('#health-label').textContent = healthText;
-  const guardText = world.lair ? 'Safe at home · craft and prepare' : run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Observe lookouts and room patrols · learn their pauses';
+  const guardText = world.lair ? 'Safe at home · craft and prepare' : run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Watch guard pauses · a purple roamer links nearby rooms';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
     const hint = placement.itemId ? 'WASD aim · hold E to place · Esc cancels · Tab opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
