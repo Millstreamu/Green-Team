@@ -29,7 +29,7 @@ export function createGuard(world, options = {}) {
     angle: firstAngle, watchAngles, watchIndex: 0, watchLeft: GUARD_PATTERNS.lookPause, pauseLeft: GUARD_PATTERNS.roomPause,
     state: 'patrol', suspicion: 0, patrol, patrolIndex: behaviour === 'lookout' ? 0 : 1, path: [], repath: 0, goal: null, lastSeen: null,
     searchLeft: COMBAT.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
-    windup: 0, cooldown: 0, swing: 0, moving: false, resumeState: 'patrol' };
+    windup: 0, cooldown: 0, swing: 0, snareLeft: 0, moving: false, resumeState: 'patrol' };
 }
 
 export function createGuards(world) {
@@ -112,6 +112,7 @@ function setGuardGoal(world, guard, point, dt) {
 export function updateGuard(world, guard, player, dt) {
   const events = { hit: false, spotted: false };
   if (player.state !== 'active' || dt <= 0) return events;
+  if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; return events; }
   guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
   const alerted = guard.state === 'chase' || guard.state === 'search';
   const sees = seesPlayer(world, guard, player, alerted);

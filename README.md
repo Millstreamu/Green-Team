@@ -69,3 +69,12 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
 Next: try V11 by turning out of sight around a hallway corner into a room. The user reported V10 works pretty well but guards stopped at the corner; V11 adds the short invisible trail to carry that investigation farther. Traps to bring into a run are the next planned feature after reviewing these guard patterns; trap equipment/placement details still need defining. Server setup and multiplayer testing are deferred.
+
+
+## V12: single-use snare
+
+Each prototype run starts with one snare occupying one sack square. I opens the same sack; choose the snare with arrows or click it, then press E to equip. The sack hides and a nearby floor preview appears. Aim with the mouse, release E after equipping, then stand still and hold E for one second to place. The preview turns red on blocked positions. Escape cancels without losing the item; I cancels and opens the sack. No direction or rotation is needed.
+
+A placed snare waits until its setter is fully clear, then arms after 0.25 seconds. Any goblin crossing an armed snare spends it harmlessly; a guard crossing it is held for three seconds and cannot attack during the hold. This is a test supply, not crafting or a permanent loadout system. Unused snares do not count as stolen treasure. Tune values in `TRAPS` in src/config.js.
+
+V12 verification: 53 automated tests, standalone build and bundled JavaScript syntax check. Rendered browser appearance/feel awaits user playtest. Download/build `play.html`; the distinct review copy is `green-team-snares-v12.html`.

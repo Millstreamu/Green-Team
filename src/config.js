@@ -10,3 +10,5 @@ export const COMBAT = Object.freeze({ health: 3, invulnerable: 1.0, patrolSpeed:
 export const SEARCH = Object.freeze({ reach: 1.6, movementTolerance: 0.08, chestTime: 2.5, cupboardTime: 3.5, crateTime: 1.5, spillTime: 0.4 });
 
 export const GUARD_PATTERNS = Object.freeze({ count: 3, lookPause: 2.6, roomPause: 2.0, turnSpeed: Math.PI * 2 });
+
+export const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, triggerRadius: 0.32, clearMargin: 0.15, armDelay: 0.25 });

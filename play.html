@@ -18,7 +18,7 @@
 </head>
 <body><main>
 <header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Fading trail · V11</h1><p>Break their sight. Leave them searching. Get back to the tunnel.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut I.">‹ SACK · I</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>I</kbd> open / close sack<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">The sack slides away as you move.<br>I or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut I.">‹ SACK · I</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>I</kbd> open / close sack<br>Arrows or click: select snare<br><kbd>E</kbd> equip selected snare<br>Then hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">One test snare starts in your sack.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>I or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
 </main><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><ul id="haul-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Start next run →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
@@ -33,6 +33,8 @@ const COMBAT = Object.freeze({ health: 3, invulnerable: 1.0, patrolSpeed: 1.8, c
 const SEARCH = Object.freeze({ reach: 1.6, movementTolerance: 0.08, chestTime: 2.5, cupboardTime: 3.5, crateTime: 1.5, spillTime: 0.4 });
 
 const GUARD_PATTERNS = Object.freeze({ count: 3, lookPause: 2.6, roomPause: 2.0, turnSpeed: Math.PI * 2 });
+
+const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, triggerRadius: 0.32, clearMargin: 0.15, armDelay: 0.25 });
 
 // Post-process the existing connected layout. Keep generation independent of UI.
 function floorAt(world, x, y, added = null) {
@@ -184,11 +186,12 @@ function movePlayer(world, player, input, dt, config = CONFIG) {
   player.phase = player.moving ? player.phase + dt * config.hopRate : 0;
 }
 
-function createInput(target) {
+function createInput(target, inventoryOpen = () => false) {
   const keys = new Set();
   const movementKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
   target.addEventListener('keydown', e => {
     if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select,button')) return;
+    if (e.code.startsWith('Arrow') && inventoryOpen()) { e.preventDefault(); return; }
     if (movementKeys.has(e.code) || e.code === 'KeyE') { e.preventDefault(); keys.add(e.code); }
   });
   target.addEventListener('keyup', e => keys.delete(e.code));
@@ -210,7 +213,8 @@ const LOOT_TYPES = Object.freeze({
   candlestick: { name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
   scroll: { name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
   sword: { name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
-  horn: { name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' }
+  horn: { name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' },
+  snare: { name: 'Snare trap', color: '#a9c3a3', cells: [[0, 0]], mark: '⌘', equipment: true }
 });
 
 function itemCells(item) {
@@ -295,6 +299,68 @@ function dropHeld(state, world, player) {
   if (!at) return false;
   state.ground.push({ ...state.held, ...at }); state.held = null;
   return true;
+}
+
+
+function addStartingSnare(loot, seed) {
+  const item = findSpace(loot.bag, { id: `${seed}-snare`, type: 'snare', rotation: 0 });
+  if (item) loot.bag.push(item);
+}
+function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null }; }
+function cancelPlacement(placement) { Object.assign(placement, createPlacement()); }
+function interruptPlacement(placement) { placement.elapsed = 0; placement.ready = false; placement.origin = null; }
+function equipSnare(placement, loot, id) {
+  if (loot.held || !loot.bag.some(item => item.id === id && item.type === 'snare')) return false;
+  cancelPlacement(placement); placement.itemId = id;
+  // Keep the sack cell reserved until completion, so cancel never loses an item.
+  return true;
+}
+function placementPoint(player, pointer = null) {
+  const dx = pointer ? pointer.x - player.x : player.facing || 1, dy = pointer ? pointer.y - player.y : 0;
+  const distance = Math.hypot(dx, dy), scale = distance > TRAPS.reach ? TRAPS.reach / distance : 1;
+  return { x: player.x + dx * scale, y: player.y + dy * scale };
+}
+function validTrapPosition(world, player, point, traps, objects = []) {
+  return !!point && Math.hypot(point.x - player.x, point.y - player.y) <= TRAPS.reach + 0.001 && canStand(world, point.x, point.y, TRAPS.triggerRadius)
+    && clearPath(world, player, point) && traps.every(trap => trap.phase === 'spent' || Math.hypot(trap.x - point.x, trap.y - point.y) >= 0.8)
+    && objects.every(object => Math.hypot(object.x - point.x, object.y - point.y) >= 0.65);
+}
+function updatePlacement(placement, world, player, loot, traps, objects, point, heldE, dt) {
+  if (!placement.itemId) return null;
+  if (player.state === 'down' || !loot.bag.some(item => item.id === placement.itemId)) { cancelPlacement(placement); return null; }
+  if (placement.point && Math.hypot(placement.point.x - point.x, placement.point.y - point.y) > 0.1) { placement.elapsed = 0; placement.origin = null; }
+  placement.point = { ...point };
+  if (!heldE) { placement.ready = true; placement.elapsed = 0; placement.origin = null; return null; }
+  if (!placement.ready || player.moving || !validTrapPosition(world, player, point, traps, objects)) { placement.elapsed = 0; placement.origin = null; return null; }
+  placement.origin ??= { x: player.x, y: player.y };
+  if (Math.hypot(placement.origin.x - player.x, placement.origin.y - player.y) > 0.08) { interruptPlacement(placement); return null; }
+  placement.elapsed += Math.max(0, dt);
+  if (placement.elapsed + 0.000001 < TRAPS.placeTime) return null;
+  const index = loot.bag.findIndex(item => item.id === placement.itemId);
+  const trap = { id: placement.itemId, ...point, phase: 'arming', ownerId: player.id ?? 'goblin', ownerClear: false, armLeft: TRAPS.armDelay };
+  loot.bag.splice(index, 1); traps.push(trap); cancelPlacement(placement);
+  return { type: 'placed', trap };
+}
+function updateTraps(traps, goblins, guards, dt) {
+  const events = [];
+  for (const trap of traps) {
+    if (trap.phase === 'spent') continue;
+    if (trap.phase === 'arming') {
+      const owner = goblins.find(g => (g.id ?? 'goblin') === trap.ownerId);
+      if (!owner || Math.hypot(owner.x - trap.x, owner.y - trap.y) > TRAPS.triggerRadius + CONFIG.radius + TRAPS.clearMargin) trap.ownerClear = true;
+      if (!trap.ownerClear) continue;
+      trap.armLeft = Math.max(0, trap.armLeft - dt);
+      if (trap.armLeft > 0) continue;
+      trap.phase = 'armed'; events.push({ type: 'armed', trap });
+    }
+    const goblin = goblins.find(g => g.state !== 'down' && Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
+    const guard = guards.find(g => Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
+    if (!goblin && !guard) continue;
+    trap.phase = 'spent'; trap.triggeredBy = goblin ? 'goblin' : 'guard';
+    if (!goblin) { guard.snareLeft = TRAPS.holdTime; guard.windup = 0; guard.moving = false; }
+    events.push({ type: goblin ? 'goblin-triggered' : 'guard-triggered', trap, guard: goblin ? null : guard });
+  }
+  return events;
 }
 
 
@@ -441,7 +507,7 @@ function createGuard(world, options = {}) {
     angle: firstAngle, watchAngles, watchIndex: 0, watchLeft: GUARD_PATTERNS.lookPause, pauseLeft: GUARD_PATTERNS.roomPause,
     state: 'patrol', suspicion: 0, patrol, patrolIndex: behaviour === 'lookout' ? 0 : 1, path: [], repath: 0, goal: null, lastSeen: null,
     searchLeft: COMBAT.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
-    windup: 0, cooldown: 0, swing: 0, moving: false, resumeState: 'patrol' };
+    windup: 0, cooldown: 0, swing: 0, snareLeft: 0, moving: false, resumeState: 'patrol' };
 }
 
 function createGuards(world) {
@@ -524,6 +590,7 @@ function setGuardGoal(world, guard, point, dt) {
 function updateGuard(world, guard, player, dt) {
   const events = { hit: false, spotted: false };
   if (player.state !== 'active' || dt <= 0) return events;
+  if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; return events; }
   guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
   const alerted = guard.state === 'chase' || guard.state === 'search';
   const sees = seesPlayer(world, guard, player, alerted);
@@ -608,7 +675,7 @@ function atTunnel(run, world, player) {
 function finishRun(run, world, player, loot, now) {
   if (run.phase !== 'exploring' || loot.held || !atTunnel(run, world, player)) return null;
   // Snapshot only what was packed, never loose loot or an extra cursor item.
-  const items = loot.bag.map(item => ({ ...item }));
+  const items = loot.bag.filter(item => !LOOT_TYPES[item.type].equipment).map(item => ({ ...item }));
   run.result = { outcome: 'escaped', items, count: items.length, slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
   run.phase = 'results';
   return run.result;
@@ -680,6 +747,7 @@ function createSackView(canvas, ghost) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
   const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
   let visibility = createSackPanel(), currentTarget = null, holding = false;
+  let selected = { x: 0, y: 0 }, keyboardSelection = false;
   const cell = 56;
   canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
   ghost.width = 96; ghost.height = 96;
@@ -697,6 +765,8 @@ function createSackView(canvas, ghost) {
     }
     state.bag.forEach(item => drawItem(ctx, item, item.x * cell, item.y * cell, cell, null));
     const hovered = cellAt(pointer);
+    const chosen = keyboardSelection && visibility.open ? selected : hovered;
+    if (chosen && !state.held) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(chosen.x * cell + 3, chosen.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
     if (state.held && hovered) {
       ctx.save(); ctx.globalAlpha = 0.7;
       drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, fits(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
@@ -710,7 +780,7 @@ function createSackView(canvas, ghost) {
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click an item to lift it';
+    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · snare: select, E equip';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
@@ -718,12 +788,17 @@ function createSackView(canvas, ghost) {
     const bounds = panel.getBoundingClientRect();
     const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
     const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    if (!open) keyboardSelection = false;
     panel.dataset.open = String(open); panel.inert = !open;
     panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
     tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
     canvas.tabIndex = open ? 0 : -1;
   };
-  return { paint, cellAt, updateVisibility, toggle: () => toggleSackPanel(visibility, currentTarget, holding), reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); } };
+  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open,
+    navigate: (dx, dy) => { keyboardSelection = true; selected = { x: Math.max(0, Math.min(2, selected.x + dx)), y: Math.max(0, Math.min(2, selected.y + dy)) }; },
+    selectAt: pointer => { const at = cellAt(pointer); if (at) { selected = at; keyboardSelection = true; } },
+    itemForEquip: (state, pointer) => { const at = keyboardSelection ? selected : cellAt(pointer); return visibility.open && at ? bagItemAt(state.bag, at.x, at.y) : null; },
+    toggle: () => { toggleSackPanel(visibility, currentTarget, holding); keyboardSelection = visibility.open && !holding; }, reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
 }
 
 
@@ -735,7 +810,7 @@ function createResultsView(dialog) {
       const down = result.outcome === 'down';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
       document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
-      document.querySelector('#results-description').textContent = down ? 'Nobody was left to recover you. Your carried loot was lost.' : 'Here is what you brought back in your sack.';
+      document.querySelector('#results-description').textContent = down ? 'Nobody was left to recover you. Your carried loot and supplies were lost.' : 'Here is what you brought back in your sack.';
       list.replaceChildren();
       list.setAttribute('aria-label', down ? 'Loot lost in the dungeon' : 'Loot brought back');
       const grouped = new Map();
@@ -754,7 +829,7 @@ function createResultsView(dialog) {
       }
       document.querySelector('#empty-haul').hidden = shown.length > 0;
       document.querySelector('#empty-haul').textContent = down ? 'You were carrying no loot. You can return on the next run.' : 'You slipped out empty-handed. There is more to steal next time.';
-      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'treasure' : 'treasures'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'treasure' : 'treasures'} · ${result.slots} / 9 sack squares · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'treasure' : 'treasures'} · ${result.slots} / 9 sack squares · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
       dialog.showModal();
       document.querySelector('#next-run').focus();
     },
@@ -795,7 +870,9 @@ function drawGuard(ctx, guard, ox, oy) {
   rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
   ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x + Math.cos(guard.angle) * 12, y - 12 + Math.sin(guard.angle) * 12); ctx.stroke();
-  if (guard.state !== 'patrol') {
+  if (guard.snareLeft > 0) {
+    ctx.fillStyle = '#d7eeb2'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('SNARED', x, y - 29);
+  } else if (guard.state !== 'patrol') {
     ctx.fillStyle = alert ? '#f19a91' : '#efd18a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
   }
@@ -806,6 +883,14 @@ function drawGuard(ctx, guard, ox, oy) {
     ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
   }
+}
+
+function drawPixelProgress(ctx, x, y, progress) {
+  const width = Math.round(24 * Math.max(0, Math.min(1, progress)));
+  ctx.fillStyle = '#152021'; ctx.fillRect(Math.round(x) - 13, Math.round(y), 26, 6);
+  ctx.fillStyle = '#5d6c50'; ctx.fillRect(Math.round(x) - 12, Math.round(y) + 1, 24, 4);
+  ctx.fillStyle = '#c8ec90'; ctx.fillRect(Math.round(x) - 12, Math.round(y) + 1, width, 4);
+  if (width) { ctx.fillStyle = '#e1f8bb'; ctx.fillRect(Math.round(x) - 12, Math.round(y) + 1, width, 1); }
 }
 
 
@@ -836,17 +921,40 @@ function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
       ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
       if (session.active?.id === object.id) {
         const progress = Math.max(0, Math.min(1, session.elapsed / definition.duration));
-        // Integer-sized pixels, anchored to the searched object and camera.
-        rect(-13, -top - 11, 26, 6, '#152021');
-        rect(-12, -top - 10, 24, 4, '#5d6c50');
-        rect(-12, -top - 10, Math.round(24 * progress), 4, '#c8ec90');
-        if (progress > 0) rect(-12, -top - 10, Math.round(24 * progress), 1, '#e1f8bb');
+        drawPixelProgress(ctx, x, y - top - 11, progress);
       } else {
         ctx.fillStyle = '#d1f69b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
         ctx.fillText('HOLD E', x, y - top - 7);
       }
     }
   }
+}
+
+
+function drawSnare(ctx, x, y, color, spent = false) {
+  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.strokeRect(x - 7.5, y - 5.5, 15, 11);
+  ctx.beginPath(); ctx.moveTo(x - 5, y - 3); ctx.lineTo(x + (spent ? 7 : 5), y + (spent ? -6 : 3)); ctx.moveTo(x + 5, y - 3); ctx.lineTo(x - 5, y + 3); ctx.stroke();
+  ctx.fillStyle = color; ctx.fillRect(x - 2, y - 2, 4, 4);
+}
+function drawTraps(ctx, world, player, traps, objects, placement, ox, oy) {
+  const tile = CONFIG.tile;
+  for (const trap of traps) {
+    const x = Math.round(trap.x * tile + ox), y = Math.round(trap.y * tile + oy);
+    drawSnare(ctx, x, y, trap.phase === 'armed' ? '#bfd998' : trap.phase === 'arming' ? '#d4b56e' : '#62746b', trap.phase === 'spent');
+    if (trap.phase === 'arming') {
+      ctx.fillStyle = '#e0c58a'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(trap.ownerClear ? 'ARMING' : 'STEP CLEAR', x, y - 10);
+    }
+  }
+  if (!placement?.itemId || !placement.point) return;
+  const point = placement.point, x = Math.round(point.x * tile + ox), y = Math.round(point.y * tile + oy);
+  const valid = validTrapPosition(world, player, point, traps, objects);
+  const color = valid ? '#c8ec90' : '#f18a8a';
+  drawSnare(ctx, x, y, color);
+  ctx.strokeStyle = color; ctx.strokeRect(x - 11.5, y - 9.5, 23, 19);
+  if (placement.elapsed > 0) drawPixelProgress(ctx, x, y - 20, placement.elapsed / TRAPS.placeTime);
+  else { ctx.fillStyle = color; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(valid ? placement.ready ? 'HOLD E' : 'RELEASE E' : 'BLOCKED', x, y - 14); }
 }
 
 
@@ -869,7 +977,7 @@ async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession) => {
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -896,6 +1004,7 @@ async function createRenderer(canvas, mapCanvas) {
     ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText('SECRET TUNNEL', tx, ty - 30);
     if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
+    drawTraps(ctx, world, player, traps, objects, placement, ox, oy);
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
     for (const item of loot.ground) {
       const cells = itemCells(item), size = 7;
@@ -933,7 +1042,7 @@ async function createRenderer(canvas, mapCanvas) {
 
 const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
-const input = createInput(window);
+const input = createInput(window, () => sack.isOpen());
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
 const results = createResultsView(document.querySelector('#run-results'));
 let render;
@@ -945,10 +1054,12 @@ try {
 }
 let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
 let objects = [], searchSession = createSearchSession(), searchTarget = null;
+let traps = [], placement = createPlacement();
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
+  if (placement.itemId) { target = null; searchTarget = null; return; }
   const interaction = searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
   target = interaction?.kind === 'loot' ? interaction.item : null;
   searchTarget = interaction?.kind === 'search' ? interaction.item : null;
@@ -957,9 +1068,9 @@ const reset = () => {
   if (world && run.phase === 'exploring' && !window.confirm('Abandon this run? This resets the sack and all dungeon loot.')) { canvas.focus(); return; }
   results.close();
   world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
-  player = { ...world.spawn, ...createVitality(), facing: 1, phase: 0, moving: false };
+  player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
   guards = createGuards(world);
-  loot = createLoot(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
+  loot = createLoot(); addStartingSnare(loot, world.seed); traps = []; placement = createPlacement(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
   run = createRun(world, performance.now());
   sack.reset();
   input.clear();
@@ -972,7 +1083,7 @@ const showRunResult = (result, message) => {
   if (!result) return;
   cancelSearch(searchSession);
   input.clear(); dragStart = null; player.moving = false; player.phase = 0;
-  results.open(result); tell(message);
+  cancelPlacement(placement); results.open(result); tell(message);
 };
 const drop = () => {
   const name = LOOT_TYPES[loot.held.type].name;
@@ -985,7 +1096,7 @@ const placeAtPointer = () => {
   if (placeHeld(loot, cell.x, cell.y)) tell(`${name} packed.`);
   else tell('It will not fit there. R rotates; try another space, or E to drop it.');
 };
-const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; };
+const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (e.target === sackCanvas) sack.selectAt(pointer); };
 // Boundaries for clicks are checked from event targets; cursor proximity never extends pickup reach.
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
@@ -994,12 +1105,14 @@ document.addEventListener('pointerdown', e => {
   trackPointer(e);
   if (e.target !== canvas && e.target !== sackCanvas) return;
   e.preventDefault(); canvas.focus();
+  if (placement.itemId) return;
   cancelSearch(searchSession);
   const wasHolding = !!loot.held;
   if (e.target === sackCanvas) {
     if (loot.held) placeAtPointer();
     else {
       const cell = sack.cellAt(pointer), item = cell && bagItemAt(loot.bag, cell.x, cell.y);
+      if (item?.type === 'snare') { sack.selectAt(pointer); tell('Snare selected. Press E to equip.'); return; }
       if (item && liftItem(loot, 'bag', item.id)) tell(`${LOOT_TYPES[item.type].name} lifted. R rotates; click a sack square to place.`);
     }
   } else if (loot.held) drop();
@@ -1020,19 +1133,24 @@ document.addEventListener('pointerup', e => {
   if (e.target === sackCanvas) placeAtPointer();
   else if (e.target === canvas) drop();
 });
-window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); });
+window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); interruptPlacement(placement); });
 window.addEventListener('keyup', e => {
   if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
 });
 window.addEventListener('keydown', e => {
   if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
-  if (e.code === 'KeyI') { e.preventDefault(); sack.toggle(); return; }
+  if (e.code === 'Escape' && placement.itemId) { e.preventDefault(); cancelPlacement(placement); tell('Placement cancelled. Snare is still in your sack.'); return; }
+  if (e.code === 'KeyI') { e.preventDefault(); cancelPlacement(placement); sack.toggle(); return; }
+  if (e.code.startsWith('Arrow') && sack.isOpen()) { e.preventDefault(); sack.navigate(Number(e.code === 'ArrowRight') - Number(e.code === 'ArrowLeft'), Number(e.code === 'ArrowDown') - Number(e.code === 'ArrowUp')); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
   }
   if (e.code !== 'KeyE') return;
   e.preventDefault();
+  if (placement.itemId) return;
+  const chosen = sack.itemForEquip(loot, pointer);
+  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { cancelSearch(searchSession); sack.reset(); tell('Release E, then hold E for one second to place. Aim nearby with the mouse. Escape cancels.'); return; }
   if (loot.held) { drop(); return; }
   if (atTunnel(run, world, player)) {
     const result = finishRun(run, world, player, loot, performance.now());
@@ -1054,34 +1172,41 @@ document.querySelector('#regenerate').addEventListener('click', reset);
 document.querySelector('#next-run').addEventListener('click', reset);
 document.querySelector('#sack-tab').addEventListener('click', () => {
   if (run.phase !== 'exploring') return;
-  sack.toggle(); canvas.focus();
+  cancelPlacement(placement); sack.toggle(); canvas.focus();
 });
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
   if (run.phase === 'exploring') {
     movePlayer(world, player, input.read(), dt); tickVitality(player, dt);
+    for (const event of updateTraps(traps, [player], guards, dt)) {
+      if (event.type === 'goblin-triggered') tell('A goblin triggered the snare. No harm, but the trap is spent.');
+      if (event.type === 'guard-triggered') tell('Guard snared! You have three seconds to get away.');
+    }
     const events = { hit: false, spotted: false };
     for (const guard of guards) {
       const event = updateGuard(world, guard, player, dt);
       events.hit ||= event.hit; events.spotted ||= event.spotted;
     }
     if (events.spotted) tell('Spotted! Get out of sight or make for the tunnel.');
-    if (events.hit) { cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Keep moving—the next strike takes a moment.`); }
+    if (events.hit) { interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Keep moving—the next strike takes a moment.`); }
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
     else {
       for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
-      const searched = updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
+      const placed = updatePlacement(placement, world, player, loot, traps, objects, placementPoint(player, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null), input.held('KeyE'), dt);
+      if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
+      const searched = !placement.itemId && updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
       if (searched?.type === 'completed') tell(`Found ${searched.count} items. Release E, then press again to pack loot, or click to lift it.`);
       else if (searched?.type === 'cancelled') tell('Search cancelled. Hold E while standing still beside the object.');
     }
   }
-  const tunnelReady = atTunnel(run, world, player) && !loot.held;
+  const tunnelReady = atTunnel(run, world, player) && !loot.held && !placement.itemId;
   updateTarget();
-  sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' }, dt);
-  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession); sack.paint(loot, pointer);
+  sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId }, dt);
+  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement); sack.paint(loot, pointer);
   let targetText;
   if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
+  else if (placement.itemId) targetText = 'Placing snare · hold E for 1 second · Escape cancel';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
@@ -1094,7 +1219,7 @@ const frame = time => {
   const guardText = run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Observe lookouts and room patrols · learn their pauses';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
-    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
+    const hint = placement.itemId ? 'Aim nearby · stand still and hold E · Escape cancels · I opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);

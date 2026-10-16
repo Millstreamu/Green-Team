@@ -8,7 +8,8 @@ export const LOOT_TYPES = Object.freeze({
   candlestick: { name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
   scroll: { name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
   sword: { name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
-  horn: { name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' }
+  horn: { name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' },
+  snare: { name: 'Snare trap', color: '#a9c3a3', cells: [[0, 0]], mark: '⌘', equipment: true }
 });
 
 export function itemCells(item) {

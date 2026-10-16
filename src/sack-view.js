@@ -1,4 +1,4 @@
-import { fits, itemCells, LOOT_TYPES, SACK } from './loot.js';
+import { bagItemAt, fits, itemCells, LOOT_TYPES, SACK } from './loot.js';
 import { drawItem } from './item-view.js';
 import { createSackPanel, toggleSackPanel, revealSackPanel, stepSackPanel } from './sack-panel.js';
 
@@ -6,6 +6,7 @@ export function createSackView(canvas, ghost) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
   const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
   let visibility = createSackPanel(), currentTarget = null, holding = false;
+  let selected = { x: 0, y: 0 }, keyboardSelection = false;
   const cell = 56;
   canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
   ghost.width = 96; ghost.height = 96;
@@ -23,6 +24,8 @@ export function createSackView(canvas, ghost) {
     }
     state.bag.forEach(item => drawItem(ctx, item, item.x * cell, item.y * cell, cell, null));
     const hovered = cellAt(pointer);
+    const chosen = keyboardSelection && visibility.open ? selected : hovered;
+    if (chosen && !state.held) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(chosen.x * cell + 3, chosen.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
     if (state.held && hovered) {
       ctx.save(); ctx.globalAlpha = 0.7;
       drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, fits(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
@@ -36,7 +39,7 @@ export function createSackView(canvas, ghost) {
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click an item to lift it';
+    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · snare: select, E equip';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
@@ -44,10 +47,15 @@ export function createSackView(canvas, ghost) {
     const bounds = panel.getBoundingClientRect();
     const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
     const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    if (!open) keyboardSelection = false;
     panel.dataset.open = String(open); panel.inert = !open;
     panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
     tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
     canvas.tabIndex = open ? 0 : -1;
   };
-  return { paint, cellAt, updateVisibility, toggle: () => toggleSackPanel(visibility, currentTarget, holding), reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); } };
+  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open,
+    navigate: (dx, dy) => { keyboardSelection = true; selected = { x: Math.max(0, Math.min(2, selected.x + dx)), y: Math.max(0, Math.min(2, selected.y + dy)) }; },
+    selectAt: pointer => { const at = cellAt(pointer); if (at) { selected = at; keyboardSelection = true; } },
+    itemForEquip: (state, pointer) => { const at = keyboardSelection ? selected : cellAt(pointer); return visibility.open && at ? bagItemAt(state.bag, at.x, at.y) : null; },
+    toggle: () => { toggleSackPanel(visibility, currentTarget, holding); keyboardSelection = visibility.open && !holding; }, reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
 }

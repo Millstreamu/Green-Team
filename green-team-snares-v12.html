@@ -1,0 +1,1229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Green Team · Fading trail V11</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
+
+.stage{position:relative;min-width:0}#game{min-height:440px;touch-action:none}#target-label{position:absolute;top:12px;left:12px;max-width:calc(100% - 24px);background:#10191be6;border:1px solid #48594b;padding:8px 12px;border-radius:4px;color:#d2e7b5;font-size:12px;pointer-events:none}.sack{position:absolute;bottom:16px;right:16px;width:200px;background:#20291ff5;border:1px solid #829260;border-radius:7px;padding:14px;box-shadow:0 5px 24px #0007}.sack-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.sack h2{margin:0;color:#d5e7af;font-size:12px}.sack-title span{font-size:12px;color:#c2cbac;font-variant-numeric:tabular-nums}#sack-grid{display:block;width:100%;height:auto;cursor:pointer;touch-action:none}#held-label{font-size:11px;line-height:1.45;min-height:32px;margin:10px 0 0;color:#d6ddc6}.controls{font-size:12px;line-height:1.9;color:#c4d0bd}.controls kbd{margin:2px}#held-ghost{position:fixed;pointer-events:none;z-index:20;image-rendering:pixelated;width:96px;height:96px}.note{margin-top:12px}.footer{min-height:52px}#status{color:#e5e9ce;max-width:900px}@media(max-width:760px){.sack{right:10px;bottom:10px;width:176px;padding:10px}#game{min-height:440px}}
+
+.results{width:min(540px,calc(100vw - 32px));max-height:85vh;overflow:auto;border:1px solid #8a986a;border-radius:9px;background:#192324;color:#e5e9df;padding:28px;box-shadow:0 12px 80px #0009}.results::backdrop{background:#070e11cc}.results h2{font-size:26px;letter-spacing:0;color:#e5e9df;margin:9px 0}.results .eyebrow{color:#daca94}#haul-total{margin:12px 0;color:#d3dbbe}#haul-list{list-style:none;padding:0;margin:18px 0}.haul-row{display:flex;align-items:center;gap:12px;border-top:1px solid #394840;padding:4px 0;font-size:14px}.haul-row canvas{width:60px;height:60px;image-rendering:pixelated}.haul-row span{flex:1}.haul-row strong{color:#d5e7af}.results button{width:100%;margin-top:12px}#empty-haul{padding:15px 0;color:#aebba8}
+
+.vitals{position:absolute;top:52px;left:12px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:none;max-width:calc(100% - 24px)}.vitals span{background:#10191be6;border:1px solid #48594b;border-radius:4px;padding:7px 10px;font-size:12px}#health-label{color:#e9b096}#alert-label{color:#e6d6ab}@media(max-width:760px){.vitals{top:65px}}
+
+
+.stage{overflow:hidden;border-radius:5px}#game:focus-visible{outline-offset:-3px}.sack{right:34px;transition:transform .22s ease;will-change:transform}.sack[data-open="false"]{transform:translateX(calc(100% + 34px));pointer-events:none}.sack-tab{position:absolute;right:0;bottom:30px;z-index:2;width:30px;min-height:112px;padding:9px 6px;writing-mode:vertical-rl;border:1px solid #829260;border-right:0;border-radius:5px 0 0 5px;background:#2b3827;color:#d5e7af;font-size:11px;letter-spacing:1px}.sack-tab:hover{background:#425139}.sack-tab:focus-visible{outline-offset:-3px}@media(max-width:760px){.sack{right:30px}.sack[data-open="false"]{transform:translateX(calc(100% + 30px))}}@media(prefers-reduced-motion:reduce){.sack{transition:none}}
+</style>
+</head>
+<body><main>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Fading trail · V11</h1><p>Break their sight. Leave them searching. Get back to the tunnel.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut I.">‹ SACK · I</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>I</kbd> open / close sack<br>Arrows or click: select snare<br><kbd>E</kbd> equip selected snare<br>Then hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">One test snare starts in your sack.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>I or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
+<div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
+</main><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><ul id="haul-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Start next run →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
+// Content values live together so a future builder can edit them.
+const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, extraConnections: 3, preserveDeadEnds: 2, minLoopDetour: 8, maxLoopLength: 40, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 6, hopRate: 12 });
+
+// Supplied sprite faces left; keep orientation explicit.
+const GOBLIN_ART = Object.freeze({ src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA80lEQVR4AaSSPQ4BQRiGh2SsKPQSLQdwAgqtSkmhVbiCaBxBq1O5AzqdBg1BRWcTF1h5Rj6Z/ZmNjU3e/f7e75nsZPPqzycTYLwaBtHzUgEsIJaIk9YsR24rBsAoWi9Pxjta9IKkZYYxAEbEsNmtEVIVA4hbIFK7ohPQbzfMhfmPl9mV2hTWKxHAHeC5TLfKnx+NqKVPLkoEyLBcKioRPT4rCokBMGBk4ReFAFmXOSAEsE/eXZ9qc7h/Rc2C7aEOAWiIPK2Vp7Xan285T39ymdnRCSgWtEKYiYg8KicganTViQD+/dqgriqdqtkjUtM3Dev1BgAA///TN/+eAAAABklEQVQDAKw1V6nJjzp3AAAAAElFTkSuQmCC', width: 16, height: 16, scale: 2, faces: -1 });
+
+// Prototype balance values, separate from behaviour so they can be tuned later.
+const COMBAT = Object.freeze({ health: 3, invulnerable: 1.0, patrolSpeed: 1.8, chaseSpeed: 3.8, searchSpeed: 2.2, trailSeconds: 2.5, trailSpacing: 0.3, sight: 7, alertSight: 9, halfCone: Math.PI / 3.6, noticeTime: 0.8, searchTime: 4, attackRange: 0.95, windup: 0.55, cooldown: 1.1, guardRadius: 0.26 });
+
+const SEARCH = Object.freeze({ reach: 1.6, movementTolerance: 0.08, chestTime: 2.5, cupboardTime: 3.5, crateTime: 1.5, spillTime: 0.4 });
+
+const GUARD_PATTERNS = Object.freeze({ count: 3, lookPause: 2.6, roomPause: 2.0, turnSpeed: Math.PI * 2 });
+
+const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, triggerRadius: 0.32, clearMargin: 0.15, armDelay: 0.25 });
+
+// Post-process the existing connected layout. Keep generation independent of UI.
+function floorAt(world, x, y, added = null) {
+  return x >= 0 && y >= 0 && x < world.width && y < world.height && (world.tiles[y * world.width + x] === 1 || added?.has(y * world.width + x));
+}
+
+function roomEntrances(world, room, added = null) {
+  const sides = [
+    { name: 'north', start: room.x, end: room.x + room.w, point: n => [n, room.y - 1] },
+    { name: 'south', start: room.x, end: room.x + room.w, point: n => [n, room.y + room.h] },
+    { name: 'west', start: room.y, end: room.y + room.h, point: n => [room.x - 1, n] },
+    { name: 'east', start: room.y, end: room.y + room.h, point: n => [room.x + room.w, n] }
+  ];
+  const entrances = [];
+  for (const side of sides) {
+    let opening = null;
+    for (let n = side.start; n < side.end; n++) {
+      const [x, y] = side.point(n);
+      if (floorAt(world, x, y, added)) {
+        if (!opening) { opening = { side: side.name, cells: [] }; entrances.push(opening); }
+        opening.cells.push({ x, y });
+      } else opening = null;
+    }
+  }
+  return entrances;
+}
+
+function distancesFrom(world, room) {
+  const distances = new Int32Array(world.tiles.length).fill(-1);
+  const start = room.cy * world.width + room.cx, queue = [start]; distances[start] = 0;
+  for (let i = 0; i < queue.length; i++) {
+    const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
+    for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
+      if (floorAt(world, nx, ny) && distances[next] === -1) { distances[next] = distances[key] + 1; queue.push(next); }
+    }
+  }
+  return distances;
+}
+
+function corridorRoute(a, b, horizontalFirst) {
+  let x = a.cx, y = a.cy;
+  const path = [{ x, y }];
+  const horizontal = () => { while (x !== b.cx) { x += Math.sign(b.cx - x); path.push({ x, y }); } };
+  const vertical = () => { while (y !== b.cy) { y += Math.sign(b.cy - y); path.push({ x, y }); } };
+  if (horizontalFirst) { horizontal(); vertical(); } else { vertical(); horizontal(); }
+  return path;
+}
+
+function addRoomLoops(world, config, random) {
+  const { rooms, tiles, width } = world;
+  // Protect existing leaf rooms, including their perimeter, so added shortcuts
+  // cannot quietly turn every room into another thoroughfare.
+  const leafRooms = rooms.map((room, i) => roomEntrances(world, room).length === 1 ? i : -1).filter(i => i >= 0);
+  const preservedDeadEnds = leafRooms.slice(0, config.preserveDeadEnds ?? 2);
+  const protectedSet = new Set(preservedDeadEnds), shortcuts = [];
+  for (let loop = 0; loop < (config.extraConnections ?? 3); loop++) {
+    let best = null;
+    for (let i = 0; i < rooms.length; i++) {
+      if (protectedSet.has(i)) continue;
+      const distances = distancesFrom(world, rooms[i]);
+      for (let j = i + 1; j < rooms.length; j++) {
+        if (protectedSet.has(j)) continue;
+        const a = rooms[i], b = rooms[j];
+        const direct = Math.abs(a.cx - b.cx) + Math.abs(a.cy - b.cy), oldDistance = distances[b.cy * width + b.cx];
+        if (direct > (config.maxLoopLength ?? 40) || oldDistance - direct < (config.minLoopDetour ?? 8)) continue;
+        for (const horizontalFirst of [true, false]) {
+          const path = corridorRoute(a, b, horizontalFirst), newCells = path.filter(p => !floorAt(world, p.x, p.y));
+          if (newCells.length < 3) continue;
+          if (newCells.some(p => preservedDeadEnds.some(index => {
+            const r = rooms[index]; return p.x >= r.x - 1 && p.x <= r.x + r.w && p.y >= r.y - 1 && p.y <= r.y + r.h;
+          }))) continue;
+          const added = new Set(path.map(p => p.y * width + p.x));
+          const entryGain = roomEntrances(world, a, added).length + roomEntrances(world, b, added).length - roomEntrances(world, a).length - roomEntrances(world, b).length;
+          if (entryGain < 1) continue;
+          const score = (oldDistance - direct) / newCells.length + entryGain * 0.1 + random() * 0.01;
+          if (!best || score > best.score) best = { from: i, to: j, path, newCells, oldDistance, score };
+        }
+      }
+    }
+    if (!best) break;
+    best.newCells.forEach(p => { tiles[p.y * width + p.x] = 1; });
+    const newDistance = distancesFrom(world, rooms[best.from])[rooms[best.to].cy * width + rooms[best.to].cx];
+    shortcuts.push({ from: best.from, to: best.to, oldDistance: best.oldDistance, newDistance, carved: best.newCells });
+  }
+  rooms.forEach(room => { room.entrances = roomEntrances(world, room); });
+  return { ...world, shortcuts, preservedDeadEnds };
+}
+
+
+function generateDungeon(seed, config = CONFIG) {
+  let state = seed >>> 0;
+  const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
+  const integer = (min, max) => min + Math.floor(random() * (max - min + 1));
+  const { width, height } = config;
+  const tiles = new Uint8Array(width * height);
+  const rooms = [];
+  const carve = (x, y) => { tiles[y * width + x] = 1; };
+  // Every accepted room connects to a previous one, so all floor is reachable.
+  for (let attempt = 0; attempt < 600 && rooms.length < config.rooms; attempt++) {
+    const w = integer(6, 12), h = integer(5, 9);
+    const x = integer(2, width - w - 3), y = integer(2, height - h - 3);
+    if (rooms.some(r => x < r.x + r.w + 2 && x + w + 2 > r.x && y < r.y + r.h + 2 && y + h + 2 > r.y)) continue;
+    const room = { x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) };
+    for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) carve(i, j);
+    if (rooms.length) {
+      const previous = rooms.reduce((best, r) => Math.hypot(r.cx - room.cx, r.cy - room.cy) < Math.hypot(best.cx - room.cx, best.cy - room.cy) ? r : best);
+      let px = previous.cx, py = previous.cy;
+      const horizontalFirst = random() < 0.5;
+      const horizontal = () => { while (px !== room.cx) { carve(px, py); px += Math.sign(room.cx - px); } carve(px, py); };
+      const vertical = () => { while (py !== room.cy) { carve(px, py); py += Math.sign(room.cy - py); } carve(px, py); };
+      if (horizontalFirst) { horizontal(); vertical(); } else { vertical(); horizontal(); }
+    }
+    rooms.push(room);
+  }
+  return addRoomLoops({ seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
+}
+
+function isFloor(world, x, y) {
+  return x >= 0 && y >= 0 && x < world.width && y < world.height && world.tiles[y * world.width + x] === 1;
+}
+
+function canStand(world, x, y, radius = CONFIG.radius) {
+  for (let ty = Math.floor(y - radius); ty <= Math.floor(y + radius); ty++) {
+    for (let tx = Math.floor(x - radius); tx <= Math.floor(x + radius); tx++) {
+      if (isFloor(world, tx, ty)) continue;
+      const dx = x - Math.max(tx, Math.min(x, tx + 1));
+      const dy = y - Math.max(ty, Math.min(y, ty + 1));
+      if (dx * dx + dy * dy < radius * radius) return false;
+    }
+  }
+  return true;
+}
+
+function movePlayer(world, player, input, dt, config = CONFIG) {
+  const length = Math.hypot(input.x, input.y);
+  if (!length) { player.moving = false; player.phase = 0; return; }
+  const distance = config.speed * Math.max(0, dt);
+  // Small steps avoid tunnelling through walls, even for a delayed update.
+  const steps = Math.max(1, Math.ceil(distance / 0.15));
+  const dx = input.x / length * distance / steps, dy = input.y / length * distance / steps;
+  const oldX = player.x, oldY = player.y;
+  for (let i = 0; i < steps; i++) {
+    if (canStand(world, player.x + dx, player.y, config.radius)) player.x += dx;
+    if (canStand(world, player.x, player.y + dy, config.radius)) player.y += dy;
+  }
+  player.moving = Math.hypot(player.x - oldX, player.y - oldY) > 0.00001;
+  if (input.x) player.facing = Math.sign(input.x);
+  player.phase = player.moving ? player.phase + dt * config.hopRate : 0;
+}
+
+function createInput(target, inventoryOpen = () => false) {
+  const keys = new Set();
+  const movementKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  target.addEventListener('keydown', e => {
+    if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select,button')) return;
+    if (e.code.startsWith('Arrow') && inventoryOpen()) { e.preventDefault(); return; }
+    if (movementKeys.has(e.code) || e.code === 'KeyE') { e.preventDefault(); keys.add(e.code); }
+  });
+  target.addEventListener('keyup', e => keys.delete(e.code));
+  const clear = () => keys.clear();
+  target.addEventListener('blur', clear);
+  document.addEventListener('visibilitychange', clear);
+  return { clear, held: code => keys.has(code), read: () => ({
+    x: Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')),
+    y: Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'))
+  }) };
+}
+
+
+const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
+// One definition supplies footprints and colours everywhere an item is shown.
+const LOOT_TYPES = Object.freeze({
+  ruby: { name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
+  coin: { name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: '●' },
+  candlestick: { name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
+  scroll: { name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
+  sword: { name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
+  horn: { name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' },
+  snare: { name: 'Snare trap', color: '#a9c3a3', cells: [[0, 0]], mark: '⌘', equipment: true }
+});
+
+function itemCells(item) {
+  let cells = LOOT_TYPES[item.type].cells.map(([x, y]) => [x, y]);
+  for (let i = 0; i < ((item.rotation % 4) + 4) % 4; i++) cells = cells.map(([x, y]) => [-y, x]);
+  const minX = Math.min(...cells.map(c => c[0])), minY = Math.min(...cells.map(c => c[1]));
+  return cells.map(([x, y]) => [x - minX, y - minY]);
+}
+
+function fits(bag, item, x, y) {
+  const occupied = new Set(bag.flatMap(p => itemCells(p).map(([dx, dy]) => `${p.x + dx},${p.y + dy}`)));
+  return itemCells(item).every(([dx, dy]) => x + dx >= 0 && y + dy >= 0 && x + dx < SACK.width && y + dy < SACK.height && !occupied.has(`${x + dx},${y + dy}`));
+}
+
+function findSpace(bag, item) {
+  for (let turn = 0; turn < 4; turn++) {
+    const rotated = { ...item, rotation: (item.rotation + turn) % 4 };
+    for (let y = 0; y < SACK.height; y++) for (let x = 0; x < SACK.width; x++) if (fits(bag, rotated, x, y)) return { ...rotated, x, y };
+  }
+  return null;
+}
+
+function bagItemAt(bag, x, y) {
+  return bag.find(p => itemCells(p).some(([dx, dy]) => p.x + dx === x && p.y + dy === y)) ?? null;
+}
+
+function clearPath(world, a, b) {
+  const steps = Math.max(1, Math.ceil(Math.hypot(a.x - b.x, a.y - b.y) * 12));
+  for (let i = 0; i <= steps; i++) if (!isFloor(world, Math.floor(a.x + (b.x - a.x) * i / steps), Math.floor(a.y + (b.y - a.y) * i / steps))) return false;
+  return true;
+}
+
+function reachable(world, player, item) {
+  return Math.hypot(player.x - item.x, player.y - item.y) <= SACK.reach && clearPath(world, player, item);
+}
+
+function selectTarget(world, player, ground, pointer = null) {
+  const candidates = ground.filter(item => reachable(world, player, item));
+  if (pointer) {
+    const nearCursor = candidates.filter(item => Math.hypot(pointer.x - item.x, pointer.y - item.y) <= 0.8);
+    if (nearCursor.length) return nearCursor.sort((a, b) => Math.hypot(a.x - pointer.x, a.y - pointer.y) - Math.hypot(b.x - pointer.x, b.y - pointer.y))[0];
+  }
+  return candidates.sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y))[0] ?? null;
+}
+
+function createLoot() {
+  // New valuables come from searches; floor items exist only after a spill/drop.
+  return { ground: [], bag: [], held: null };
+}
+
+function autoPickup(state, id) {
+  if (state.held) return false;
+  const index = state.ground.findIndex(item => item.id === id);
+  if (index < 0) return false;
+  const placement = findSpace(state.bag, state.ground[index]);
+  if (!placement) return false;
+  state.ground.splice(index, 1); state.bag.push(placement);
+  return true;
+}
+
+function liftItem(state, source, id) {
+  if (state.held || !['ground', 'bag'].includes(source)) return false;
+  const index = state[source].findIndex(item => item.id === id);
+  if (index < 0) return false;
+  const [item] = state[source].splice(index, 1);
+  state.held = { ...item };
+  return true;
+}
+
+function placeHeld(state, x, y) {
+  if (!state.held || !fits(state.bag, state.held, x, y)) return false;
+  state.bag.push({ ...state.held, x, y }); state.held = null;
+  return true;
+}
+
+function dropHeld(state, world, player) {
+  if (!state.held) return false;
+  const offsets = [[0.7, 0], [0, 0.7], [-0.7, 0], [0, -0.7], [0.7, 0.7], [-0.7, -0.7], [0, 0]];
+  const candidates = offsets.map(([dx, dy]) => ({ x: player.x + dx, y: player.y + dy }))
+    .filter(p => canStand(world, p.x, p.y, 0.15) && clearPath(world, player, p));
+  const at = candidates.find(p => state.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) > 0.35)) ?? candidates[0];
+  if (!at) return false;
+  state.ground.push({ ...state.held, ...at }); state.held = null;
+  return true;
+}
+
+
+function addStartingSnare(loot, seed) {
+  const item = findSpace(loot.bag, { id: `${seed}-snare`, type: 'snare', rotation: 0 });
+  if (item) loot.bag.push(item);
+}
+function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null }; }
+function cancelPlacement(placement) { Object.assign(placement, createPlacement()); }
+function interruptPlacement(placement) { placement.elapsed = 0; placement.ready = false; placement.origin = null; }
+function equipSnare(placement, loot, id) {
+  if (loot.held || !loot.bag.some(item => item.id === id && item.type === 'snare')) return false;
+  cancelPlacement(placement); placement.itemId = id;
+  // Keep the sack cell reserved until completion, so cancel never loses an item.
+  return true;
+}
+function placementPoint(player, pointer = null) {
+  const dx = pointer ? pointer.x - player.x : player.facing || 1, dy = pointer ? pointer.y - player.y : 0;
+  const distance = Math.hypot(dx, dy), scale = distance > TRAPS.reach ? TRAPS.reach / distance : 1;
+  return { x: player.x + dx * scale, y: player.y + dy * scale };
+}
+function validTrapPosition(world, player, point, traps, objects = []) {
+  return !!point && Math.hypot(point.x - player.x, point.y - player.y) <= TRAPS.reach + 0.001 && canStand(world, point.x, point.y, TRAPS.triggerRadius)
+    && clearPath(world, player, point) && traps.every(trap => trap.phase === 'spent' || Math.hypot(trap.x - point.x, trap.y - point.y) >= 0.8)
+    && objects.every(object => Math.hypot(object.x - point.x, object.y - point.y) >= 0.65);
+}
+function updatePlacement(placement, world, player, loot, traps, objects, point, heldE, dt) {
+  if (!placement.itemId) return null;
+  if (player.state === 'down' || !loot.bag.some(item => item.id === placement.itemId)) { cancelPlacement(placement); return null; }
+  if (placement.point && Math.hypot(placement.point.x - point.x, placement.point.y - point.y) > 0.1) { placement.elapsed = 0; placement.origin = null; }
+  placement.point = { ...point };
+  if (!heldE) { placement.ready = true; placement.elapsed = 0; placement.origin = null; return null; }
+  if (!placement.ready || player.moving || !validTrapPosition(world, player, point, traps, objects)) { placement.elapsed = 0; placement.origin = null; return null; }
+  placement.origin ??= { x: player.x, y: player.y };
+  if (Math.hypot(placement.origin.x - player.x, placement.origin.y - player.y) > 0.08) { interruptPlacement(placement); return null; }
+  placement.elapsed += Math.max(0, dt);
+  if (placement.elapsed + 0.000001 < TRAPS.placeTime) return null;
+  const index = loot.bag.findIndex(item => item.id === placement.itemId);
+  const trap = { id: placement.itemId, ...point, phase: 'arming', ownerId: player.id ?? 'goblin', ownerClear: false, armLeft: TRAPS.armDelay };
+  loot.bag.splice(index, 1); traps.push(trap); cancelPlacement(placement);
+  return { type: 'placed', trap };
+}
+function updateTraps(traps, goblins, guards, dt) {
+  const events = [];
+  for (const trap of traps) {
+    if (trap.phase === 'spent') continue;
+    if (trap.phase === 'arming') {
+      const owner = goblins.find(g => (g.id ?? 'goblin') === trap.ownerId);
+      if (!owner || Math.hypot(owner.x - trap.x, owner.y - trap.y) > TRAPS.triggerRadius + CONFIG.radius + TRAPS.clearMargin) trap.ownerClear = true;
+      if (!trap.ownerClear) continue;
+      trap.armLeft = Math.max(0, trap.armLeft - dt);
+      if (trap.armLeft > 0) continue;
+      trap.phase = 'armed'; events.push({ type: 'armed', trap });
+    }
+    const goblin = goblins.find(g => g.state !== 'down' && Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
+    const guard = guards.find(g => Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
+    if (!goblin && !guard) continue;
+    trap.phase = 'spent'; trap.triggeredBy = goblin ? 'goblin' : 'guard';
+    if (!goblin) { guard.snareLeft = TRAPS.holdTime; guard.windup = 0; guard.moving = false; }
+    events.push({ type: goblin ? 'goblin-triggered' : 'guard-triggered', trap, guard: goblin ? null : guard });
+  }
+  return events;
+}
+
+
+const SEARCHABLE_TYPES = Object.freeze({
+  chest: { name: 'Chest', duration: SEARCH.chestTime, count: 2, color: '#b79055', pool: ['ruby', 'coin', 'candlestick', 'horn'] },
+  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, count: 3, color: '#889e86', pool: ['scroll', 'candlestick', 'horn', 'coin'] },
+  crate: { name: 'Crate', duration: SEARCH.crateTime, count: 1, color: '#ab815c', pool: ['sword', 'scroll', 'horn', 'coin'] }
+});
+
+function createSearchables(world) {
+  let state = (world.seed ^ 0x9e3779b9) >>> 0;
+  const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
+  const objects = [];
+  const add = (type, x, y) => {
+    if (!canStand(world, x, y, 0.2) || objects.some(o => Math.hypot(o.x - x, o.y - y) < 0.8)) return;
+    const definition = SEARCHABLE_TYPES[type];
+    const contents = Array.from({ length: definition.count }, () => definition.pool[Math.floor(random() * definition.pool.length)]);
+    objects.push({ id: `${world.seed}-search-${objects.length}`, type, x, y, contents, searched: false });
+  };
+  const first = world.rooms[0];
+  add('chest', world.spawn.x + 1.5, world.spawn.y);
+  // Two small valuables in the first chest make the controls quick to learn.
+  objects[0].contents = ['ruby', 'coin'];
+  add('cupboard', first.x + 1.5, first.y + 1.5);
+  add('crate', first.x + first.w - 1.5, first.y + first.h - 1.5);
+  const types = Object.keys(SEARCHABLE_TYPES);
+  world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], i % 2 ? room.x + room.w - 1.5 : room.x + 1.5, room.cy + 0.5));
+  return objects;
+}
+
+function canSearch(world, player, object) {
+  return !object.searched && player.state !== 'down' && Math.hypot(player.x - object.x, player.y - object.y) <= SEARCH.reach && clearPath(world, player, object);
+}
+
+function selectInteraction(world, player, ground, objects, pointer = null) {
+  const candidates = [
+    ...ground.filter(item => reachable(world, player, item)).map(item => ({ kind: 'loot', item })),
+    ...objects.filter(item => canSearch(world, player, item)).map(item => ({ kind: 'search', item }))
+  ];
+  const distance = (candidate, point) => Math.hypot(candidate.item.x - point.x, candidate.item.y - point.y);
+  if (pointer) {
+    const hovered = candidates.filter(candidate => distance(candidate, pointer) <= 0.8);
+    if (hovered.length) return hovered.sort((a, b) => distance(a, pointer) - distance(b, pointer))[0];
+  }
+  return candidates.sort((a, b) => distance(a, player) - distance(b, player))[0] ?? null;
+}
+
+function createSearchSession() { return { active: null, elapsed: 0, origin: null }; }
+function cancelSearch(session) { session.active = null; session.elapsed = 0; session.origin = null; }
+
+function beginSearch(session, world, player, loot, object) {
+  if (session.active || loot.held || !canSearch(world, player, object)) return false;
+  session.active = object; session.elapsed = 0; session.origin = { x: player.x, y: player.y };
+  return true;
+}
+
+function spillContents(world, object, loot) {
+  const offsets = [[-0.6, 0.5], [0.6, 0.5], [0, -0.65], [-0.65, -0.4], [0.65, -0.4], [0, 0]];
+  const points = offsets.map(([dx, dy]) => ({ x: object.x + dx, y: object.y + dy }))
+    .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, object, point));
+  object.contents.forEach((type, i) => {
+    const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? object;
+    loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0 });
+  });
+}
+
+function updateSearch(session, world, player, loot, holdingE, dt) {
+  const object = session.active;
+  if (!object) return null;
+  const moved = Math.hypot(player.x - session.origin.x, player.y - session.origin.y) > SEARCH.movementTolerance;
+  if (!holdingE || moved || loot.held || !canSearch(world, player, object)) {
+    cancelSearch(session); return { type: 'cancelled', object };
+  }
+  session.elapsed += Math.max(0, dt);
+  if (session.elapsed + 0.000001 < SEARCHABLE_TYPES[object.type].duration) return null;
+  object.searched = true;
+  spillContents(world, object, loot);
+  cancelSearch(session);
+  return { type: 'completed', object, count: object.contents.length };
+}
+
+
+function findPath(world, from, to) {
+  const sx = Math.floor(from.x), sy = Math.floor(from.y), tx = Math.floor(to.x), ty = Math.floor(to.y);
+  if (!isFloor(world, sx, sy) || !isFloor(world, tx, ty)) return [];
+  const start = sy * world.width + sx, goal = ty * world.width + tx;
+  const previous = new Int32Array(world.tiles.length).fill(-1), queue = [start];
+  previous[start] = start;
+  for (let i = 0; i < queue.length && previous[goal] === -1; i++) {
+    const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
+    for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
+      if (isFloor(world, nx, ny) && previous[next] === -1) { previous[next] = key; queue.push(next); }
+    }
+  }
+  if (previous[goal] === -1) return [];
+  const path = [];
+  for (let key = goal; ; key = previous[key]) {
+    path.push({ x: key % world.width + 0.5, y: Math.floor(key / world.width) + 0.5 });
+    if (key === start) break;
+  }
+  path.reverse();
+  if (Math.hypot(path[0].x - from.x, path[0].y - from.y) < 0.01 || path[1] && (Math.abs(path[1].x - from.x) < 0.001 || Math.abs(path[1].y - from.y) < 0.001)) path.shift();
+  return path;
+}
+
+function followPath(world, actor, path, distance, radius = 0.26) {
+  let moved = 0;
+  while (distance > 0.00001 && path.length) {
+    const target = path[0], dx = target.x - actor.x, dy = target.y - actor.y, length = Math.hypot(dx, dy);
+    if (length < 0.001) { path.shift(); continue; }
+    const step = Math.min(distance, length, 0.1), nx = actor.x + dx / length * step, ny = actor.y + dy / length * step;
+    if (!canStand(world, nx, ny, radius)) { path.length = 0; break; }
+    actor.x = nx; actor.y = ny; actor.angle = Math.atan2(dy, dx); moved += step; distance -= step;
+    if (step >= length - 0.001) path.shift();
+  }
+  return moved;
+}
+
+
+function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active' }; }
+function tickVitality(player, dt) { player.invulnerable = Math.max(0, player.invulnerable - dt); }
+function hurtPlayer(player, damage = 1) {
+  if (player.state !== 'active' || player.invulnerable > 0) return false;
+  player.health = Math.max(0, player.health - damage); player.invulnerable = COMBAT.invulnerable;
+  if (!player.health) { player.state = 'down'; player.moving = false; player.phase = 0; }
+  return true;
+}
+
+function createGuard(world, options = {}) {
+  const nearest = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
+    .sort((a, b) => Math.hypot(a.room.cx - world.rooms[0].cx, a.room.cy - world.rooms[0].cy) - Math.hypot(b.room.cx - world.rooms[0].cx, b.room.cy - world.rooms[0].cy));
+  const roomIndex = options.roomIndex ?? nearest[0]?.index ?? 0;
+  const homeRoom = world.rooms[roomIndex], behaviour = options.behaviour ?? 'room';
+  const patrol = behaviour === 'lookout' ? [{ x: homeRoom.cx + 0.5, y: homeRoom.cy + 0.5 }] : [
+    { x: homeRoom.x + 1.5, y: homeRoom.cy + 0.5 },
+    { x: homeRoom.x + homeRoom.w - 1.5, y: homeRoom.cy + 0.5 }
+  ];
+  const doorAngles = { north: -Math.PI / 2, east: 0, south: Math.PI / 2, west: Math.PI };
+  const sides = [...new Set((homeRoom.entrances ?? []).map(door => door.side))];
+  const firstAngle = doorAngles[sides[0]] ?? 0;
+  const watchAngles = [firstAngle, sides[1] ? doorAngles[sides[1]] : firstAngle + Math.PI];
+  return { id: `${world.seed ?? 0}-guard-${roomIndex}`, roomIndex, behaviour, homeRoom, home: { ...patrol[0] }, x: patrol[0].x, y: patrol[0].y,
+    angle: firstAngle, watchAngles, watchIndex: 0, watchLeft: GUARD_PATTERNS.lookPause, pauseLeft: GUARD_PATTERNS.roomPause,
+    state: 'patrol', suspicion: 0, patrol, patrolIndex: behaviour === 'lookout' ? 0 : 1, path: [], repath: 0, goal: null, lastSeen: null,
+    searchLeft: COMBAT.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
+    windup: 0, cooldown: 0, swing: 0, snareLeft: 0, moving: false, resumeState: 'patrol' };
+}
+
+function createGuards(world) {
+  const rooms = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
+    .map(entry => ({ ...entry, distance: findPath(world, world.spawn, { x: entry.room.cx + 0.5, y: entry.room.cy + 0.5 }).length }))
+    .sort((a, b) => a.distance - b.distance);
+  const count = Math.min(GUARD_PATTERNS.count, rooms.length);
+  const selected = Array.from({ length: count }, (_, i) => count === 1 ? 0 : Math.round(i * (rooms.length - 1) / (count - 1))); 
+  return selected.filter(index => rooms[index]).map((index, i) => createGuard(world, { roomIndex: rooms[index].index, behaviour: i === 1 ? 'room' : 'lookout' }));
+}
+
+function turnGuard(guard, angle, dt) {
+  const difference = Math.atan2(Math.sin(angle - guard.angle), Math.cos(angle - guard.angle));
+  guard.angle += Math.sign(difference) * Math.min(Math.abs(difference), GUARD_PATTERNS.turnSpeed * dt);
+}
+
+function resetGuardRoutine(guard) {
+  guard.watchIndex = 0; guard.watchLeft = GUARD_PATTERNS.lookPause; guard.pauseLeft = GUARD_PATTERNS.roomPause;
+  guard.patrolIndex = guard.behaviour === 'lookout' ? 0 : 1; guard.path = []; guard.goal = null; guard.repath = 0;
+  clearGuardTrail(guard);
+}
+
+function clearGuardTrail(guard) {
+  guard.trail = []; guard.trailLeft = 0; guard.trailSource = null; guard.trailEnd = null;
+}
+
+function recordGuardTrail(world, guard, player, dt) {
+  if (guard.trailLeft <= 0) return;
+  const previous = guard.trailSource;
+  // Trace only continuous valid movement, never a teleport or an off-map target.
+  const distance = previous ? Math.hypot(player.x - previous.x, player.y - previous.y) : Infinity;
+  if (previous && distance <= Math.max(0.6, CONFIG.speed * dt * 1.6) && canStand(world, player.x, player.y) && clearPath(world, previous, player)) {
+    const last = guard.trailEnd;
+    // Keep turns when crossing tiles, even before reaching the spacing limit.
+    if (!last || Math.hypot(last.x - player.x, last.y - player.y) >= COMBAT.trailSpacing || Math.floor(last.x) !== Math.floor(player.x) || Math.floor(last.y) !== Math.floor(player.y)) {
+      const point = { x: player.x, y: player.y };
+      guard.trail.push(point); guard.trailEnd = { ...point };
+    }
+    guard.trailSource = { x: player.x, y: player.y };
+  }
+  guard.trailLeft = Math.max(0, guard.trailLeft - dt);
+}
+
+function updateRoutine(world, guard, dt) {
+  if (guard.behaviour === 'lookout') {
+    guard.watchLeft -= dt;
+    if (guard.watchLeft <= 0) { guard.watchLeft += GUARD_PATTERNS.lookPause; guard.watchIndex = (guard.watchIndex + 1) % 2; }
+    turnGuard(guard, guard.watchAngles[guard.watchIndex], dt);
+    return;
+  }
+  if (guard.pauseLeft > 0) {
+    guard.pauseLeft = Math.max(0, guard.pauseLeft - dt);
+    turnGuard(guard, guard.watchAngles[guard.watchIndex], dt); return;
+  }
+  const goal = guard.patrol[guard.patrolIndex];
+  if (Math.hypot(goal.x - guard.x, goal.y - guard.y) < 0.08) {
+    guard.patrolIndex = (guard.patrolIndex + 1) % guard.patrol.length;
+    guard.watchIndex = (guard.watchIndex + 1) % 2; guard.pauseLeft = GUARD_PATTERNS.roomPause; guard.repath = 0; return;
+  }
+  setGuardGoal(world, guard, goal, dt);
+  guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+}
+
+function seesPlayer(world, guard, player, alerted = false) {
+  const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
+  if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player)) return false;
+  if (alerted || distance < 1.2) return true;
+  return (dx * Math.cos(guard.angle) + dy * Math.sin(guard.angle)) / distance >= Math.cos(COMBAT.halfCone);
+}
+
+function setGuardGoal(world, guard, point, dt) {
+  guard.repath -= dt;
+  const changed = !guard.goal || Math.floor(guard.goal.x) !== Math.floor(point.x) || Math.floor(guard.goal.y) !== Math.floor(point.y);
+  if (changed || guard.repath <= 0) {
+    guard.path = findPath(world, guard, point); guard.goal = { ...point }; guard.repath = 0.5;
+    if (!guard.path.length && canStand(world, point.x, point.y, COMBAT.guardRadius) && Math.floor(point.x) === Math.floor(guard.x) && Math.floor(point.y) === Math.floor(guard.y) && clearPath(world, guard, point)) guard.path = [{ ...point }];
+  }
+}
+
+function updateGuard(world, guard, player, dt) {
+  const events = { hit: false, spotted: false };
+  if (player.state !== 'active' || dt <= 0) return events;
+  if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; return events; }
+  guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
+  const alerted = guard.state === 'chase' || guard.state === 'search';
+  const sees = seesPlayer(world, guard, player, alerted);
+  if (sees) {
+    clearGuardTrail(guard);
+    guard.lastSeen = { x: player.x, y: player.y };
+    if (alerted) guard.state = 'chase';
+    else {
+      if (guard.state !== 'suspicious') guard.resumeState = guard.state;
+      guard.state = 'suspicious'; guard.angle = Math.atan2(player.y - guard.y, player.x - guard.x);
+      guard.suspicion = Math.min(1, guard.suspicion + dt / COMBAT.noticeTime);
+      if (guard.suspicion >= 1) { guard.state = 'chase'; guard.repath = 0; events.spotted = true; }
+    }
+  } else if (guard.state === 'suspicious') {
+    guard.suspicion = Math.max(0, guard.suspicion - dt * 1.5);
+    if (!guard.suspicion) guard.state = guard.resumeState;
+  } else if (guard.state === 'chase') {
+    guard.state = 'search'; guard.searchLeft = COMBAT.searchTime; guard.repath = 0;
+    guard.trail = guard.lastSeen ? [{ ...guard.lastSeen }] : [];
+    guard.trailSource = guard.lastSeen ? { ...guard.lastSeen } : null;
+    guard.trailEnd = guard.lastSeen ? { ...guard.lastSeen } : null;
+    guard.trailLeft = COMBAT.trailSeconds;
+  }
+  if (guard.state === 'search') recordGuardTrail(world, guard, player, dt);
+  // A strike has a visible wind-up. Stepping out of range makes it miss.
+  if (guard.windup > 0) {
+    guard.windup = Math.max(0, guard.windup - dt);
+    if (!guard.windup) {
+      guard.swing = 0.18; guard.cooldown = COMBAT.cooldown;
+      if (Math.hypot(player.x - guard.x, player.y - guard.y) <= COMBAT.attackRange && clearPath(world, guard, player)) events.hit = hurtPlayer(player);
+    }
+    return events;
+  }
+  if (guard.state === 'suspicious') return events;
+  if (guard.state === 'chase' && sees) {
+    const distance = Math.hypot(player.x - guard.x, player.y - guard.y);
+    if (distance <= COMBAT.attackRange) {
+      guard.angle = Math.atan2(player.y - guard.y, player.x - guard.x);
+      if (!guard.cooldown) guard.windup = COMBAT.windup;
+      return events;
+    }
+    // Navigate to the target's tile; approach precisely once inside that tile.
+    if (Math.floor(player.x) === Math.floor(guard.x) && Math.floor(player.y) === Math.floor(guard.y)) guard.path = [{ x: player.x, y: player.y }];
+    else setGuardGoal(world, guard, player, dt);
+    guard.moving = followPath(world, guard, guard.path, COMBAT.chaseSpeed * dt, COMBAT.guardRadius) > 0;
+  } else if (guard.state === 'search') {
+    while (guard.trail.length && Math.hypot(guard.trail[0].x - guard.x, guard.trail[0].y - guard.y) <= 0.35) {
+      guard.trail.shift(); guard.repath = 0;
+    }
+    const goal = guard.trail[0];
+    if (goal) {
+      setGuardGoal(world, guard, goal, dt);
+      guard.moving = followPath(world, guard, guard.path, COMBAT.searchSpeed * dt, COMBAT.guardRadius) > 0;
+      if (!guard.path.length && !guard.moving) { guard.trail.shift(); guard.repath = 0; }
+    } else if (guard.trailLeft <= 0) { guard.searchLeft -= dt; guard.angle += dt * 1.7; }
+    if (guard.searchLeft <= 0) {
+      guard.state = 'return'; guard.suspicion = 0; guard.repath = 0; guard.lastSeen = null; clearGuardTrail(guard);
+    }
+  } else if (guard.state === 'return') {
+    if (Math.hypot(guard.home.x - guard.x, guard.home.y - guard.y) <= 0.05) {
+      guard.x = guard.home.x; guard.y = guard.home.y; guard.state = 'patrol'; resetGuardRoutine(guard);
+    } else {
+      setGuardGoal(world, guard, guard.home, dt);
+      guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+    }
+  } else if (guard.state === 'patrol') updateRoutine(world, guard, dt);
+
+  return events;
+}
+
+
+const TUNNEL_REACH = 0.7;
+
+function createRun(world, now = 0) {
+  return { phase: 'exploring', entrance: { ...world.spawn }, startedAt: now, result: null };
+}
+
+function atTunnel(run, world, player) {
+  return run.phase === 'exploring' && player.state !== 'down' && Math.hypot(player.x - run.entrance.x, player.y - run.entrance.y) <= TUNNEL_REACH && clearPath(world, player, run.entrance);
+}
+
+function finishRun(run, world, player, loot, now) {
+  if (run.phase !== 'exploring' || loot.held || !atTunnel(run, world, player)) return null;
+  // Snapshot only what was packed, never loose loot or an extra cursor item.
+  const items = loot.bag.filter(item => !LOOT_TYPES[item.type].equipment).map(item => ({ ...item }));
+  run.result = { outcome: 'escaped', items, count: items.length, slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
+  run.phase = 'results';
+  return run.result;
+}
+
+// Solo fallback: no active teammate remains, so the downed player's run is over.
+// A future team session can wait for recovery before choosing this outcome.
+function loseRun(run, loot, now) {
+  if (run.phase !== 'exploring') return null;
+  const lostItems = [...loot.bag, ...(loot.held ? [loot.held] : [])].map(item => ({ ...item }));
+  run.result = { outcome: 'down', items: [], count: 0, slots: 0, lostItems, elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
+  loot.bag.length = 0; loot.held = null; run.phase = 'results';
+  return run.result;
+}
+
+
+// Shared item display for floor loot, sack contents and the held-item preview.
+function drawItem(ctx, item, x, y, size, outline = null) {
+  const type = LOOT_TYPES[item.type];
+  const cells = itemCells(item);
+  for (const [dx, dy] of cells) {
+    const px = Math.round(x + dx * size), py = Math.round(y + dy * size);
+    ctx.fillStyle = outline ?? '#182022'; ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = type.color; ctx.fillRect(px + 2, py + 2, size - 4, size - 4);
+    ctx.fillStyle = '#ffffff45'; ctx.fillRect(px + 3, py + 3, size - 6, Math.max(1, Math.floor(size / 10)));
+  }
+  if (size >= 18) {
+    const [dx, dy] = cells[0];
+    ctx.fillStyle = '#26302b'; ctx.font = `bold ${Math.floor(size * 0.46)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(type.mark, x + dx * size + size / 2, y + dy * size + size / 2);
+  }
+}
+
+// Visibility only: never touches inventory contents or placement rules.
+function createSackPanel() {
+  return { open: false, manual: false, peek: 0, revealPending: false, lastTarget: null, suppressed: null, wasMoving: false };
+}
+
+function toggleSackPanel(panel, targetId = null, holding = false) {
+  if (holding) { panel.open = true; return; }
+  panel.manual = !panel.open; panel.open = panel.manual; panel.peek = 0;
+  panel.suppressed = panel.manual ? null : targetId;
+}
+
+function revealSackPanel(panel) { panel.revealPending = true; }
+
+function stepSackPanel(panel, { moving = false, targetId = null, holding = false, hovering = false, active = true }, dt) {
+  if (!active) { panel.open = false; panel.manual = false; panel.peek = 0; panel.revealPending = false; return false; }
+  panel.peek = Math.max(0, panel.peek - Math.max(0, dt));
+  if (moving) {
+    panel.manual = false;
+    if (!panel.wasMoving) panel.peek = 0;
+  }
+  // A newly highlighted loose item gets a short peek, including while walking.
+  // The same target cannot reopen the panel every frame after it is dismissed.
+  if (targetId !== panel.lastTarget) {
+    panel.suppressed = null;
+    if (targetId) panel.peek = 1.1;
+    panel.lastTarget = targetId;
+  }
+  if (panel.revealPending) { panel.peek = 1.6; panel.revealPending = false; panel.suppressed = null; }
+  panel.open = !!(holding || panel.manual || panel.peek > 0 || !moving && (targetId && targetId !== panel.suppressed || hovering && panel.open));
+  panel.wasMoving = moving;
+  return panel.open;
+}
+
+
+function createSackView(canvas, ghost) {
+  const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
+  const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
+  let visibility = createSackPanel(), currentTarget = null, holding = false;
+  let selected = { x: 0, y: 0 }, keyboardSelection = false;
+  const cell = 56;
+  canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
+  ghost.width = 96; ghost.height = 96;
+  const cellAt = (pointer) => {
+    if (!visibility.open) return null;
+    const rect = canvas.getBoundingClientRect();
+    if (pointer.x < rect.left || pointer.y < rect.top || pointer.x >= rect.right || pointer.y >= rect.bottom) return null;
+    return { x: Math.floor((pointer.x - rect.left) / rect.width * SACK.width), y: Math.floor((pointer.y - rect.top) / rect.height * SACK.height) };
+  };
+  const paint = (state, pointer) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < SACK.height; y++) for (let x = 0; x < SACK.width; x++) {
+      ctx.fillStyle = '#10191b'; ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
+      ctx.strokeStyle = '#4b5343'; ctx.strokeRect(x * cell + 0.5, y * cell + 0.5, cell - 1, cell - 1);
+    }
+    state.bag.forEach(item => drawItem(ctx, item, item.x * cell, item.y * cell, cell, null));
+    const hovered = cellAt(pointer);
+    const chosen = keyboardSelection && visibility.open ? selected : hovered;
+    if (chosen && !state.held) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(chosen.x * cell + 3, chosen.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
+    if (state.held && hovered) {
+      ctx.save(); ctx.globalAlpha = 0.7;
+      drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, fits(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
+      ctx.restore();
+    }
+    ghost.hidden = !state.held || !!hovered || !pointer.active;
+    if (state.held) {
+      ghost.style.left = `${pointer.x + 14}px`; ghost.style.top = `${pointer.y + 14}px`;
+      ghostCtx.clearRect(0, 0, ghost.width, ghost.height);
+      drawItem(ghostCtx, state.held, 0, 0, 28, '#c7ee7b');
+    }
+    const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
+    document.querySelector('#sack-used').textContent = `${used} / 9`;
+    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · snare: select, E equip';
+    document.querySelector('#held-label').textContent = heldText;
+  };
+  const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
+    currentTarget = targetId; holding = !!held;
+    const bounds = panel.getBoundingClientRect();
+    const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
+    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    if (!open) keyboardSelection = false;
+    panel.dataset.open = String(open); panel.inert = !open;
+    panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
+    tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
+    canvas.tabIndex = open ? 0 : -1;
+  };
+  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open,
+    navigate: (dx, dy) => { keyboardSelection = true; selected = { x: Math.max(0, Math.min(2, selected.x + dx)), y: Math.max(0, Math.min(2, selected.y + dy)) }; },
+    selectAt: pointer => { const at = cellAt(pointer); if (at) { selected = at; keyboardSelection = true; } },
+    itemForEquip: (state, pointer) => { const at = keyboardSelection ? selected : cellAt(pointer); return visibility.open && at ? bagItemAt(state.bag, at.x, at.y) : null; },
+    toggle: () => { toggleSackPanel(visibility, currentTarget, holding); keyboardSelection = visibility.open && !holding; }, reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
+}
+
+
+function createResultsView(dialog) {
+  const list = document.querySelector('#haul-list');
+  dialog.addEventListener('cancel', e => e.preventDefault());
+  return {
+    open(result) {
+      const down = result.outcome === 'down';
+      document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
+      document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
+      document.querySelector('#results-description').textContent = down ? 'Nobody was left to recover you. Your carried loot and supplies were lost.' : 'Here is what you brought back in your sack.';
+      list.replaceChildren();
+      list.setAttribute('aria-label', down ? 'Loot lost in the dungeon' : 'Loot brought back');
+      const grouped = new Map();
+      const shown = down ? result.lostItems : result.items;
+      shown.forEach(item => {
+        const group = grouped.get(item.type) ?? { item, count: 0 };
+        group.count++; grouped.set(item.type, group);
+      });
+      for (const { item, count } of grouped.values()) {
+        const row = document.createElement('li'); row.className = 'haul-row';
+        const icon = document.createElement('canvas'); icon.width = 60; icon.height = 60;
+        icon.setAttribute('aria-hidden', 'true'); drawItem(icon.getContext('2d'), item, 3, 3, 18);
+        const name = document.createElement('span'); name.textContent = LOOT_TYPES[item.type].name;
+        const quantity = document.createElement('strong'); quantity.textContent = `× ${count}`;
+        row.append(icon, name, quantity); list.append(row);
+      }
+      document.querySelector('#empty-haul').hidden = shown.length > 0;
+      document.querySelector('#empty-haul').textContent = down ? 'You were carrying no loot. You can return on the next run.' : 'You slipped out empty-handed. There is more to steal next time.';
+      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'treasure' : 'treasures'} · ${result.slots} / 9 sack squares · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      dialog.showModal();
+      document.querySelector('#next-run').focus();
+    },
+    close() { if (dialog.open) dialog.close(); }
+  };
+}
+
+
+function drawGuardVision(ctx, world, guard, ox, oy) {
+  if (!['patrol', 'suspicious', 'return'].includes(guard.state)) return;
+  const t = CONFIG.tile;
+  ctx.beginPath(); ctx.moveTo(guard.x * t + ox, guard.y * t + oy);
+  for (let ray = 0; ray <= 24; ray++) {
+    const angle = guard.angle - COMBAT.halfCone + ray / 24 * COMBAT.halfCone * 2;
+    let x = guard.x, y = guard.y;
+    for (let step = 0.15; step <= COMBAT.sight; step += 0.15) {
+      const nx = guard.x + Math.cos(angle) * step, ny = guard.y + Math.sin(angle) * step;
+      if (!isFloor(world, Math.floor(nx), Math.floor(ny))) break;
+      x = nx; y = ny;
+    }
+    ctx.lineTo(x * t + ox, y * t + oy);
+  }
+  ctx.closePath(); ctx.fillStyle = guard.state === 'suspicious' ? '#efc65e25' : '#e1d9a010'; ctx.fill();
+}
+
+function drawGuard(ctx, guard, ox, oy) {
+  const t = CONFIG.tile, x = Math.round(guard.x * t + ox), y = Math.round(guard.y * t + oy);
+  const alert = guard.state === 'chase' || guard.state === 'search';
+  const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
+  if (guard.windup > 0 || guard.swing > 0) {
+    ctx.beginPath(); ctx.arc(x, y, COMBAT.attackRange * t, 0, Math.PI * 2);
+    ctx.fillStyle = guard.swing > 0 ? '#ef727b50' : '#ef727b18'; ctx.fill();
+    ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
+  }
+  rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
+  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
+  rect(-5, -24, 11, 10, '#a9b2b2'); rect(-6, -23, 13, 3, '#d2d5c6'); rect(-4, -19, 9, 3, '#283b3e');
+  rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
+  ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x + Math.cos(guard.angle) * 12, y - 12 + Math.sin(guard.angle) * 12); ctx.stroke();
+  if (guard.snareLeft > 0) {
+    ctx.fillStyle = '#d7eeb2'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('SNARED', x, y - 29);
+  } else if (guard.state !== 'patrol') {
+    ctx.fillStyle = alert ? '#f19a91' : '#efd18a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
+  }
+  if (guard.state === 'suspicious') {
+    rect(-9, -29, 18, 2, '#242e29'); rect(-9, -29, Math.round(18 * guard.suspicion), 2, '#efd18a');
+  }
+  if (guard.state === 'patrol') {
+    ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
+  }
+}
+
+function drawPixelProgress(ctx, x, y, progress) {
+  const width = Math.round(24 * Math.max(0, Math.min(1, progress)));
+  ctx.fillStyle = '#152021'; ctx.fillRect(Math.round(x) - 13, Math.round(y), 26, 6);
+  ctx.fillStyle = '#5d6c50'; ctx.fillRect(Math.round(x) - 12, Math.round(y) + 1, 24, 4);
+  ctx.fillStyle = '#c8ec90'; ctx.fillRect(Math.round(x) - 12, Math.round(y) + 1, width, 4);
+  if (width) { ctx.fillStyle = '#e1f8bb'; ctx.fillRect(Math.round(x) - 12, Math.round(y) + 1, width, 1); }
+}
+
+
+function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
+  const t = CONFIG.tile;
+  for (const object of objects) {
+    const x = Math.round(object.x * t + ox), y = Math.round(object.y * t + oy);
+    const definition = SEARCHABLE_TYPES[object.type];
+    const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
+    ctx.save(); if (object.searched) ctx.globalAlpha = 0.5;
+    rect(-11, -4, 22, 11, '#182124');
+    if (object.type === 'chest') {
+      rect(-11, -14, 22, 18, '#67503a'); rect(-10, -13, 20, 5, definition.color);
+      rect(-10, -6, 20, 9, '#936a40'); rect(-2, -8, 4, 6, '#e1c981');
+      if (object.searched) { rect(-10, -18, 20, 5, definition.color); rect(-9, -12, 18, 6, '#172022'); }
+    } else if (object.type === 'cupboard') {
+      rect(-10, -27, 20, 30, '#40534a'); rect(-9, -26, 18, 27, definition.color);
+      rect(-1, -24, 2, 24, '#4c6254'); rect(-4, -13, 2, 4, '#dac484'); rect(3, -13, 2, 4, '#dac484');
+      if (object.searched) rect(-7, -23, 7, 21, '#1b2c27');
+    } else {
+      rect(-10, -14, 20, 18, '#694b36'); rect(-9, -13, 18, 16, definition.color);
+      rect(-9, -6, 18, 2, '#6c5037'); rect(-2, -13, 3, 16, '#d0ae7e');
+      if (object.searched) { rect(-7, -11, 14, 7, '#1b2423'); rect(-11, -19, 21, 3, definition.color); }
+    }
+    ctx.restore();
+    if (activeTarget?.id === object.id) {
+      const top = object.type === 'cupboard' ? 28 : 16;
+      ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
+      if (session.active?.id === object.id) {
+        const progress = Math.max(0, Math.min(1, session.elapsed / definition.duration));
+        drawPixelProgress(ctx, x, y - top - 11, progress);
+      } else {
+        ctx.fillStyle = '#d1f69b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('HOLD E', x, y - top - 7);
+      }
+    }
+  }
+}
+
+
+function drawSnare(ctx, x, y, color, spent = false) {
+  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.strokeRect(x - 7.5, y - 5.5, 15, 11);
+  ctx.beginPath(); ctx.moveTo(x - 5, y - 3); ctx.lineTo(x + (spent ? 7 : 5), y + (spent ? -6 : 3)); ctx.moveTo(x + 5, y - 3); ctx.lineTo(x - 5, y + 3); ctx.stroke();
+  ctx.fillStyle = color; ctx.fillRect(x - 2, y - 2, 4, 4);
+}
+function drawTraps(ctx, world, player, traps, objects, placement, ox, oy) {
+  const tile = CONFIG.tile;
+  for (const trap of traps) {
+    const x = Math.round(trap.x * tile + ox), y = Math.round(trap.y * tile + oy);
+    drawSnare(ctx, x, y, trap.phase === 'armed' ? '#bfd998' : trap.phase === 'arming' ? '#d4b56e' : '#62746b', trap.phase === 'spent');
+    if (trap.phase === 'arming') {
+      ctx.fillStyle = '#e0c58a'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(trap.ownerClear ? 'ARMING' : 'STEP CLEAR', x, y - 10);
+    }
+  }
+  if (!placement?.itemId || !placement.point) return;
+  const point = placement.point, x = Math.round(point.x * tile + ox), y = Math.round(point.y * tile + oy);
+  const valid = validTrapPosition(world, player, point, traps, objects);
+  const color = valid ? '#c8ec90' : '#f18a8a';
+  drawSnare(ctx, x, y, color);
+  ctx.strokeStyle = color; ctx.strokeRect(x - 11.5, y - 9.5, 23, 19);
+  if (placement.elapsed > 0) drawPixelProgress(ctx, x, y - 20, placement.elapsed / TRAPS.placeTime);
+  else { ctx.fillStyle = color; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(valid ? placement.ready ? 'HOLD E' : 'RELEASE E' : 'BLOCKED', x, y - 14); }
+}
+
+
+function screenToWorld(canvas, player, pointer) {
+  const bounds = canvas.getBoundingClientRect();
+  const ox = Math.round(canvas.width / 2 - player.x * CONFIG.tile), oy = Math.round(canvas.height / 2 - player.y * CONFIG.tile);
+  return { x: ((pointer.x - bounds.left) / bounds.width * canvas.width - ox) / CONFIG.tile, y: ((pointer.y - bounds.top) / bounds.height * canvas.height - oy) / CONFIG.tile };
+}
+
+async function createRenderer(canvas, mapCanvas) {
+  const goblin = new Image();
+  goblin.src = GOBLIN_ART.src;
+  await goblin.decode();
+  const ctx = canvas.getContext('2d');
+  const map = mapCanvas.getContext('2d');
+  let width = 0, height = 0;
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    width = Math.max(1, Math.floor(rect.width / 2)); height = Math.max(1, Math.floor(rect.height / 2));
+    canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
+  };
+  new ResizeObserver(resize).observe(canvas); resize();
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null) => {
+    ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
+    const t = CONFIG.tile;
+    const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
+    const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+    for (let y = Math.max(0, Math.floor(-oy / t) - 1); y < Math.min(world.height, Math.ceil((height - oy) / t) + 1); y++) {
+      for (let x = Math.max(0, Math.floor(-ox / t) - 1); x < Math.min(world.width, Math.ceil((width - ox) / t) + 1); x++) {
+        const px = x * t + ox, py = y * t + oy;
+        if (isFloor(world, x, y)) {
+          rect(px, py, t, t, (x * 13 + y * 7) % 5 === 0 ? '#333c3a' : '#2d3635');
+          rect(px, py, t, 1, '#404743'); rect(px, py, 1, t, '#252f2e');
+          if ((x * 7 + y * 19) % 17 === 0) rect(px + 7, py + 15, 3, 1, '#596050');
+        } else if ([-1, 0, 1].some(dy => [-1, 0, 1].some(dx => isFloor(world, x + dx, y + dy)))) {
+          rect(px, py, t, t, '#465053'); rect(px + 1, py + 1, t - 2, 5, '#657074');
+          rect(px + 1, py + 8, t - 2, t - 9, '#3b4548'); rect(px + 11, py + 9, 1, 12, '#303a3d');
+          if (isFloor(world, x, y + 1)) rect(px, py + t - 3, t, 3, '#20282b');
+        }
+      }
+    }
+    for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy);
+    const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
+    rect(tx - 13, ty - 9, 26, 18, tunnelReady ? '#d5c483' : '#8c805b');
+    rect(tx - 10, ty - 6, 20, 12, '#080f12');
+    for (let i = 0; i < 3; i++) rect(tx - 8 + i * 6, ty - 4, 3, 8, '#3a4036');
+    ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText('SECRET TUNNEL', tx, ty - 30);
+    if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
+    drawTraps(ctx, world, player, traps, objects, placement, ox, oy);
+    drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
+    for (const item of loot.ground) {
+      const cells = itemCells(item), size = 7;
+      const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
+      const x = Math.round(item.x * t + ox - w / 2), y = Math.round(item.y * t + oy - h / 2);
+      const fall = item.spillAge === undefined ? 0 : Math.round(Math.sin(Math.min(1, item.spillAge / SEARCH.spillTime) * Math.PI) * 8);
+      drawItem(ctx, item, x, y - fall, size);
+      if (target?.id === item.id && !loot.held && !tunnelReady) {
+        ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
+        ctx.strokeRect(x - 3.5, y - 3.5, w + 7, h + 7);
+        ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('E', x + w / 2, y - 6);
+      }
+    }
+    for (const guard of guards) drawGuard(ctx, guard, ox, oy);
+    // Feet and shadow stay on the floor; only the supplied sprite hops.
+    const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
+    const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
+    rect(sx - 7, sy - 2, 14, 4, '#182222');
+    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+    if (player.state === 'down') ctx.rotate(Math.PI / 2);
+    else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
+    const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
+    ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
+    ctx.restore();
+    mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
+    map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+    map.fillStyle = '#667670';
+    world.tiles.forEach((floor, i) => { if (floor) map.fillRect(i % world.width * 2, Math.floor(i / world.width) * 2, 2, 2); });
+    map.fillStyle = '#ead48c'; map.fillRect(Math.floor(run.entrance.x) * 2 - 2, Math.floor(run.entrance.y) * 2 - 2, 6, 6);
+    map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2, Math.floor(player.y) * 2, 2, 2);
+  };
+}
+
+
+const canvas = document.querySelector('#game');
+const sackCanvas = document.querySelector('#sack-grid');
+const input = createInput(window, () => sack.isOpen());
+const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
+const results = createResultsView(document.querySelector('#run-results'));
+let render;
+try {
+  render = await createRenderer(canvas, document.querySelector('#map'));
+} catch (error) {
+  document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
+  throw error;
+}
+let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
+let objects = [], searchSession = createSearchSession(), searchTarget = null;
+let traps = [], placement = createPlacement();
+let messageUntil = 0;
+const pointer = { x: 0, y: 0, active: false, overGame: false };
+const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
+const updateTarget = () => {
+  if (placement.itemId) { target = null; searchTarget = null; return; }
+  const interaction = searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
+  target = interaction?.kind === 'loot' ? interaction.item : null;
+  searchTarget = interaction?.kind === 'search' ? interaction.item : null;
+};
+const reset = () => {
+  if (world && run.phase === 'exploring' && !window.confirm('Abandon this run? This resets the sack and all dungeon loot.')) { canvas.focus(); return; }
+  results.close();
+  world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
+  player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
+  guards = createGuards(world);
+  loot = createLoot(); addStartingSnare(loot, world.seed); traps = []; placement = createPlacement(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
+  run = createRun(world, performance.now());
+  sack.reset();
+  input.clear();
+  document.querySelector('#seed').textContent = String(world.seed);
+  document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
+  tell('Hold E beside a highlighted chest, cupboard or crate. Search it, collect the spilled loot, then return to the tunnel.');
+  canvas.focus(); updateTarget();
+};
+const showRunResult = (result, message) => {
+  if (!result) return;
+  cancelSearch(searchSession);
+  input.clear(); dragStart = null; player.moving = false; player.phase = 0;
+  cancelPlacement(placement); results.open(result); tell(message);
+};
+const drop = () => {
+  const name = LOOT_TYPES[loot.held.type].name;
+  if (dropHeld(loot, world, player)) tell(`${name} dropped nearby. It stays on the floor.`);
+};
+const placeAtPointer = () => {
+  const cell = sack.cellAt(pointer);
+  if (!cell) return;
+  const name = LOOT_TYPES[loot.held.type].name;
+  if (placeHeld(loot, cell.x, cell.y)) tell(`${name} packed.`);
+  else tell('It will not fit there. R rotates; try another space, or E to drop it.');
+};
+const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (e.target === sackCanvas) sack.selectAt(pointer); };
+// Boundaries for clicks are checked from event targets; cursor proximity never extends pickup reach.
+document.addEventListener('pointermove', trackPointer);
+document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || !world || run.phase !== 'exploring') return;
+  trackPointer(e);
+  if (e.target !== canvas && e.target !== sackCanvas) return;
+  e.preventDefault(); canvas.focus();
+  if (placement.itemId) return;
+  cancelSearch(searchSession);
+  const wasHolding = !!loot.held;
+  if (e.target === sackCanvas) {
+    if (loot.held) placeAtPointer();
+    else {
+      const cell = sack.cellAt(pointer), item = cell && bagItemAt(loot.bag, cell.x, cell.y);
+      if (item?.type === 'snare') { sack.selectAt(pointer); tell('Snare selected. Press E to equip.'); return; }
+      if (item && liftItem(loot, 'bag', item.id)) tell(`${LOOT_TYPES[item.type].name} lifted. R rotates; click a sack square to place.`);
+    }
+  } else if (loot.held) drop();
+  else {
+    const at = screenToWorld(canvas, player, pointer);
+    const clicked = selectTarget(world, player, loot.ground, at);
+    if (clicked && Math.hypot(clicked.x - at.x, clicked.y - at.y) <= 0.8) {
+      liftItem(loot, 'ground', clicked.id);
+      tell(`${LOOT_TYPES[clicked.type].name} lifted. R rotates; click the sack to place.`);
+    } else tell('Hold E beside a highlighted object to search. Click spilled loot to lift it.');
+  }
+  if (!wasHolding && loot.held) dragStart = { x: e.clientX, y: e.clientY, id: loot.held.id };
+});
+document.addEventListener('pointerup', e => {
+  const start = dragStart; dragStart = null;
+  if (run.phase !== 'exploring' || !start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
+  trackPointer(e);
+  if (e.target === sackCanvas) placeAtPointer();
+  else if (e.target === canvas) drop();
+});
+window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); interruptPlacement(placement); });
+window.addEventListener('keyup', e => {
+  if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
+});
+window.addEventListener('keydown', e => {
+  if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (e.code === 'Escape' && placement.itemId) { e.preventDefault(); cancelPlacement(placement); tell('Placement cancelled. Snare is still in your sack.'); return; }
+  if (e.code === 'KeyI') { e.preventDefault(); cancelPlacement(placement); sack.toggle(); return; }
+  if (e.code.startsWith('Arrow') && sack.isOpen()) { e.preventDefault(); sack.navigate(Number(e.code === 'ArrowRight') - Number(e.code === 'ArrowLeft'), Number(e.code === 'ArrowDown') - Number(e.code === 'ArrowUp')); return; }
+  if (e.code === 'KeyR' && loot.held) {
+    e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
+    tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
+  }
+  if (e.code !== 'KeyE') return;
+  e.preventDefault();
+  if (placement.itemId) return;
+  const chosen = sack.itemForEquip(loot, pointer);
+  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { cancelSearch(searchSession); sack.reset(); tell('Release E, then hold E for one second to place. Aim nearby with the mouse. Escape cancels.'); return; }
+  if (loot.held) { drop(); return; }
+  if (atTunnel(run, world, player)) {
+    const result = finishRun(run, world, player, loot, performance.now());
+    showRunResult(result, 'You slipped back through the tunnel with your haul.');
+    return;
+  }
+  updateTarget();
+  if (searchTarget) {
+    if (beginSearch(searchSession, world, player, loot, searchTarget)) tell(`Searching ${SEARCHABLE_TYPES[searchTarget.type].name}. Keep E held and stay still.`);
+    return;
+  }
+  if (!target) { tell('No loot or unsearched object within reach. Move closer.'); return; }
+  const name = LOOT_TYPES[target.type].name;
+  sack.reveal();
+  if (autoPickup(loot, target.id)) tell(`${name} packed into your sack.`);
+  else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
+});
+document.querySelector('#regenerate').addEventListener('click', reset);
+document.querySelector('#next-run').addEventListener('click', reset);
+document.querySelector('#sack-tab').addEventListener('click', () => {
+  if (run.phase !== 'exploring') return;
+  cancelPlacement(placement); sack.toggle(); canvas.focus();
+});
+const frame = time => {
+  const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
+  previous = time;
+  if (run.phase === 'exploring') {
+    movePlayer(world, player, input.read(), dt); tickVitality(player, dt);
+    for (const event of updateTraps(traps, [player], guards, dt)) {
+      if (event.type === 'goblin-triggered') tell('A goblin triggered the snare. No harm, but the trap is spent.');
+      if (event.type === 'guard-triggered') tell('Guard snared! You have three seconds to get away.');
+    }
+    const events = { hit: false, spotted: false };
+    for (const guard of guards) {
+      const event = updateGuard(world, guard, player, dt);
+      events.hit ||= event.hit; events.spotted ||= event.spotted;
+    }
+    if (events.spotted) tell('Spotted! Get out of sight or make for the tunnel.');
+    if (events.hit) { interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Keep moving—the next strike takes a moment.`); }
+    if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
+    else {
+      for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
+      const placed = updatePlacement(placement, world, player, loot, traps, objects, placementPoint(player, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null), input.held('KeyE'), dt);
+      if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
+      const searched = !placement.itemId && updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
+      if (searched?.type === 'completed') tell(`Found ${searched.count} items. Release E, then press again to pack loot, or click to lift it.`);
+      else if (searched?.type === 'cancelled') tell('Search cancelled. Hold E while standing still beside the object.');
+    }
+  }
+  const tunnelReady = atTunnel(run, world, player) && !loot.held && !placement.itemId;
+  updateTarget();
+  sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId }, dt);
+  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement); sack.paint(loot, pointer);
+  let targetText;
+  if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
+  else if (placement.itemId) targetText = 'Placing snare · hold E for 1 second · Escape cancel';
+  else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
+  else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
+  else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
+  else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
+  else if (target) targetText = `${LOOT_TYPES[target.type].name} · E pack / click to lift`;
+  else targetText = 'Find a chest, cupboard or crate to search';
+  if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
+  const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;
+  if (document.querySelector('#health-label').textContent !== healthText) document.querySelector('#health-label').textContent = healthText;
+  const guardText = run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Observe lookouts and room patrols · learn their pauses';
+  if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
+  if (time > messageUntil && run.phase === 'exploring') {
+    const hint = placement.itemId ? 'Aim nearby · stand still and hold E · Escape cancels · I opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
+    if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
+  }
+  requestAnimationFrame(frame);
+};
+reset(); requestAnimationFrame(frame);
+
+</script></body></html>

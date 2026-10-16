@@ -133,3 +133,12 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - The trail is internal data only; no footprint art is drawn. Later hidden movements do not extend it beyond the short recording window. The guard may finish following already-recorded clues after that window, so total investigation time can be longer than 2.5 seconds.
 - Genuine visual reacquisition clears the old trail and resumes the chase. A subsequent sight break can begin a new short window. Unalerted guards do not gain continuous invisible tracking.
 - Initial search speed (2.2 tiles/s), trail window and sample spacing are tuning values. Existing notice, damage, guard patterns, loot, search-object and escape rules are reused. Traps remain planned afterwards.
+
+
+## V12: sack-selected, timed snare placement
+
+- User specified: I opens sack, navigate to trap, E equips and hides sack; nearby floor preview, hold E for one second to place. Directionless. Goblins trigger traps without being harmed; placement must avoid triggering immediately under the setter.
+- Implementation: one single-use, one-cell test snare per run. Arrows/click select within existing sack; E equips before tunnel/search actions. Release the equip key before beginning the placement hold. Existing search pixel progress drawing is shared with placement.
+- Preview stays within 1.5 tiles and rejects walls, blocked reach, furniture and other live traps. Movement, changing position, releasing E or taking damage interrupts the hold. Escape cancels; the item remains reserved in its existing sack cell until successful placement.
+- New snares wait for setter clearance (trigger radius plus goblin radius plus margin), followed by a short arm delay. Once armed, goblins waste them harmlessly; guards are held without movement/attacks for three seconds. All snares are single-use.
+- Supplies are excluded from stolen treasure totals; downed loss lists include carried supplies as items. Crafting, loadouts, trap recovery, more trap types and multiplayer remain deferred. Multiplayer must pass every goblin to the shared trigger rule and assign stable owner IDs.

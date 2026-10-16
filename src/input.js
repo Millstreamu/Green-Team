@@ -1,8 +1,9 @@
-export function createInput(target) {
+export function createInput(target, inventoryOpen = () => false) {
   const keys = new Set();
   const movementKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
   target.addEventListener('keydown', e => {
     if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select,button')) return;
+    if (e.code.startsWith('Arrow') && inventoryOpen()) { e.preventDefault(); return; }
     if (movementKeys.has(e.code) || e.code === 'KeyE') { e.preventDefault(); keys.add(e.code); }
   });
   target.addEventListener('keyup', e => keys.delete(e.code));

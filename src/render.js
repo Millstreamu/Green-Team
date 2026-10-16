@@ -1,3 +1,4 @@
+import { drawTraps } from './trap-view.js';
 import { CONFIG, GOBLIN_ART, SEARCH } from './config.js';
 import { isFloor } from './world.js';
 import { itemCells } from './loot.js';
@@ -24,7 +25,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession) => {
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -51,6 +52,7 @@ export async function createRenderer(canvas, mapCanvas) {
     ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText('SECRET TUNNEL', tx, ty - 30);
     if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
+    drawTraps(ctx, world, player, traps, objects, placement, ox, oy);
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
     for (const item of loot.ground) {
       const cells = itemCells(item), size = 7;

@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: bounded invisible trail after losing sight
+## Current task: V12 snare placement, awaiting playtest
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 adds the requested brief invisible trail and awaits playtesting.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to reproduce the hallway-corner-to-room case in V11 and check the slower search trail and return. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to try V12: I, select the snare, E, release then hold E for one second, step clear, and lure a guard across. Check the preview and placement feel. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -117,3 +117,11 @@ Navigation now handles an exact same-tile goal when a tile-centre path is alread
 Validation: all 48 tests pass. Four focused tests reproduce turning from a narrow hallway into a room, constrain searching speed, verify the single uninterrupted hidden-capture cutoff without rewriting lastSeen, check actual-sight chase reacquisition, and confirm invalid teleports do not create clues and fruitless searches still return home. The cutoff fixture keeps the guard far enough back to avoid legitimate sight reacquisition restarting the timer. Existing map/navigation, patterns, inventory, search and interaction tests pass. Standalone build and module syntax pass. No rendered browser QA; the user's original corner/room playtest is the next verification.
 
 Download: green-team-trail-v11.html. Git canonical build remains play.html. Traps still follow after this guard refinement; no new system or multiplayer changes.
+
+
+## V12 handoff
+
+- `src/traps.js` holds supply, placement and trigger rules; `src/trap-view.js` draws preview/armed/spent traps. `src/world-ui.js` shares the existing pixel progress bar between searching and placement. Sack selection and arrow navigation reuse `src/sack-view.js`; game wiring remains in main.js.
+- One test snare per fresh run. Three-second guard hold. Setter-clearance gate before arming prevents accidental overlap triggers; goblins waste armed snares unharmed. No crafting/loadout system was added.
+- Verification: 53 automated tests passed, including full event wiring for equipping/cancelling/placing plus existing searching, loot, escape, guard loss and restart. Standalone build and bundled syntax check passed. No rendered browser test was available; user review is pending.
+- Preserve the user goblin art, previous UX and bounded invisible trail. No server or multiplayer setup. `play.html` is current; `green-team-snares-v12.html` is the distinct review download.

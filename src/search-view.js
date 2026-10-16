@@ -1,5 +1,6 @@
 import { CONFIG } from './config.js';
 import { SEARCHABLE_TYPES } from './search.js';
+import { drawPixelProgress } from './world-ui.js';
 
 export function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
   const t = CONFIG.tile;
@@ -28,11 +29,7 @@ export function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
       ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
       if (session.active?.id === object.id) {
         const progress = Math.max(0, Math.min(1, session.elapsed / definition.duration));
-        // Integer-sized pixels, anchored to the searched object and camera.
-        rect(-13, -top - 11, 26, 6, '#152021');
-        rect(-12, -top - 10, 24, 4, '#5d6c50');
-        rect(-12, -top - 10, Math.round(24 * progress), 4, '#c8ec90');
-        if (progress > 0) rect(-12, -top - 10, Math.round(24 * progress), 1, '#e1f8bb');
+        drawPixelProgress(ctx, x, y - top - 11, progress);
       } else {
         ctx.fillStyle = '#d1f69b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
         ctx.fillText('HOLD E', x, y - top - 7);
