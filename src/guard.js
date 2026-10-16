@@ -1,4 +1,5 @@
-import { COMBAT, GUARD_PATTERNS } from './config.js';
+import { CONFIG, COMBAT, GUARD_PATTERNS } from './config.js';
+import { canStand } from './world.js';
 import { clearPath } from './loot.js';
 import { findPath, followPath } from './navigation.js';
 
@@ -27,7 +28,8 @@ export function createGuard(world, options = {}) {
   return { id: `${world.seed ?? 0}-guard-${roomIndex}`, roomIndex, behaviour, homeRoom, home: { ...patrol[0] }, x: patrol[0].x, y: patrol[0].y,
     angle: firstAngle, watchAngles, watchIndex: 0, watchLeft: GUARD_PATTERNS.lookPause, pauseLeft: GUARD_PATTERNS.roomPause,
     state: 'patrol', suspicion: 0, patrol, patrolIndex: behaviour === 'lookout' ? 0 : 1, path: [], repath: 0, goal: null, lastSeen: null,
-    searchLeft: COMBAT.searchTime, windup: 0, cooldown: 0, swing: 0, moving: false, resumeState: 'patrol' };
+    searchLeft: COMBAT.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
+    windup: 0, cooldown: 0, swing: 0, moving: false, resumeState: 'patrol' };
 }
 
 export function createGuards(world) {
@@ -47,6 +49,28 @@ function turnGuard(guard, angle, dt) {
 function resetGuardRoutine(guard) {
   guard.watchIndex = 0; guard.watchLeft = GUARD_PATTERNS.lookPause; guard.pauseLeft = GUARD_PATTERNS.roomPause;
   guard.patrolIndex = guard.behaviour === 'lookout' ? 0 : 1; guard.path = []; guard.goal = null; guard.repath = 0;
+  clearGuardTrail(guard);
+}
+
+function clearGuardTrail(guard) {
+  guard.trail = []; guard.trailLeft = 0; guard.trailSource = null; guard.trailEnd = null;
+}
+
+function recordGuardTrail(world, guard, player, dt) {
+  if (guard.trailLeft <= 0) return;
+  const previous = guard.trailSource;
+  // Trace only continuous valid movement, never a teleport or an off-map target.
+  const distance = previous ? Math.hypot(player.x - previous.x, player.y - previous.y) : Infinity;
+  if (previous && distance <= Math.max(0.6, CONFIG.speed * dt * 1.6) && canStand(world, player.x, player.y) && clearPath(world, previous, player)) {
+    const last = guard.trailEnd;
+    // Keep turns when crossing tiles, even before reaching the spacing limit.
+    if (!last || Math.hypot(last.x - player.x, last.y - player.y) >= COMBAT.trailSpacing || Math.floor(last.x) !== Math.floor(player.x) || Math.floor(last.y) !== Math.floor(player.y)) {
+      const point = { x: player.x, y: player.y };
+      guard.trail.push(point); guard.trailEnd = { ...point };
+    }
+    guard.trailSource = { x: player.x, y: player.y };
+  }
+  guard.trailLeft = Math.max(0, guard.trailLeft - dt);
 }
 
 function updateRoutine(world, guard, dt) {
@@ -81,6 +105,7 @@ function setGuardGoal(world, guard, point, dt) {
   const changed = !guard.goal || Math.floor(guard.goal.x) !== Math.floor(point.x) || Math.floor(guard.goal.y) !== Math.floor(point.y);
   if (changed || guard.repath <= 0) {
     guard.path = findPath(world, guard, point); guard.goal = { ...point }; guard.repath = 0.5;
+    if (!guard.path.length && canStand(world, point.x, point.y, COMBAT.guardRadius) && Math.floor(point.x) === Math.floor(guard.x) && Math.floor(point.y) === Math.floor(guard.y) && clearPath(world, guard, point)) guard.path = [{ ...point }];
   }
 }
 
@@ -91,6 +116,7 @@ export function updateGuard(world, guard, player, dt) {
   const alerted = guard.state === 'chase' || guard.state === 'search';
   const sees = seesPlayer(world, guard, player, alerted);
   if (sees) {
+    clearGuardTrail(guard);
     guard.lastSeen = { x: player.x, y: player.y };
     if (alerted) guard.state = 'chase';
     else {
@@ -104,7 +130,12 @@ export function updateGuard(world, guard, player, dt) {
     if (!guard.suspicion) guard.state = guard.resumeState;
   } else if (guard.state === 'chase') {
     guard.state = 'search'; guard.searchLeft = COMBAT.searchTime; guard.repath = 0;
+    guard.trail = guard.lastSeen ? [{ ...guard.lastSeen }] : [];
+    guard.trailSource = guard.lastSeen ? { ...guard.lastSeen } : null;
+    guard.trailEnd = guard.lastSeen ? { ...guard.lastSeen } : null;
+    guard.trailLeft = COMBAT.trailSeconds;
   }
+  if (guard.state === 'search') recordGuardTrail(world, guard, player, dt);
   // A strike has a visible wind-up. Stepping out of range makes it miss.
   if (guard.windup > 0) {
     guard.windup = Math.max(0, guard.windup - dt);
@@ -127,14 +158,18 @@ export function updateGuard(world, guard, player, dt) {
     else setGuardGoal(world, guard, player, dt);
     guard.moving = followPath(world, guard, guard.path, COMBAT.chaseSpeed * dt, COMBAT.guardRadius) > 0;
   } else if (guard.state === 'search') {
-    const goal = guard.lastSeen;
-    if (goal && Math.hypot(goal.x - guard.x, goal.y - guard.y) > 0.6) {
+    while (guard.trail.length && Math.hypot(guard.trail[0].x - guard.x, guard.trail[0].y - guard.y) <= 0.35) {
+      guard.trail.shift(); guard.repath = 0;
+    }
+    const goal = guard.trail[0];
+    if (goal) {
       setGuardGoal(world, guard, goal, dt);
-      guard.moving = followPath(world, guard, guard.path, COMBAT.chaseSpeed * dt, COMBAT.guardRadius) > 0;
-      // Unreachable or exhausted routes cannot leave the guard searching forever.
-      if (!guard.path.length && !guard.moving) guard.searchLeft -= dt;
-    } else { guard.searchLeft -= dt; guard.angle += dt * 1.7; }
-    if (guard.searchLeft <= 0) { guard.state = 'return'; guard.suspicion = 0; guard.repath = 0; guard.lastSeen = null; }
+      guard.moving = followPath(world, guard, guard.path, COMBAT.searchSpeed * dt, COMBAT.guardRadius) > 0;
+      if (!guard.path.length && !guard.moving) { guard.trail.shift(); guard.repath = 0; }
+    } else if (guard.trailLeft <= 0) { guard.searchLeft -= dt; guard.angle += dt * 1.7; }
+    if (guard.searchLeft <= 0) {
+      guard.state = 'return'; guard.suspicion = 0; guard.repath = 0; guard.lastSeen = null; clearGuardTrail(guard);
+    }
   } else if (guard.state === 'return') {
     if (Math.hypot(guard.home.x - guard.x, guard.home.y - guard.y) <= 0.05) {
       guard.x = guard.home.x; guard.y = guard.home.y; guard.state = 'patrol'; resetGuardRoutine(guard);

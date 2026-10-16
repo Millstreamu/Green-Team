@@ -124,3 +124,12 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Existing notice, chase, search, attacks, health and solo downed outcome are reused. Multiple guards share the goblin's damage-immunity window, avoiding simultaneous stacked damage.
 - No fog-of-war/exploration tracker or global alarm introduced. The current viewport and absence of guard markers on the diagnostic map are unchanged.
 - Traps are planned after reviewing guard patterns. The initial proposed direction is a placeable item that briefly holds or stuns a guard for an escape window. Loadout, sack space, placement controls, duration, crafting and replenishment still need defining; no trap implementation in V10.
+
+## Short invisible pursuit trail — 17 October 2026
+
+- User reported V10 works pretty well, but a guard lost sight at a hallway corner and stopped there instead of investigating the adjoining room.
+- User suggested invisible, short-lived footprints after sight breaks, with slower guard search movement and a return if it finds nothing.
+- V11 records continuous valid player positions for about 2.5 seconds after an alerted guard loses sight. The guard follows those saved clues in order, at a slower search speed, then looks around where the trail ends and returns to its assigned routine.
+- The trail is internal data only; no footprint art is drawn. Later hidden movements do not extend it beyond the short recording window. The guard may finish following already-recorded clues after that window, so total investigation time can be longer than 2.5 seconds.
+- Genuine visual reacquisition clears the old trail and resumes the chase. A subsequent sight break can begin a new short window. Unalerted guards do not gain continuous invisible tracking.
+- Initial search speed (2.2 tiles/s), trail window and sample spacing are tuning values. Existing notice, damage, guard patterns, loot, search-object and escape rules are reused. Traps remain planned afterwards.

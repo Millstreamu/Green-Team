@@ -30,7 +30,7 @@ Tune `extraConnections`, `preserveDeadEnds`, `minLoopDetour` and `maxLoopLength`
 
 Two blue lookouts stay at fixed posts, alternating between two directions with regular pauses. One brown room guard walks between two points within its assigned room, pausing at each end. Most rooms, including the entrance room, have no assigned guard. Watch the local routine before moving into an unfamiliar room.
 
-Walls block sight. A question mark and filling bar give notice before a chase. Guards may pursue into otherwise quiet rooms; breaking sight sends them to the last seen position, then back to their own post/route. Quiet rooms are not magical safe zones. The faint cone and small labels are prototype observation aids.
+Walls block sight. A question mark and filling bar give notice before a chase. Guards may pursue into otherwise quiet rooms; breaking sight starts a brief invisible trail of the goblin's next movements. The guard follows it at a slower search pace, including around corners into rooms, then looks around at the end before returning to its post/route. Hidden movements stop adding clues after 2.5 seconds. Actual sight resumes the chase; another later sight break starts a new brief trail. Quiet rooms are not magical safe zones. The faint cone and small labels are prototype observation aids.
 
 The guard attacks at close range with a visible wind-up and red strike circle. Move away to make it miss. You have three health points with a short gap between damaging hits. Zero health puts you down. In this solo test there is no teammate left to recover you, so the run ends and bag/cursor loot is lost. Start next run restores health; getting close to a guard is not an instant failure.
 
@@ -49,7 +49,7 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `src/search.js`: searchable objects, contents, targeting and timed holds; `src/search-view.js`: object art and progress feedback; spilled items reuse existing loot rules/visuals.
 - `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
 - `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
-- `COMBAT` in `src/config.js`: provisional health, speeds, sight, notice/search duration, attack range and timing.
+- `COMBAT` in `src/config.js`: provisional health, speeds (including slower search), 2.5-second trail window, trail spacing, sight, notice/search duration, attack range and timing.
 - `GUARD_PATTERNS` in `src/config.js`: guard count, regular lookout/room pauses and turn speed.
 
 Proplet imports will be designed after inspecting real export examples. No import format is assumed here.
@@ -68,4 +68,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: observe V10's predictable lookouts and room patrols, then try slipping through their pauses and losing a pursuit in a known area. Traps to bring into a run are the next planned feature after reviewing these guard patterns; trap equipment/placement details still need defining. Server setup and multiplayer testing are deferred.
+Next: try V11 by turning out of sight around a hallway corner into a room. The user reported V10 works pretty well but guards stopped at the corner; V11 adds the short invisible trail to carry that investigation farther. Traps to bring into a run are the next planned feature after reviewing these guard patterns; trap equipment/placement details still need defining. Server setup and multiplayer testing are deferred.

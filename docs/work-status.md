@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: predictable lookouts and room patrols
+## Current task: bounded invisible trail after losing sight
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; V10 now awaits pattern playtesting.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 adds the requested brief invisible trail and awaits playtesting.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to observe V10's lookouts, paused room patrols and quiet-room/pursuit distinction. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to reproduce the hallway-corner-to-room case in V11 and check the slower search trail and return. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -107,3 +107,13 @@ GUARD_PATTERNS defaults: count 3, lookout interval 2.6s, room endpoint pause 2s,
 Validation: 44 tests pass. New checks cover deterministic three-room assignments across 100 maps, unassigned entrance/quiet rooms, fixed lookout position and repeated timed directions, paused in-room patrols, pursuit leaving the assigned room then returning to its own post, and simultaneous strikes respecting one immunity window. Existing 100-map route/collision tests now cover all guard actors. Mock-DOM smoke still searches/packs/escapes, then deliberately walks to a lookout to test downing/lost-loot/restart, since guards no longer roam into the entrance room. Build and standalone syntax pass. No rendered browser QA; sight/turn timing, local routes and combined difficulty need user playtesting.
 
 Download: green-team-guard-patterns-v10.html. Git canonical generated file remains play.html. Traps are next by agreement, but no loadout/crafting/placement rules are chosen yet. Builder, persistence and multiplayer remain deferred.
+
+## V11 pursuit-trail handoff
+
+Adds a per-guard trail to the existing search state, not a separate AI system. On a chase sight break, seed it with lastSeen and record valid contiguous goblin movement for COMBAT.trailSeconds=2.5; keep lastSeen unchanged until a real visual reacquisition. Sample with 0.3-tile spacing or tile transitions to preserve corners, validating floor/path and ignoring teleports. Follow saved points in order at searchSpeed=2.2, then use the existing search look-around timer and return-to-post routine. Capture is bounded but queued clues can still be followed afterwards. Real sight clears the queue and resumes chase. No footprints are rendered.
+
+Navigation now handles an exact same-tile goal when a tile-centre path is already exhausted, avoiding a guard stalling just short of a recorded position. The normal collision-safe path follower is reused. HUD distinguishes following the fading trail from searching its end. No combat, normal patrol or loot rule changes.
+
+Validation: all 48 tests pass. Four focused tests reproduce turning from a narrow hallway into a room, constrain searching speed, verify the single uninterrupted hidden-capture cutoff without rewriting lastSeen, check actual-sight chase reacquisition, and confirm invalid teleports do not create clues and fruitless searches still return home. The cutoff fixture keeps the guard far enough back to avoid legitimate sight reacquisition restarting the timer. Existing map/navigation, patterns, inventory, search and interaction tests pass. Standalone build and module syntax pass. No rendered browser QA; the user's original corner/room playtest is the next verification.
+
+Download: green-team-trail-v11.html. Git canonical build remains play.html. Traps still follow after this guard refinement; no new system or multiplayer changes.
