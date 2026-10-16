@@ -20,7 +20,7 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'search-panel', 'search-label', 'search-progress', 'sack-panel', 'sack-tab'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab'].map(id => [id, new Surface(id)]));
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
   doc.createElement = tag => new Surface(tag);
@@ -47,13 +47,12 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   assert.equal(elements.get('sack-panel').dataset.open, 'false');
   assert.match(elements.get('target-label').textContent, /Chest.*hold E/);
   key('KeyE'); for (let i = 0; i < 30; i++) tick();
-  assert.equal(elements.get('search-panel').hidden, false);
-  assert.ok(elements.get('search-progress').value > 0 && elements.get('search-progress').value < 1);
+  assert.match(elements.get('target-label').textContent, /Searching Chest/);
   release('KeyE'); tick();
-  assert.equal(elements.get('search-panel').hidden, true);
+  assert.doesNotMatch(elements.get('target-label').textContent, /Searching Chest/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   key('KeyE'); for (let i = 0; i < 160; i++) tick();
-  assert.equal(elements.get('search-panel').hidden, true);
+  assert.doesNotMatch(elements.get('target-label').textContent, /Searching Chest/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('target-label').textContent, /Ruby/);
   assert.equal(elements.get('sack-panel').dataset.open, 'true');

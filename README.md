@@ -16,7 +16,7 @@ The goblin uses your supplied 16×16 art; dungeon art is temporary. This version
 
 ## Searching
 
-Valuables begin inside searchable furniture, not scattered around each room. Get close, hold E and watch the progress bar while guards continue patrolling. Moving, releasing E, getting hit, lifting another item or going down cancels the search and resets progress. A searched object opens/dims and cannot spill its contents again. A full sack does not block searching: items stay on the floor for packing later.
+Valuables begin inside searchable furniture, not scattered around each room. Get close and hold E. A tiny pixel loading bar fills directly above the object while guards continue patrolling; it disappears on cancellation or completion. There is no separate search progress panel. Moving, releasing E, getting hit, lifting another item or going down cancels the search and resets progress. A searched object opens/dims and cannot spill its contents again. A full sack does not block searching: items stay on the floor for packing later.
 
 Initial times: crate 1.5 seconds, chest 2.5 seconds, cupboard 3.5 seconds. These are provisional balancing values in SEARCH in src/config.js. Furniture uses temporary drawings and does not yet add solid collision. This step adds time spent searching, not a furniture physics system.
 
@@ -65,4 +65,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: review V8's sliding sack. The user approved V7 searching and requested less screen obstruction while moving. Drawer-state and existing search, layout, combat, inventory and event-wiring checks pass; rendered slide timing still needs browser playtesting. Server setup and multiplayer testing are deferred.
+Next: review V9's small pixel loading bar above the searched object. The user approved V8's sliding sack. Search rules and timings are unchanged; the new progress display still needs a browser visual check. Server setup and multiplayer testing are deferred.

@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: sliding sack visibility
+## Current task: pixel search bar over the searched object
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; V8 implements it and awaits browser feedback.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. Ask the user to try V8's sack slide, I/tab toggle and automatic loot reveals. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. The sliding sack was approved. Ask the user to check V9's pixel search bar above objects. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -87,3 +87,11 @@ index.html slides the existing panel off the stage's right edge with a remaining
 Validation: 39 tests pass. Five visibility tests cover initial/manual state, movement, highlight peeks, pickup precedence, dismissal and held-item/results behavior. The full mock-DOM smoke checks I and tab opening, movement closure, search-completion loot reveal and refusal to hide a held item while retaining the existing pack/escape/down/restart flow. Standalone build and syntax checks pass. CSS transition and actual mouse/focus behavior still need rendered browser/user review; mock-DOM checks are not that review.
 
 Download: green-team-sack-slide-v8.html. Canonical Git build remains play.html. Builder, future map view, persistence and multiplayer remain deferred.
+
+## V9 search-bar handoff
+
+src/search-view.js now draws a compact pixel bar immediately above the active object, with height adjusted for cupboards versus short objects. Uses the existing session elapsed/duration and camera coordinates; no new progress state. Idle targets retain HOLD E; active targets replace that label with the bar. Removed updateSearchPanel and its DOM/CSS panel, and its main-loop call.
+
+Validation: the 39 existing tests pass, including search cancellation/completion and the interaction smoke (now checking the shared search-state prompt instead of the deleted panel). Standalone build/module syntax pass, and generated HTML has no old search panel/call. Visual placement still needs user browser review. No new test suite for this small display change and no gameplay/data changes.
+
+Download: green-team-pixel-search-v9.html. Git canonical build remains play.html.

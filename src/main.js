@@ -7,7 +7,6 @@ import { createRun, atTunnel, finishRun, loseRun } from './run.js';
 import { createResultsView } from './results-view.js';
 import { createGuard, updateGuard, createVitality, tickVitality } from './guard.js';
 import { createSearchables, createSearchSession, selectInteraction, beginSearch, cancelSearch, updateSearch, SEARCHABLE_TYPES } from './search.js';
-import { updateSearchPanel } from './search-view.js';
 
 const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
@@ -153,7 +152,7 @@ const frame = time => {
   const tunnelReady = atTunnel(run, world, player) && !loot.held;
   updateTarget();
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' }, dt);
-  render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer); updateSearchPanel(searchSession);
+  render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer);
   let targetText;
   if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';

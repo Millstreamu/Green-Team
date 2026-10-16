@@ -106,5 +106,11 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - User approved V7 searching and requested that the sack inventory slide right out of the way during movement, leaving a tab.
 - I or the tab opens/closes it. Highlighting loose loot or picking it up reveals it automatically. This changes visibility, not inventory rules or storage.
 - V8 details: new loose-loot highlights get a brief peek, pickup/full-bag attempts get a slightly longer peek, and movement tucks it away afterwards. Remaining still with a highlighted item keeps it visible. Manual dismissal is respected until target changes or a pickup is attempted.
-- Holding an item keeps the sack open while moving so it can be placed safely; I/tab do not hide it in that state. Furniture highlights alone do not open it. These are interaction choices explained to the user and awaiting V8 playtest.
+- Holding an item keeps the sack open while moving so it can be placed safely; I/tab do not hide it in that state. Furniture highlights alone do not open it. These interaction choices were subsequently approved by the user.
 - Closed panels are not clickable/focusable, and the tab remains accessible with an expanded-state label. Sliding respects reduced-motion settings. No new inventory or UI system replaces the shared sack display.
+
+## Search bar location — 16 October 2026
+
+- User approved the sliding sack and requested the search loading bar appear over the actual searched cupboard/chest/crate as a little pixel bar.
+- V9 draws a small pixel progress bar attached to that object's world position. It moves with the camera, fills from the existing search timer, and disappears on cancellation/completion.
+- Remove the separate search progress panel. Search controls, timings, cancellation rules, loot and inventory behaviour are unchanged.
