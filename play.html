@@ -2,18 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Sack test V3</title>
+<title>Green Team · Secret tunnel V4</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
 
 .stage{position:relative;min-width:0}#game{min-height:440px;touch-action:none}#target-label{position:absolute;top:12px;left:12px;max-width:calc(100% - 24px);background:#10191be6;border:1px solid #48594b;padding:8px 12px;border-radius:4px;color:#d2e7b5;font-size:12px;pointer-events:none}.sack{position:absolute;bottom:16px;right:16px;width:200px;background:#20291ff5;border:1px solid #829260;border-radius:7px;padding:14px;box-shadow:0 5px 24px #0007}.sack-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.sack h2{margin:0;color:#d5e7af;font-size:12px}.sack-title span{font-size:12px;color:#c2cbac;font-variant-numeric:tabular-nums}#sack-grid{display:block;width:100%;height:auto;cursor:pointer;touch-action:none}#held-label{font-size:11px;line-height:1.45;min-height:32px;margin:10px 0 0;color:#d6ddc6}.controls{font-size:12px;line-height:1.9;color:#c4d0bd}.controls kbd{margin:2px}#held-ghost{position:fixed;pointer-events:none;z-index:20;image-rendering:pixelated;width:96px;height:96px}.note{margin-top:12px}.footer{min-height:52px}#status{color:#e5e9ce;max-width:900px}@media(max-width:760px){.sack{right:10px;bottom:10px;width:176px;padding:10px}#game{min-height:440px}}
+
+.results{width:min(540px,calc(100vw - 32px));max-height:85vh;overflow:auto;border:1px solid #8a986a;border-radius:9px;background:#192324;color:#e5e9df;padding:28px;box-shadow:0 12px 80px #0009}.results::backdrop{background:#070e11cc}.results h2{font-size:26px;letter-spacing:0;color:#e5e9df;margin:9px 0}.results .eyebrow{color:#daca94}#haul-total{margin:12px 0;color:#d3dbbe}#haul-list{list-style:none;padding:0;margin:18px 0}.haul-row{display:flex;align-items:center;gap:12px;border-top:1px solid #394840;padding:4px 0;font-size:14px}.haul-row canvas{width:60px;height:60px;image-rendering:pixelated}.haul-row span{flex:1}.haul-row strong{color:#d5e7af}.results button{width:100%;margin-top:12px}#empty-haul{padding:15px 0;color:#aebba8}
 </style>
 </head>
 <body><main>
-<header><div><div class="eyebrow">GREEN TEAM / LOOT PLAYGROUND</div><h1>Loot &amp; sack · V3</h1><p>Grab something shiny. Make it fit. Try the sack.</p></div><button id="regenerate">New dungeon ↻</button></header>
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><section class="sack" aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>E</kbd> pack highlighted loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop</div><p class="note">1, 2 and 3-square loot.<br>Sack needs shuffling? Drop an item nearby and repack.<br>New dungeon resets this test.</p></aside></div>
+<header><div><div class="eyebrow">GREEN TEAM / A QUICK RAID</div><h1>Secret tunnel · V4</h1><p>Slip in. Fill your sack. Return through the secret tunnel.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><section class="sack" aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>E</kbd> pack highlighted loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">1, 2 and 3-square loot.<br>Sack needs shuffling? Drop an item nearby and repack.<br>Gold map marker = your tunnel.<br>Return there with your sack.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
-</main><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
+</main><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p>Here is what you brought back in your sack.</p><p id="haul-total"></p><ul id="haul-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Start next run →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
 const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 6, hopRate: 12 });
 
@@ -201,6 +203,26 @@ function dropHeld(state, world, player) {
 }
 
 
+const TUNNEL_REACH = 0.7;
+
+function createRun(world, now = 0) {
+  return { phase: 'exploring', entrance: { ...world.spawn }, startedAt: now, result: null };
+}
+
+function atTunnel(run, world, player) {
+  return run.phase === 'exploring' && Math.hypot(player.x - run.entrance.x, player.y - run.entrance.y) <= TUNNEL_REACH && clearPath(world, player, run.entrance);
+}
+
+function finishRun(run, world, player, loot, now) {
+  if (run.phase !== 'exploring' || loot.held || !atTunnel(run, world, player)) return null;
+  // Snapshot only what was packed, never loose loot or an extra cursor item.
+  const items = loot.bag.map(item => ({ ...item }));
+  run.result = { items, count: items.length, slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
+  run.phase = 'results';
+  return run.result;
+}
+
+
 // Shared item display for floor loot, sack contents and the held-item preview.
 function drawItem(ctx, item, x, y, size, outline = null) {
   const type = LOOT_TYPES[item.type];
@@ -257,6 +279,35 @@ function createSackView(canvas, ghost) {
 }
 
 
+function createResultsView(dialog) {
+  const list = document.querySelector('#haul-list');
+  dialog.addEventListener('cancel', e => e.preventDefault());
+  return {
+    open(result) {
+      list.replaceChildren();
+      const grouped = new Map();
+      result.items.forEach(item => {
+        const group = grouped.get(item.type) ?? { item, count: 0 };
+        group.count++; grouped.set(item.type, group);
+      });
+      for (const { item, count } of grouped.values()) {
+        const row = document.createElement('li'); row.className = 'haul-row';
+        const icon = document.createElement('canvas'); icon.width = 60; icon.height = 60;
+        icon.setAttribute('aria-hidden', 'true'); drawItem(icon.getContext('2d'), item, 3, 3, 18);
+        const name = document.createElement('span'); name.textContent = LOOT_TYPES[item.type].name;
+        const quantity = document.createElement('strong'); quantity.textContent = `× ${count}`;
+        row.append(icon, name, quantity); list.append(row);
+      }
+      document.querySelector('#empty-haul').hidden = result.count > 0;
+      document.querySelector('#haul-total').textContent = `${result.count} ${result.count === 1 ? 'treasure' : 'treasures'} · ${result.slots} / 9 sack squares · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      dialog.showModal();
+      document.querySelector('#next-run').focus();
+    },
+    close() { if (dialog.open) dialog.close(); }
+  };
+}
+
+
 function screenToWorld(canvas, player, pointer) {
   const bounds = canvas.getBoundingClientRect();
   const ox = Math.round(canvas.width / 2 - player.x * CONFIG.tile), oy = Math.round(canvas.height / 2 - player.y * CONFIG.tile);
@@ -276,7 +327,7 @@ async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target) => {
+  return (world, player, loot, target, run, tunnelReady) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -295,12 +346,19 @@ async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
+    const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
+    rect(tx - 13, ty - 9, 26, 18, tunnelReady ? '#d5c483' : '#8c805b');
+    rect(tx - 10, ty - 6, 20, 12, '#080f12');
+    for (let i = 0; i < 3; i++) rect(tx - 8 + i * 6, ty - 4, 3, 8, '#3a4036');
+    ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText('SECRET TUNNEL', tx, ty - 30);
+    if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     for (const item of loot.ground) {
       const cells = itemCells(item), size = 7;
       const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
       const x = Math.round(item.x * t + ox - w / 2), y = Math.round(item.y * t + oy - h / 2);
       drawItem(ctx, item, x, y, size);
-      if (target?.id === item.id && !loot.held) {
+      if (target?.id === item.id && !loot.held && !tunnelReady) {
         ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
         ctx.strokeRect(x - 3.5, y - 3.5, w + 7, h + 7);
         ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
@@ -319,7 +377,8 @@ async function createRenderer(canvas, mapCanvas) {
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
     map.fillStyle = '#667670';
     world.tiles.forEach((floor, i) => { if (floor) map.fillRect(i % world.width * 2, Math.floor(i / world.width) * 2, 2, 2); });
-    map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2 - 1, Math.floor(player.y) * 2 - 1, 4, 4);
+    map.fillStyle = '#ead48c'; map.fillRect(Math.floor(run.entrance.x) * 2 - 2, Math.floor(run.entrance.y) * 2 - 2, 6, 6);
+    map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2, Math.floor(player.y) * 2, 2, 2);
   };
 }
 
@@ -328,6 +387,7 @@ const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
 const input = createInput(window);
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
+const results = createResultsView(document.querySelector('#run-results'));
 let render;
 try {
   render = await createRenderer(canvas, document.querySelector('#map'));
@@ -335,7 +395,7 @@ try {
   document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
   throw error;
 }
-let world, player, loot, previous = 0, target = null, dragStart = null;
+let world, player, loot, run, previous = 0, target = null, dragStart = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
@@ -343,14 +403,16 @@ const updateTarget = () => {
   target = selectTarget(world, player, loot.ground, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
 };
 const reset = () => {
-  if (world && !window.confirm('Start a new dungeon? This resets the sack and all loot in this test.')) { canvas.focus(); return; }
+  if (world && run.phase === 'exploring' && !window.confirm('Abandon this run? This resets the sack and all dungeon loot.')) { canvas.focus(); return; }
+  results.close();
   world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
   player = { ...world.spawn, facing: 1, phase: 0, moving: false };
   loot = createLoot(world); dragStart = null;
+  run = createRun(world, performance.now());
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#rooms').textContent = `${world.rooms.length} connected rooms`;
-  tell('Loot is scattered around your feet. E packs the highlighted item; click to place it yourself.');
+  tell('You entered through the secret tunnel. Gather loot, then return here and press E to leave.');
   canvas.focus(); updateTarget();
 };
 const drop = () => {
@@ -369,7 +431,7 @@ const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointe
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
 document.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || !world) return;
+  if (e.button !== 0 || !world || run.phase !== 'exploring') return;
   trackPointer(e);
   if (e.target !== canvas && e.target !== sackCanvas) return;
   e.preventDefault(); canvas.focus();
@@ -393,14 +455,14 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('pointerup', e => {
   const start = dragStart; dragStart = null;
-  if (!start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
+  if (run.phase !== 'exploring' || !start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
   trackPointer(e);
   if (e.target === sackCanvas) placeAtPointer();
   else if (e.target === canvas) drop();
 });
 window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; });
 window.addEventListener('keydown', e => {
-  if (!world || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
@@ -408,6 +470,14 @@ window.addEventListener('keydown', e => {
   if (e.code !== 'KeyE') return;
   e.preventDefault();
   if (loot.held) { drop(); return; }
+  if (atTunnel(run, world, player)) {
+    const result = finishRun(run, world, player, loot, performance.now());
+    if (result) {
+      input.clear(); dragStart = null; player.moving = false; player.phase = 0;
+      results.open(result); tell('You slipped back through the tunnel with your haul.');
+    }
+    return;
+  }
   updateTarget();
   if (!target) { tell('No loot within reach. Move closer.'); return; }
   const name = LOOT_TYPES[target.type].name;
@@ -415,15 +485,17 @@ window.addEventListener('keydown', e => {
   else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
 });
 document.querySelector('#regenerate').addEventListener('click', reset);
+document.querySelector('#next-run').addEventListener('click', reset);
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
-  movePlayer(world, player, input.read(), dt);
-  updateTarget(); render(world, player, loot, target); sack.paint(loot, pointer);
-  const targetText = loot.held ? 'Item in hand · R rotate · E drop' : target ? `${LOOT_TYPES[target.type].name} · E pack / click to lift` : 'Walk closer to loot';
+  if (run.phase === 'exploring') movePlayer(world, player, input.read(), dt);
+  const tunnelReady = atTunnel(run, world, player) && !loot.held;
+  updateTarget(); render(world, player, loot, target, run, tunnelReady); sack.paint(loot, pointer);
+  const targetText = run.phase === 'results' ? 'Back through the tunnel · run complete' : loot.held ? 'Item in hand · R rotate · E drop' : tunnelReady ? 'Secret tunnel · E to leave with your sack' : target ? `${LOOT_TYPES[target.type].name} · E pack / click to lift` : 'Find loot, then return to the gold tunnel marker';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
-  if (time > messageUntil) {
-    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : 'WASD move · E pack highlighted loot · Click loot or sack contents to lift';
+  if (time > messageUntil && run.phase === 'exploring') {
+    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to pack loot with E, or click nearby loot to lift it.' : 'WASD move · E pack highlighted loot · Return to the secret tunnel to escape';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);

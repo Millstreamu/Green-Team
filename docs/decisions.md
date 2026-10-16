@@ -57,3 +57,12 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Invalid sack placements keep the item held and show red feedback. Never silently replace an item or delete loot.
 - A sack on the goblin's body has not been agreed; the current request is the inventory panel. Item art is temporary and shared between floor, bag and held previews.
 - This chunk is pickup and packing only; extraction, persistence, guards, hosting and multiplayer remain outside it.
+
+## Secret tunnel and run completion — agreed 16 October 2026
+
+- User approved the V3 sack and requested the next chunk.
+- Return to the entrance to leave; it represents a secret tunnel, rather than a separate exit to find.
+- Press E at the marked tunnel to end the run and show the loot brought back, with a Start next run button.
+- Implementation details for this test: only packed items count; a cursor item must first be packed or dropped. While holding, E retains its drop behaviour. With empty hands inside the small tunnel interaction area, E takes priority as leave; the on-screen prompt and reticle reflect this. Outside that area, E continues to pack highlighted loot.
+- Results freeze gameplay. Start next run creates a fresh dungeon and empty sack. The result is a single-run haul display, not permanent storage; lair/stash and saving remain future work.
+- Empty-handed returns are allowed. The header action abandons an unfinished run after confirmation; it does not count as a successful return.

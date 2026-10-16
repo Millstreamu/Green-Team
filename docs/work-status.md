@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: loot and sack prototype
+## Current task: secret tunnel and completed run loop
 
-The user confirmed the prototype works in their browser and approved the V2 revision using their supplied left-facing goblin and higher hop. This is user playtest feedback; automated browser verification was not performed.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop and awaits browser feedback.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-The movement/art revision is accepted. The next chunk adds loot and the sack; ask the user to review the V3 download. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. Guard patrols on generated maps still require implementation and testing. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art and the sack are accepted. Ask the user to review the V4 return-to-tunnel and haul loop. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. Guard patrols on generated maps still require implementation and testing. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -37,3 +37,11 @@ New source: src/loot.js (pure packing, transfer, reach and target rules), src/it
 Validation: 12 tests passed including existing 200-seed dungeon checks, all item rotations, fragmented/full bags, automatic rotation into a free row, rejected placements, reach/wall targeting, repeated drop/repack item conservation across 100 maps, and a mock-DOM event-wiring smoke test for E pickup → click lift → R rotate → E drop → E pickup. npm run build and standalone module syntax checks passed. The mock-DOM test is not visual browser verification. New sack layout and mouse interactions still need real-browser/user review.
 
 No server, extraction or persistent save added. New dungeon intentionally resets items and bag, with a confirmation explaining the reset. Original standalone filename remains play.html in Git; the user download is uniquely named green-team-sack-v3.html to avoid old-download confusion.
+
+## V4 secret tunnel handoff
+
+Adds src/run.js for run lifecycle, entrance proximity and packed-item haul snapshots, plus src/results-view.js using the existing shared drawItem function. The entrance is at world.spawn, marked on the floor and in gold on the map. E leaves when inside 0.7 tiles, with a clear prompt; while holding an item, E drops first as before. Floor clicks can still lift nearby loot at the tunnel. Results pause gameplay and disallow sack edits; Start next run clears controls, closes the modal and creates fresh dungeon/loot/run state.
+
+Validation: all 16 tests pass. New checks cover proximity and walls, packed-only snapshots, one-time completion, cursor-item blocking, empty returns and independent next-run state. The interaction smoke test covers movement out of the tunnel, pickup/repacking, return and extraction, ignored actions on results, and the next-run button. Build and standalone module syntax checks pass. No visual browser automation was available, so rendered tunnel/results feedback still needs user review.
+
+Download is green-team-tunnel-v4.html; canonical generated file in Git remains play.html. No persistent rewards, save system, lair, guards, hosting or multiplayer were added.

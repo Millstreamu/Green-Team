@@ -3,11 +3,14 @@ import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
 import { createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld, bagItemAt, LOOT_TYPES } from './loot.js';
 import { createSackView } from './sack-view.js';
+import { createRun, atTunnel, finishRun } from './run.js';
+import { createResultsView } from './results-view.js';
 
 const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
 const input = createInput(window);
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
+const results = createResultsView(document.querySelector('#run-results'));
 let render;
 try {
   render = await createRenderer(canvas, document.querySelector('#map'));
@@ -15,7 +18,7 @@ try {
   document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
   throw error;
 }
-let world, player, loot, previous = 0, target = null, dragStart = null;
+let world, player, loot, run, previous = 0, target = null, dragStart = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
@@ -23,14 +26,16 @@ const updateTarget = () => {
   target = selectTarget(world, player, loot.ground, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
 };
 const reset = () => {
-  if (world && !window.confirm('Start a new dungeon? This resets the sack and all loot in this test.')) { canvas.focus(); return; }
+  if (world && run.phase === 'exploring' && !window.confirm('Abandon this run? This resets the sack and all dungeon loot.')) { canvas.focus(); return; }
+  results.close();
   world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
   player = { ...world.spawn, facing: 1, phase: 0, moving: false };
   loot = createLoot(world); dragStart = null;
+  run = createRun(world, performance.now());
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#rooms').textContent = `${world.rooms.length} connected rooms`;
-  tell('Loot is scattered around your feet. E packs the highlighted item; click to place it yourself.');
+  tell('You entered through the secret tunnel. Gather loot, then return here and press E to leave.');
   canvas.focus(); updateTarget();
 };
 const drop = () => {
@@ -49,7 +54,7 @@ const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointe
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
 document.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || !world) return;
+  if (e.button !== 0 || !world || run.phase !== 'exploring') return;
   trackPointer(e);
   if (e.target !== canvas && e.target !== sackCanvas) return;
   e.preventDefault(); canvas.focus();
@@ -73,14 +78,14 @@ document.addEventListener('pointerdown', e => {
 });
 document.addEventListener('pointerup', e => {
   const start = dragStart; dragStart = null;
-  if (!start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
+  if (run.phase !== 'exploring' || !start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
   trackPointer(e);
   if (e.target === sackCanvas) placeAtPointer();
   else if (e.target === canvas) drop();
 });
 window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; });
 window.addEventListener('keydown', e => {
-  if (!world || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
@@ -88,6 +93,14 @@ window.addEventListener('keydown', e => {
   if (e.code !== 'KeyE') return;
   e.preventDefault();
   if (loot.held) { drop(); return; }
+  if (atTunnel(run, world, player)) {
+    const result = finishRun(run, world, player, loot, performance.now());
+    if (result) {
+      input.clear(); dragStart = null; player.moving = false; player.phase = 0;
+      results.open(result); tell('You slipped back through the tunnel with your haul.');
+    }
+    return;
+  }
   updateTarget();
   if (!target) { tell('No loot within reach. Move closer.'); return; }
   const name = LOOT_TYPES[target.type].name;
@@ -95,15 +108,17 @@ window.addEventListener('keydown', e => {
   else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
 });
 document.querySelector('#regenerate').addEventListener('click', reset);
+document.querySelector('#next-run').addEventListener('click', reset);
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
-  movePlayer(world, player, input.read(), dt);
-  updateTarget(); render(world, player, loot, target); sack.paint(loot, pointer);
-  const targetText = loot.held ? 'Item in hand · R rotate · E drop' : target ? `${LOOT_TYPES[target.type].name} · E pack / click to lift` : 'Walk closer to loot';
+  if (run.phase === 'exploring') movePlayer(world, player, input.read(), dt);
+  const tunnelReady = atTunnel(run, world, player) && !loot.held;
+  updateTarget(); render(world, player, loot, target, run, tunnelReady); sack.paint(loot, pointer);
+  const targetText = run.phase === 'results' ? 'Back through the tunnel · run complete' : loot.held ? 'Item in hand · R rotate · E drop' : tunnelReady ? 'Secret tunnel · E to leave with your sack' : target ? `${LOOT_TYPES[target.type].name} · E pack / click to lift` : 'Find loot, then return to the gold tunnel marker';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
-  if (time > messageUntil) {
-    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : 'WASD move · E pack highlighted loot · Click loot or sack contents to lift';
+  if (time > messageUntil && run.phase === 'exploring') {
+    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to pack loot with E, or click nearby loot to lift it.' : 'WASD move · E pack highlighted loot · Return to the secret tunnel to escape';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);

@@ -22,7 +22,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target) => {
+  return (world, player, loot, target, run, tunnelReady) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -41,12 +41,19 @@ export async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
+    const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
+    rect(tx - 13, ty - 9, 26, 18, tunnelReady ? '#d5c483' : '#8c805b');
+    rect(tx - 10, ty - 6, 20, 12, '#080f12');
+    for (let i = 0; i < 3; i++) rect(tx - 8 + i * 6, ty - 4, 3, 8, '#3a4036');
+    ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText('SECRET TUNNEL', tx, ty - 30);
+    if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     for (const item of loot.ground) {
       const cells = itemCells(item), size = 7;
       const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
       const x = Math.round(item.x * t + ox - w / 2), y = Math.round(item.y * t + oy - h / 2);
       drawItem(ctx, item, x, y, size);
-      if (target?.id === item.id && !loot.held) {
+      if (target?.id === item.id && !loot.held && !tunnelReady) {
         ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
         ctx.strokeRect(x - 3.5, y - 3.5, w + 7, h + 7);
         ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
@@ -65,6 +72,7 @@ export async function createRenderer(canvas, mapCanvas) {
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
     map.fillStyle = '#667670';
     world.tiles.forEach((floor, i) => { if (floor) map.fillRect(i % world.width * 2, Math.floor(i / world.width) * 2, 2, 2); });
-    map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2 - 1, Math.floor(player.y) * 2 - 1, 4, 4);
+    map.fillStyle = '#ead48c'; map.fillRect(Math.floor(run.entrance.x) * 2 - 2, Math.floor(run.entrance.y) * 2 - 2, 6, 6);
+    map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2, Math.floor(player.y) * 2, 2, 2);
   };
 }

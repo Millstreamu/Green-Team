@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 // Exercise real event wiring without claiming this is a rendered browser test.
-test('game loop connects E pickup, sack lift, R rotation and E drop without losing controls', async () => {
+test('game loop connects packing, tunnel extraction, paused results and another run', async () => {
   class Surface {
     constructor(id = '') { this.id = id; this.listeners = {}; this.style = {}; this.width = 0; this.height = 0; this.textContent = ''; }
     addEventListener(type, callback) { (this.listeners[type] ??= []).push(callback); }
@@ -14,10 +14,16 @@ test('game loop connects E pickup, sack lift, R rotation and E drop without losi
     getContext() { return new Proxy({}, { get: (obj, key) => obj[key] ?? (() => {}) }); }
     closest() { return null; }
     focus() {}
+    append(...children) { (this.children ??= []).push(...children); }
+    replaceChildren() { this.children = []; }
+    setAttribute() {}
+    showModal() { this.open = true; }
+    close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run'].map(id => [id, new Surface(id)]));
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
+  doc.createElement = tag => new Surface(tag);
   win.confirm = () => true;
   globalThis.HTMLElement = Surface; globalThis.document = doc; globalThis.window = win;
   globalThis.Image = class { async decode() {} };
@@ -29,6 +35,8 @@ test('game loop connects E pickup, sack lift, R rotation and E drop without losi
   const key = code => win.send('keydown', { code, target: elements.get('game') });
   tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
+  assert.match(elements.get('target-label').textContent, /Secret tunnel/);
+  key('KeyD'); for (let i = 0; i < 14; i++) tick(); win.send('keyup', { code: 'KeyD' });
   assert.match(elements.get('target-label').textContent, /Ruby/);
   key('KeyE'); tick();
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
@@ -41,4 +49,19 @@ test('game loop connects E pickup, sack lift, R rotation and E drop without losi
   assert.equal(elements.get('held-label').textContent, 'Click an item to lift it');
   key('KeyE'); tick();
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
+  key('KeyA'); for (let i = 0; i < 14; i++) tick(); win.send('keyup', { code: 'KeyA' });
+  assert.match(elements.get('target-label').textContent, /Secret tunnel/);
+  key('KeyE'); tick();
+  assert.equal(elements.get('run-results').open, true);
+  assert.match(elements.get('haul-total').textContent, /^1 treasure/);
+  const summary = elements.get('haul-total').textContent;
+  key('KeyE'); key('KeyD'); for (let i = 0; i < 14; i++) tick();
+  doc.send('pointerdown', { target: elements.get('sack-grid'), clientX: 710, clientY: 380 }); tick();
+  assert.equal(elements.get('sack-used').textContent, '1 / 9');
+  assert.equal(elements.get('haul-total').textContent, summary);
+  assert.match(elements.get('target-label').textContent, /run complete/);
+  elements.get('next-run').send('click'); tick();
+  assert.equal(elements.get('run-results').open, false);
+  assert.equal(elements.get('sack-used').textContent, '0 / 9');
+  assert.match(elements.get('target-label').textContent, /Secret tunnel/);
 });
