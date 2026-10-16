@@ -38,7 +38,7 @@ Extend shared pieces when the behaviour is shared. Do not force unrelated featur
 
 ## 4. Keep planning bounded
 
-Describe the overall game briefly, then fully specify only the next playable slice. A candidate first slice is several goblins, one dungeon, one guard type, loot, an alarm, escape, and a return to the lair. Its exact scope still needs agreement.
+Describe the overall game briefly, then fully specify only the next playable slice. The agreed first slice is one goblin exploring a generated dungeon locally in a browser. See docs/decisions.md for current scope. Guards, loot, alarms, the lair and multiplayer testing follow later.
 
 Before implementing a slice, establish:
 
@@ -48,7 +48,7 @@ Before implementing a slice, establish:
 - What the server must coordinate between players.
 - Observable checks that tell us it works.
 
-Use temporary art where useful. Play together before expanding. The builder grows to support this game; a general-purpose engine is outside the current goal.
+Use temporary art where useful. Test the current slice before expanding. Multiplayer playtesting is deferred until the exploration milestone feels right. The builder grows to support this game; a general-purpose engine is outside the current goal.
 
 ## 5. Coordinate Claude and Codex through Git
 
