@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Green Team · Dungeon playground</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
+</style>
+</head>
+<body><main>
+<header><div><div class="eyebrow">GREEN TEAM / FIRST FOOTSTEPS</div><h1>Dungeon playground</h1><p>A little goblin. A different dungeon. See how it feels.</p></div><button id="regenerate">New dungeon ↻</button></header>
+<div class="layout"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. Use W A S D or arrow keys to move."></canvas><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><p class="note">Temporary pixel art.<br>Single-player movement test.<br>The map shows the whole layout for testing.</p></aside></div>
+<div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
+</main><script type="module">
+// Content values live together so a future builder can edit them.
+const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 3, hopRate: 12 });
+
+
+function generateDungeon(seed, config = CONFIG) {
+  let state = seed >>> 0;
+  const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
+  const integer = (min, max) => min + Math.floor(random() * (max - min + 1));
+  const { width, height } = config;
+  const tiles = new Uint8Array(width * height);
+  const rooms = [];
+  const carve = (x, y) => { tiles[y * width + x] = 1; };
+  // Every accepted room connects to a previous one, so all floor is reachable.
+  for (let attempt = 0; attempt < 600 && rooms.length < config.rooms; attempt++) {
+    const w = integer(6, 12), h = integer(5, 9);
+    const x = integer(2, width - w - 3), y = integer(2, height - h - 3);
+    if (rooms.some(r => x < r.x + r.w + 2 && x + w + 2 > r.x && y < r.y + r.h + 2 && y + h + 2 > r.y)) continue;
+    const room = { x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) };
+    for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) carve(i, j);
+    if (rooms.length) {
+      const previous = rooms.reduce((best, r) => Math.hypot(r.cx - room.cx, r.cy - room.cy) < Math.hypot(best.cx - room.cx, best.cy - room.cy) ? r : best);
+      let px = previous.cx, py = previous.cy;
+      const horizontalFirst = random() < 0.5;
+      const horizontal = () => { while (px !== room.cx) { carve(px, py); px += Math.sign(room.cx - px); } carve(px, py); };
+      const vertical = () => { while (py !== room.cy) { carve(px, py); py += Math.sign(room.cy - py); } carve(px, py); };
+      if (horizontalFirst) { horizontal(); vertical(); } else { vertical(); horizontal(); }
+    }
+    rooms.push(room);
+  }
+  return { seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } };
+}
+
+function isFloor(world, x, y) {
+  return x >= 0 && y >= 0 && x < world.width && y < world.height && world.tiles[y * world.width + x] === 1;
+}
+
+function canStand(world, x, y, radius = CONFIG.radius) {
+  for (let ty = Math.floor(y - radius); ty <= Math.floor(y + radius); ty++) {
+    for (let tx = Math.floor(x - radius); tx <= Math.floor(x + radius); tx++) {
+      if (isFloor(world, tx, ty)) continue;
+      const dx = x - Math.max(tx, Math.min(x, tx + 1));
+      const dy = y - Math.max(ty, Math.min(y, ty + 1));
+      if (dx * dx + dy * dy < radius * radius) return false;
+    }
+  }
+  return true;
+}
+
+function movePlayer(world, player, input, dt, config = CONFIG) {
+  const length = Math.hypot(input.x, input.y);
+  if (!length) { player.moving = false; player.phase = 0; return; }
+  const distance = config.speed * Math.max(0, dt);
+  // Small steps avoid tunnelling through walls, even for a delayed update.
+  const steps = Math.max(1, Math.ceil(distance / 0.15));
+  const dx = input.x / length * distance / steps, dy = input.y / length * distance / steps;
+  const oldX = player.x, oldY = player.y;
+  for (let i = 0; i < steps; i++) {
+    if (canStand(world, player.x + dx, player.y, config.radius)) player.x += dx;
+    if (canStand(world, player.x, player.y + dy, config.radius)) player.y += dy;
+  }
+  player.moving = Math.hypot(player.x - oldX, player.y - oldY) > 0.00001;
+  if (input.x) player.facing = Math.sign(input.x);
+  player.phase = player.moving ? player.phase + dt * config.hopRate : 0;
+}
+
+function createInput(target) {
+  const keys = new Set();
+  const movementKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  target.addEventListener('keydown', e => {
+    if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select,button')) return;
+    if (movementKeys.has(e.code)) { e.preventDefault(); keys.add(e.code); }
+  });
+  target.addEventListener('keyup', e => keys.delete(e.code));
+  const clear = () => keys.clear();
+  target.addEventListener('blur', clear);
+  document.addEventListener('visibilitychange', clear);
+  return { clear, read: () => ({
+    x: Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')),
+    y: Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'))
+  }) };
+}
+
+
+function createRenderer(canvas, mapCanvas) {
+  const ctx = canvas.getContext('2d');
+  const map = mapCanvas.getContext('2d');
+  let width = 0, height = 0;
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    width = Math.max(1, Math.floor(rect.width / 2)); height = Math.max(1, Math.floor(rect.height / 2));
+    canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
+  };
+  new ResizeObserver(resize).observe(canvas); resize();
+  return (world, player) => {
+    ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
+    const t = CONFIG.tile;
+    const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
+    const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
+    for (let y = Math.max(0, Math.floor(-oy / t) - 1); y < Math.min(world.height, Math.ceil((height - oy) / t) + 1); y++) {
+      for (let x = Math.max(0, Math.floor(-ox / t) - 1); x < Math.min(world.width, Math.ceil((width - ox) / t) + 1); x++) {
+        const px = x * t + ox, py = y * t + oy;
+        if (isFloor(world, x, y)) {
+          rect(px, py, t, t, (x * 13 + y * 7) % 5 === 0 ? '#333c3a' : '#2d3635');
+          rect(px, py, t, 1, '#404743'); rect(px, py, 1, t, '#252f2e');
+          if ((x * 7 + y * 19) % 17 === 0) rect(px + 7, py + 15, 3, 1, '#596050');
+        } else if ([-1, 0, 1].some(dy => [-1, 0, 1].some(dx => isFloor(world, x + dx, y + dy)))) {
+          rect(px, py, t, t, '#465053'); rect(px + 1, py + 1, t - 2, 5, '#657074');
+          rect(px + 1, py + 8, t - 2, t - 9, '#3b4548'); rect(px + 11, py + 9, 1, 12, '#303a3d');
+          if (isFloor(world, x, y + 1)) rect(px, py + t - 3, t, 3, '#20282b');
+        }
+      }
+    }
+    // Temporary pixel goblin. Feet/shadow are tied to world position; only art hops.
+    const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
+    const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
+    rect(sx - 7, sy - 2, 14, 4, '#182222');
+    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing, 1);
+    rect(-5, -6, 4, 6, '#887746'); rect(2, -6, 4, 6, '#887746');
+    rect(-6, -13, 12, 9, '#9b743f'); rect(-5, -12, 10, 3, '#c4a45c');
+    rect(-7, -22, 14, 10, '#8ab64f'); rect(-10, -20, 4, 5, '#729d43'); rect(7, -20, 4, 5, '#729d43');
+    rect(-6, -23, 11, 3, '#b0d36b'); rect(-4, -19, 3, 3, '#172c27'); rect(3, -19, 3, 3, '#172c27');
+    rect(0, -15, 5, 1, '#466137'); rect(-8, -11, 3, 5, '#729d43'); rect(6, -11, 3, 5, '#729d43');
+    ctx.restore();
+    mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
+    map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+    map.fillStyle = '#667670';
+    world.tiles.forEach((floor, i) => { if (floor) map.fillRect(i % world.width * 2, Math.floor(i / world.width) * 2, 2, 2); });
+    map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2 - 1, Math.floor(player.y) * 2 - 1, 4, 4);
+  };
+}
+
+
+const canvas = document.querySelector('#game');
+const input = createInput(window);
+const render = createRenderer(canvas, document.querySelector('#map'));
+let world, player, previous = 0;
+const reset = () => {
+  const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+  world = generateDungeon(seed);
+  player = { ...world.spawn, facing: 1, phase: 0, moving: false };
+  input.clear();
+  document.querySelector('#seed').textContent = String(seed);
+  document.querySelector('#rooms').textContent = `${world.rooms.length} connected rooms`;
+  document.querySelector('#status').textContent = 'Dungeon ready. Click the dungeon, then use WASD to explore.';
+  canvas.focus();
+};
+document.querySelector('#regenerate').addEventListener('click', reset);
+canvas.addEventListener('pointerdown', () => canvas.focus());
+const frame = time => {
+  const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
+  previous = time;
+  movePlayer(world, player, input.read(), dt);
+  render(world, player);
+  requestAnimationFrame(frame);
+};
+reset(); requestAnimationFrame(frame);
+
+</script></body></html>
