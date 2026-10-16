@@ -16,4 +16,6 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 ## Next step
 
-Agree the first playable version and its player experience. Then choose technology against those needs. Do not begin gameplay implementation yet.
+The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
+
+Next: choose a small browser-friendly technical foundation and implement this milestone. Server setup and multiplayer testing are deferred; keep controls, game rules and drawing separate in preparation.
