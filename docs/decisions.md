@@ -39,3 +39,9 @@ Handmade room templates arranged procedurally are a proposed approach, not a req
 - GitHub repository established at https://github.com/Millstreamu/Green-Team; technical stack selection remains the next preparation step.
 
 Earlier scrapbot and goblin-management ideas are context only, not requirements for this game unless explicitly adopted.
+
+## Exploration feedback — 16 October 2026
+
+- User confirmed the prototype works, then approved their supplied goblin art and the higher movement hop in the V2 download.
+- Future dungeon generation should offer rooms with multiple entrances and looped routes for evading guards or hiding. This is a future design direction, not a requested change to the current prototype.
+- Guard navigation and patrols on generated maps remain unimplemented and unverified. When the guard stage begins, validate reachable patrol points, pursuit and recovery from blocked or failed routes together with dungeon layout. Patrols are feasible in principle; the current game has not demonstrated them.

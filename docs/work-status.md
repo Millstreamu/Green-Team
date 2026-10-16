@@ -2,7 +2,7 @@
 
 ## Current task: first exploration prototype
 
-The user confirmed the first prototype works in their browser. The next revision uses their supplied left-facing goblin and raises hop height from 3 to 6 drawing pixels; review of this revision is pending.
+The user confirmed the prototype works in their browser and approved the V2 revision using their supplied left-facing goblin and higher hop. This is user playtest feedback; automated browser verification was not performed.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Ask the user to try play.html and describe anything that differs from their intended view or feel. In particular, check the hop and room/corridor proportions before adding more mechanics. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+The current movement/art revision is accepted. Select the next playable chunk with the user. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. Guard patrols on generated maps still require implementation and testing. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
