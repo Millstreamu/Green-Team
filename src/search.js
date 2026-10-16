@@ -4,8 +4,8 @@ import { clearPath, reachable } from './loot.js';
 
 export const SEARCHABLE_TYPES = Object.freeze({
   chest: { name: 'Chest', duration: SEARCH.chestTime, count: 2, color: '#b79055', pool: ['ruby', 'coin', 'candlestick', 'horn'] },
-  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, count: 3, color: '#889e86', pool: ['scroll', 'candlestick', 'horn', 'coin'] },
-  crate: { name: 'Crate', duration: SEARCH.crateTime, count: 1, color: '#ab815c', pool: ['sword', 'scroll', 'horn', 'coin'] }
+  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, count: 3, color: '#889e86', pool: ['scroll', 'candlestick', 'horn', 'coin', 'cloth'] },
+  crate: { name: 'Crate', duration: SEARCH.crateTime, count: 1, color: '#ab815c', pool: ['sword', 'scroll', 'horn', 'coin', 'scrap', 'cloth'] }
 });
 
 export function createSearchables(world) {
@@ -24,6 +24,7 @@ export function createSearchables(world) {
   objects[0].contents = ['ruby', 'coin'];
   add('cupboard', first.x + 1.5, first.y + 1.5);
   add('crate', first.x + first.w - 1.5, first.y + first.h - 1.5);
+  objects.find(object => object.type === 'crate').contents = ['scrap', 'scrap', 'cloth'];
   const types = Object.keys(SEARCHABLE_TYPES);
   world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], i % 2 ? room.x + room.w - 1.5 : room.x + 1.5, room.cy + 0.5));
   return objects;

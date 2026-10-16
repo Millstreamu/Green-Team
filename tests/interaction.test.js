@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 // Exercise real event wiring without claiming this is a rendered browser test.
-test('game loop connects held-E searching, packing, escape, guard loss and restart', async () => {
+test('lair crafting and stock connect to searching, packing, escape, guard loss and debug runs', async () => {
   class Surface {
     constructor(id = '') { this.id = id; this.listeners = {}; this.style = {}; this.dataset = {}; this.width = 0; this.height = 0; this.textContent = ''; }
     addEventListener(type, callback) { (this.listeners[type] ??= []).push(callback); }
@@ -20,12 +20,14 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run', 'debug-supplies', 'snare-stock', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty'].map(id => [id, new Surface(id)]));
   elements.get('snare-count').value = '1';
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
   doc.createElement = tag => new Surface(tag);
   win.confirm = () => true;
+  const saved = new Map(); win.localStorage = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) };
+  const campCounts = () => JSON.parse(saved.get('green-team-camp-v1')).counts;
   globalThis.HTMLElement = Surface; globalThis.document = doc; globalThis.window = win;
   globalThis.Image = class { async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
@@ -40,8 +42,25 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   const key = code => win.send('keydown', { code, target: elements.get('game') });
   const release = code => win.send('keyup', { code, target: elements.get('game') });
   const tap = code => { key(code); tick(); release(code); tick(); };
+  const walk = (code, count) => { key(code); for (let i = 0; i < count; i++) tick(); release(code); tick(); };
+  const prepareRun = () => { walk('KeyW', 80); tap('KeyE'); assert.equal(elements.get('run-setup').open, true); };
   tick();
+  assert.match(elements.get('target-label').textContent, /Lair/);
+  tap('Tab'); assert.equal(elements.get('lair-panel').open, true);
+  elements.get('lair-panel').send('keydown', { code: 'Tab' }); tick();
+  assert.equal(elements.get('lair-panel').open, false);
+  walk('KeyD', 56); walk('KeyW', 49); tap('KeyE');
+  assert.equal(elements.get('lair-title').textContent, 'Workbench');
+  elements.get('craft-snare').send('click'); tick();
+  assert.equal(campCounts().snare, 2); assert.equal(campCounts().scrap, 0);
+  assert.equal(elements.get('craft-snare').disabled, true);
+  elements.get('craft-snare').send('click'); tick(); assert.equal(campCounts().snare, 2);
+  elements.get('close-lair').send('click'); tick();
+  walk('KeyA', 56); walk('KeyW', 32); tap('KeyE');
   assert.equal(elements.get('run-setup').open, true);
+  elements.get('cancel-loadout').send('click'); tick();
+  assert.equal(elements.get('run-setup').open, false);
+  tap('KeyE'); assert.equal(elements.get('run-setup').open, true);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   key('KeyD'); tick(); release('KeyD');
   elements.get('snare-count').value = '10'; elements.get('snare-count').send('input');
@@ -101,15 +120,17 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
   tap('KeyE');
   assert.equal(elements.get('run-results').open, true);
-  assert.match(elements.get('haul-total').textContent, /^1 treasure/);
+  assert.match(elements.get('haul-total').textContent, /^1 loot item/);
   const summary = elements.get('haul-total').textContent;
   key('KeyE'); key('KeyD'); for (let i = 0; i < 14; i++) tick();
   doc.send('pointerdown', { target: elements.get('sack-grid'), clientX: 770, clientY: 380 }); tick();
-  assert.equal(elements.get('sack-used').textContent, '2 / 9');
+  assert.equal(elements.get('sack-used').textContent, '0 / 9');
+  assert.equal(campCounts().ruby, 1); assert.equal(campCounts().snare, 2);
   assert.equal(elements.get('haul-total').textContent, summary);
   assert.match(elements.get('target-label').textContent, /run complete/);
   elements.get('next-run').send('click'); tick();
-  assert.equal(elements.get('run-setup').open, true);
+  assert.match(elements.get('target-label').textContent, /Lair/);
+  prepareRun();
   elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
@@ -140,11 +161,13 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   for (let i = 0; i < 4000 && !elements.get('run-results').open; i++) tick();
   assert.equal(elements.get('run-results').open, true);
   assert.equal(elements.get('results-title').textContent, 'You went down.');
+  assert.equal(campCounts().ruby, 1); assert.equal(campCounts().snare, 1);
   assert.match(elements.get('haul-total').textContent, /^2 items lost/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.equal(elements.get('held-label').textContent, 'Click loot to lift · snare: select, E equip');
   elements.get('next-run').send('click'); tick();
-  assert.equal(elements.get('run-setup').open, true);
+  assert.match(elements.get('target-label').textContent, /Lair/);
+  prepareRun();
   elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('health-label').textContent, 'Health ●●●');
@@ -155,12 +178,14 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   for (let i = 0; i < 65; i++) tick(); release('KeyE'); tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('status').textContent, /Snare placed/);
-  elements.get('regenerate').send('click'); tick();
-  elements.get('snare-count').value = '9'; elements.get('snare-count').send('input');
+  elements.get('regenerate').send('click'); tick(); prepareRun();
+  elements.get('snare-count').value = '9';
+  elements.get('snare-count').send('input'); assert.equal(elements.get('start-run').disabled, true);
+  elements.get('debug-supplies').checked = true; elements.get('debug-supplies').send('change'); elements.get('snare-count').send('input');
   assert.match(elements.get('loadout-total').textContent, /9 \/ 9.*0 free/);
   elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('sack-used').textContent, '9 / 9');
-  elements.get('regenerate').send('click'); tick();
+  elements.get('regenerate').send('click'); tick(); prepareRun();
   assert.equal(elements.get('snare-count').value, '9');
   elements.get('snare-count').value = '0'; elements.get('snare-count').send('input');
   elements.get('start-run').send('click'); tick();

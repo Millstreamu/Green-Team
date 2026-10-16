@@ -158,3 +158,14 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Implementation choice for review: Tab opens manual navigation; WASD/arrows select without walking. E equips snare and hides sack. During placement, WASD/arrows move the nearby preview while the goblin stays still; mouse aiming remains available through actual pointer movement. Existing one-second E hold, directionless trap, cancel and safe arming are reused.
 - Passive automatic loot peeks do not capture movement; Tab activates them for navigation. Repeated movement keys move selection. Clear held movement on mode changes to prevent drift. Tab cancels placement and opens sack; Escape cancels placement. Setup/results keep browser Tab focus controls.
 - Explicit Tab closure works even with cursor loot, replacing V8's refusal to hide in that case. Otherwise held items still reveal/pin the sack. Ordinary loot rearranging remains mouse-based in this slice.
+
+
+## V15: first lair loop — 17 October 2026
+
+**Agreed behaviour:** user approved a small walkable lair, automatically storing escaped loot, a crafting table making snares from materials, and returning through a tunnel for the next run. Reuse item displays and controls; decorating and upgrades follow later. Multiplayer/server work remains deferred.
+
+**Prototype choices for review:** safe single-room home with stash/workbench/northern tunnel; one recipe (2 scrap + 1 cloth makes 1 snare), one-square materials in searchable furniture, one guaranteed material crate in the entrance room, starter stock of 1 snare/2 scrap/1 cloth. These are test values, not final progression. Home stock is an unlimited count store; carried traps remain individual sack items. Crafted snares enter the stash; launch spends selected stock atomically. Escaping banks packed loot plus unused real traps exactly once. Going down/abandoning loses carried contents but never home stock. Deployed traps and anything left on the floor stay behind.
+
+Shared item-list/drawItem/panel/button code renders haul, stash and crafting contents. Tab opens/closes home stash; E interacts with nearby stations, Escape closes panels. Workbench buttons retain native keyboard focus/Enter/Space. The run-prep screen now opens at the lair tunnel and has a back-to-lair action. Free debug supplies are an explicit option; tagged debug traps cannot increase real stock.
+
+Item counts save locally to browser storage when available, with an in-memory fallback. No multiplayer sharing, run resume, sale values, decoration, building tables, upgrades or other recipes added. A future server must own stock, crafting and settlement transactions; local save data is only for this solo prototype.

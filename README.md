@@ -2,17 +2,17 @@
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
-Exploration with looping routes, searchable furniture, sack, guard patrol/chase/attacks and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
+A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. Hosting, multiplayer and player limits remain undecided.
 
 ## Play
 
-Download `play.html` and open it in a desktop browser. Before each run, the simple debug setup lets you choose 0–9 snares, then press Start run. Every trap occupies its own square; traps never stack. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack slides off the lower-right edge while moving, leaving a tab. Tab or the edge tab opens/closes it. When opened manually, WASD selects sack squares instead of moving the goblin; Tab closes it again. Automatic loot peeks do not take over movement. Highlighting loose loot briefly reveals it; pickup attempts reveal it too (including a full sack). It stays open while holding an item so placement remains available, unless explicitly closed with Tab. Furniture highlights do not open it.
+Download `play.html` and open it in a desktop browser. Start in the lair. Walk with WASD; E at the stash or workbench opens it, and E at the northern tunnel prepares a run. Choose 0–9 snares from your stash, then Start run; the free debug trap option remains available. Every trap occupies its own square; traps never stack. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack slides off the lower-right edge while moving, leaving a tab. Tab or the edge tab opens/closes it. When opened manually, WASD selects sack squares instead of moving the goblin; Tab closes it again. Automatic loot peeks do not take over movement. Highlighting loose loot briefly reveals it; pickup attempts reveal it too (including a full sack). It stays open while holding an item so placement remains available, unless explicitly closed with Tab. Furniture highlights do not open it.
 
-Return to the secret tunnel where you started (gold marker on the map) and press E to finish the run. At the tunnel, E means leave; while holding an item it still means drop. The haul screen lists only loot packed in your sack. **Start next run** generates a new dungeon and returns to trap setup.
+Return to the secret tunnel where you started (gold marker on the map) and press E to finish the run. At the tunnel, E means leave; while holding an item it still means drop. The haul screen lists only loot packed in your sack. Escaping stores that loot and unused real traps in your lair automatically. **Return to lair** takes you home; use the tunnel to prepare the next run.
 
-**Abandon / new dungeon** discards an unfinished run after confirmation. The small map shows your position. This prototype shows the current haul only; no permanent stash or save system has been added.
+**Return to lair** during a run abandons carried loot/traps after confirmation; stock already at home is safe. The small map shows your position. Lair stock carries between runs and saves locally in this browser when browser storage is available. The footer reports whether saving works. Active dungeon runs are not saved; reloading returns home with the supplies already spent when that run started.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and three temporary guards with fixed room assignments, with no crafting or multiplayer.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and three temporary guards with fixed room assignments, with basic snare crafting and no multiplayer.
 
 ## Searching
 
@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: try V14 using only the keyboard: Tab, WASD to select a snare, E, WASD to aim, then hold E to place. Only snares are implemented. The setup is a temporary debugging screen; crafting, permanent loadouts, server setup and multiplayer remain deferred.
+Next: try V15’s complete lair loop: craft a snare, prepare a run at the tunnel, search for materials, escape and inspect the stash. Decorations, upgrades, building tables and multiplayer remain later work.
 
 
 ## V12: single-use snare
@@ -94,3 +94,14 @@ Tab replaces I. Open the sack manually to give WASD/arrows to the highlighted sq
 Automatic sack peeks for nearby loot remain passive, so they never stop walking. Tab turns a passive peek into manual sack navigation. Explicit closing also works while holding loot; automatic pinning otherwise remains. Normal browser Tab navigation is preserved in the setup and results dialogs. This does not add keyboard rearranging for ordinary loot.
 
 Verified: 56 automated tests, standalone build and bundled syntax check. Browser appearance/feel await user review. Download `green-team-keyboard-traps-v14.html`.
+
+
+## V15: the first little lair
+
+A walkable safe room uses the same world/movement/goblin renderer. The stash is on the left, workbench on the right, dungeon tunnel at the north. E opens nearby stations. Tab opens/closes the lair stash; Escape closes station screens. Crafting uses the existing buttons (Enter/Space to activate the focused button). Stash, workbench and run results share one item-list renderer and existing drawItem sprites and panel styles.
+
+Provisional recipe: **2 metal scrap + 1 cloth → 1 snare**. Scrap/cloth are one-square carried loot, found through the existing furniture search. A starting-room crate always contains one recipe’s materials, so the loop can be tested on every layout. Fresh lairs start with one snare, two scrap and one cloth; this is test stock, not a final progression/balance choice. Real traps are taken from home stock when starting, and unused ones return on escape. Deployed traps, drops left in the dungeon and downed/abandoned run contents are lost. Valuables stay stored; no selling or upgrade system exists yet.
+
+The preparation screen retains the free-trap debug toggle. Debug traps fill separate sack cells but never use or increase real home stock. Lair save version 1 stores item counts locally; no server/shared online state, account save or active-run recovery is implemented. If storage is blocked, the same loop works while the page stays open.
+
+Source: lair.js for economy/save/world/station rules; lair-view.js for stash/workbench; lair-drawing.js for temporary room props; item-list.js shared by lair and results. Verified: 62 automated tests, standalone build and bundled syntax check. No rendered browser test; user playtest pending. Download `green-team-lair-v15.html`.

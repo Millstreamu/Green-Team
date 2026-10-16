@@ -1,3 +1,5 @@
+import { drawLair } from './lair-drawing.js';
+import { lairTarget } from './lair.js';
 import { drawTraps } from './trap-view.js';
 import { CONFIG, GOBLIN_ART, SEARCH } from './config.js';
 import { isFloor } from './world.js';
@@ -45,13 +47,14 @@ export async function createRenderer(canvas, mapCanvas) {
       }
     }
     for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy);
+    const highlightTunnel = tunnelReady || world.lair && lairTarget(world, player)?.kind === 'tunnel';
     const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
-    rect(tx - 13, ty - 9, 26, 18, tunnelReady ? '#d5c483' : '#8c805b');
+    rect(tx - 13, ty - 9, 26, 18, highlightTunnel ? '#d5c483' : '#8c805b');
     rect(tx - 10, ty - 6, 20, 12, '#080f12');
     for (let i = 0; i < 3; i++) rect(tx - 8 + i * 6, ty - 4, 3, 8, '#3a4036');
-    ctx.fillStyle = tunnelReady ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText('SECRET TUNNEL', tx, ty - 30);
-    if (tunnelReady) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
+    ctx.fillStyle = highlightTunnel ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(world.lair ? 'DUNGEON TUNNEL' : 'SECRET TUNNEL', tx, ty - 30);
+    if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     drawTraps(ctx, world, player, traps, objects, placement, ox, oy);
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
     for (const item of loot.ground) {
@@ -67,6 +70,7 @@ export async function createRenderer(canvas, mapCanvas) {
         ctx.fillText('E', x + w / 2, y - 6);
       }
     }
+    if (world.lair) drawLair(ctx, world, lairTarget(world, player), ox, oy);
     for (const guard of guards) drawGuard(ctx, guard, ox, oy);
     // Feet and shadow stay on the floor; only the supplied sprite hops.
     const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);

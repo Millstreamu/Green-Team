@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: V14 keyboard sack/placement, awaiting playtest
+## Current task: V15 lair / stash / snare crafting, awaiting playtest
 
 The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
@@ -143,3 +143,14 @@ Replaces I with Tab. Manual sack navigation routes WASD/arrows to the selected s
 Changed input.js, sack-view.js, traps.js, main.js and index.html; no new UI framework. Tab mode changes clear held movement. Tab explicitly closes even when holding loot (otherwise automatic hold pinning remains). Normal Tab focus remains available in pre-run/result dialogs. No keyboard loot rearranging added.
 
 Validation: 56 tests pass. Interaction checks now cover WASD selection without walking, Tab closing, existing full gameplay loop, keyboard preview aiming and placement, closing/reopening while holding loot, zero/full pre-run loadouts. A rule test checks aim range, stationary goblin and progress reset. Standalone build and bundled syntax pass. Browser visual/focus feel still awaits user review. Current download: green-team-keyboard-traps-v14.html. Same prototype branch and draft PR #2; no server/multiplayer changes.
+
+
+## V15 handoff
+
+User approved first little lair: escape→stash→craft→launch again. Added safe walkable home reusing world tiles/movement/goblin renderer. Left stash, right workbench, north tunnel; E interacts; Tab toggles lair stash, Escape closes panels. Start/restart/result return home; tunnel opens existing prep screen, limited by real stock unless explicit free-debug toggle is enabled. Crafted/unused equipment uses the existing nonstacking sack on runs. Guards remain dungeon-only.
+
+New lair.js owns camp counts, craft/take/bank rules, save validation/fallback and home world/station reach. lair-view.js uses shared item-list.js rows (also extracted from results-view.js) and existing panel/button/drawItem visuals. lair-drawing.js supplies temporary home props. Added one-square scrap/cloth definitions and searchable pools; the entrance crate guarantees 2 scrap/1 cloth. Starter stock 1 snare/2 scrap/1 cloth and recipe are provisional. Current valuables remain stored, with no spending/selling progression yet.
+
+Bank successful bag contents and return unused real traps once; clear bag after banking. Loss/abandon leaves home stock safe and loses carried supplies. Debug traps carry a tag through inventory moves and never bank into real stock. Save stock at crafting, launch and settlement; reload returns to lair and does not resume/refund the active dungeon. localStorage is optional and footer reports fallback; no network/shared save.
+
+Verification: all 62 tests pass. Six new lair checks cover searched-materials→packing→escape→bank→craft, stock conservation/failed starts, debug isolation, loss safety, save load/corruption/blocked storage and lair reach/collision. Existing mock-DOM loop now walks home stations, crafts, cancels launch, launches with actual stock, searches/escapes, verifies bank once, goes down with stash safe, uses keyboard traps, and tests full/empty debug loadouts. Standalone build and bundled syntax pass. No rendered browser automation; layout, focus and pacing await user playtest. Download green-team-lair-v15.html; canonical build play.html. Same feature branch / draft PR #2. No multiplayer, decoration, table construction or upgrades.
