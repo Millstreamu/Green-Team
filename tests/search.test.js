@@ -27,6 +27,7 @@ test('100 generated maps start with hidden loot in reachable searchable objects,
 
 test('search requires a held input and enough time; it spills once without automatically packing', () => {
   const { world, loot, object, player, session } = setup();
+  object.contents = ['ruby', 'coin']; // Explicit two-item fixture for spill semantics.
   assert.ok(beginSearch(session, world, player, loot, object));
   assert.equal(updateSearch(session, world, player, loot, true, 1), null); assert.equal(loot.ground.length, 0);
   const completed = updateSearch(session, world, player, loot, true, SEARCHABLE_TYPES.chest.duration - 1);
@@ -57,6 +58,7 @@ test('release, movement, distance, wall obstruction, held items and going down c
 
 test('cancel and restart require a full new hold; a full sack does not stop the spill', () => {
   const { world, loot, object, player, session } = setup();
+  object.contents = ['ruby', 'coin'];
   beginSearch(session, world, player, loot, object); updateSearch(session, world, player, loot, true, 2);
   cancelSearch(session);
   for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) loot.bag.push({ id: `${x},${y}`, type: 'coin', rotation: 0, x, y });
@@ -91,4 +93,37 @@ test('all container contents spill to accessible floor on 100 maps', () => {
     assert.equal(new Set(loot.ground.map(item => item.id)).size, expected);
     assert.ok(loot.ground.every(item => canStand(world, item.x, item.y, 0.15)));
   }
+});
+
+
+test('empty searches take full time, finish normally and cannot be searched again', () => {
+  const { world, loot, object, player, session } = setup(42);
+  assert.deepEqual(object.contents, []);
+  assert.ok(beginSearch(session, world, player, loot, object));
+  assert.equal(updateSearch(session, world, player, loot, true, SEARCHABLE_TYPES.chest.duration - .1), null);
+  assert.equal(object.searched, false);
+  const result = updateSearch(session, world, player, loot, true, .1);
+  assert.equal(result.type, 'completed'); assert.equal(result.count, 0);
+  assert.equal(object.searched, true); assert.equal(loot.ground.length, 0);
+  assert.equal(beginSearch(session, world, player, loot, object), false);
+  assert.equal(updateSearch(session, world, player, loot, true, 100), null);
+});
+
+test('reward generation produces sparse loot, occasional materials and no entrance freebies', () => {
+  let containers = 0, empty = 0, items = 0, materials = 0, entranceEmpty = 0;
+  for (let i = 0; i < 200; i++) {
+    const world = generateDungeon(Math.imul(i + 1, 2654435761) >>> 0);
+    const objects = createSearchables(world);
+    assert.deepEqual(objects, createSearchables(world));
+    entranceEmpty += Number(objects[0].contents.length === 0);
+    for (const object of objects) {
+      containers++; empty += Number(object.contents.length === 0);
+      assert.ok(object.contents.length <= 2);
+      for (const type of object.contents) { items++; materials += Number(!!LOOT_TYPES[type].material); }
+    }
+  }
+  assert.ok(empty / containers > .54 && empty / containers < .66);
+  assert.ok(items / containers < .55);
+  assert.ok(materials / items > .35 && materials / items < .55);
+  assert.ok(entranceEmpty > 0 && entranceEmpty < 200);
 });

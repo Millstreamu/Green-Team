@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: V15 lair / stash / snare crafting, awaiting playtest
+## Current task: V16 sparse search rewards, awaiting playtest
 
 The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
@@ -154,3 +154,10 @@ New lair.js owns camp counts, craft/take/bank rules, save validation/fallback an
 Bank successful bag contents and return unused real traps once; clear bag after banking. Loss/abandon leaves home stock safe and loses carried supplies. Debug traps carry a tag through inventory moves and never bank into real stock. Save stock at crafting, launch and settlement; reload returns to lair and does not resume/refund the active dungeon. localStorage is optional and footer reports fallback; no network/shared save.
 
 Verification: all 62 tests pass. Six new lair checks cover searched-materials→packing→escape→bank→craft, stock conservation/failed starts, debug isolation, loss safety, save load/corruption/blocked storage and lair reach/collision. Existing mock-DOM loop now walks home stations, crafts, cancels launch, launches with actual stock, searches/escapes, verifies bank once, goes down with stash safe, uses keyboard traps, and tests full/empty debug loadouts. Standalone build and bundled syntax pass. No rendered browser automation; layout, focus and pacing await user playtest. Download green-team-lair-v15.html; canonical build play.html. Same feature branch / draft PR #2. No multiplayer, decoration, table construction or upgrades.
+
+
+## V16 handoff
+
+User likes the loop; requested fewer items, occasional materials and empty searches. search.js now rolls zero/one/two seeded contents per container using SEARCH_LOOT in config.js: .6 empty, .15 two-items conditional on nonempty, .45 material per item. Removed hardcoded entrance chest valuables and crate recipe. Main shows a clear empty-result message; normal duration, searched visuals, cancellation and repeat prevention are reused. No guard/crafting/stock rule changes. New-lair starter kit remains.
+
+Verified: all 64 tests pass. Two new search tests cover normal-time empty completion/no rerun and sparse material/reward distribution across 200 spread seeds. Existing mock-DOM gameplay uses a naturally ruby-bearing generated seed (3428989595), and its final run uses seed42 to verify the naturally empty entrance and actual UI message. Spill and economy tests use explicit content fixtures rather than assuming production freebies. Build and bundled syntax pass. Browser pacing still needs user playtest. Download green-team-sparse-loot-v16.html; canonical play.html, same feature branch / draft PR #2. Future balance tweaks belong in SEARCH_LOOT; do not restore guaranteed entrance loot accidentally.

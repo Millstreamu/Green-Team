@@ -16,7 +16,7 @@ The goblin uses your supplied 16×16 art; dungeon art is temporary. This version
 
 ## Searching
 
-Valuables begin inside searchable furniture, not scattered around each room. Get close and hold E. A tiny pixel loading bar fills directly above the object while guards continue patrolling; it disappears on cancellation or completion. There is no separate search progress panel. Moving, releasing E, getting hit, lifting another item or going down cancels the search and resets progress. A searched object opens/dims and cannot spill its contents again. A full sack does not block searching: items stay on the floor for packing later.
+Valuables begin inside searchable furniture, not scattered around each room. Get close and hold E. Searches can be empty, with a clear “Nothing worth taking” message. A tiny pixel loading bar fills directly above the object while guards continue patrolling; it disappears on cancellation or completion. There is no separate search progress panel. Moving, releasing E, getting hit, lifting another item or going down cancels the search and resets progress. A searched object opens/dims and cannot spill its contents again. A full sack does not block searching: items stay on the floor for packing later.
 
 Initial times: crate 1.5 seconds, chest 2.5 seconds, cupboard 3.5 seconds. These are provisional balancing values in SEARCH in src/config.js. Furniture uses temporary drawings and does not yet add solid collision. This step adds time spent searching, not a furniture physics system.
 
@@ -100,8 +100,17 @@ Verified: 56 automated tests, standalone build and bundled syntax check. Browser
 
 A walkable safe room uses the same world/movement/goblin renderer. The stash is on the left, workbench on the right, dungeon tunnel at the north. E opens nearby stations. Tab opens/closes the lair stash; Escape closes station screens. Crafting uses the existing buttons (Enter/Space to activate the focused button). Stash, workbench and run results share one item-list renderer and existing drawItem sprites and panel styles.
 
-Provisional recipe: **2 metal scrap + 1 cloth → 1 snare**. Scrap/cloth are one-square carried loot, found through the existing furniture search. A starting-room crate always contains one recipe’s materials, so the loop can be tested on every layout. Fresh lairs start with one snare, two scrap and one cloth; this is test stock, not a final progression/balance choice. Real traps are taken from home stock when starting, and unused ones return on escape. Deployed traps, drops left in the dungeon and downed/abandoned run contents are lost. Valuables stay stored; no selling or upgrade system exists yet.
+Provisional recipe: **2 metal scrap + 1 cloth → 1 snare**. Scrap/cloth are one-square carried loot, found through the existing furniture search. From V16, no container guarantees materials; search multiple objects and bring home what you find. Fresh lairs start with one snare, two scrap and one cloth; this is test stock, not a final progression/balance choice. Real traps are taken from home stock when starting, and unused ones return on escape. Deployed traps, drops left in the dungeon and downed/abandoned run contents are lost. Valuables stay stored; no selling or upgrade system exists yet.
 
 The preparation screen retains the free-trap debug toggle. Debug traps fill separate sack cells but never use or increase real home stock. Lair save version 1 stores item counts locally; no server/shared online state, account save or active-run recovery is implemented. If storage is blocked, the same loop works while the page stays open.
 
 Source: lair.js for economy/save/world/station rules; lair-view.js for stash/workbench; lair-drawing.js for temporary room props; item-list.js shared by lair and results. Verified: 62 automated tests, standalone build and bundled syntax check. No rendered browser test; user playtest pending. Download `green-team-lair-v15.html`.
+
+
+## V16: sparse search rewards
+
+User requested less loot, occasional materials, and searches that sometimes find nothing. Initial tuning: 60% chance a container is empty. Of nonempty containers, 85% have one item and 15% have two. Each found item has a 45% chance to be scrap/cloth; otherwise it comes from the container's existing valuables pool. These probabilities are provisional values in SEARCH_LOOT in src/config.js. Rewards are determined once per generated map, so cancelling/restarting searches does not reroll them.
+
+The entrance chest no longer guarantees ruby/coin and the entrance crate no longer guarantees a full snare recipe. Empty searches still take their normal time, finish/dim the container and cannot be repeated. They say “Nothing worth taking. Try the next one.” Starter supplies in a new lair are retained. No crafting or guard timing changes.
+
+Verified: 64 automated tests, including sparse reward distribution across 200 maps, completed empty searches, repeat prevention and an actual empty-search event flow. Standalone build and bundled syntax check pass; browser feel still needs review. Download green-team-sparse-loot-v16.html.

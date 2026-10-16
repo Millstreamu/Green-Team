@@ -32,7 +32,8 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   globalThis.Image = class { async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
   globalThis.requestAnimationFrame = callback => frames.push(callback);
-  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues(array) { array[0] = 42; return array; } } });
+  let dungeonSeed = 3428989595; // Generated entrance chest contains ruby + scrap, without production overrides.
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues(array) { array[0] = dungeonSeed; return array; } } });
   let clock = 0;
   const realNow = performance.now;
   performance.now = () => clock;
@@ -145,7 +146,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   const { generateDungeon } = await import('../src/world.js');
   const { createGuards } = await import('../src/guard.js');
   const { findPath } = await import('../src/navigation.js');
-  const map = generateDungeon(42), post = createGuards(map)[0];
+  const map = generateDungeon(3428989595), post = createGuards(map)[0];
   const route = findPath(map, map.spawn, post);
   const simulated = { ...map.spawn };
   for (const goal of route) {
@@ -188,6 +189,10 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   elements.get('regenerate').send('click'); tick(); prepareRun();
   assert.equal(elements.get('snare-count').value, '9');
   elements.get('snare-count').value = '0'; elements.get('snare-count').send('input');
+  dungeonSeed = 42;
   elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('sack-used').textContent, '0 / 9');
+  walk('KeyD', 14); key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
+  assert.match(elements.get('status').textContent, /Nothing worth taking/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
 });

@@ -1,11 +1,11 @@
-import { SEARCH } from './config.js';
+import { SEARCH, SEARCH_LOOT } from './config.js';
 import { canStand } from './world.js';
 import { clearPath, reachable } from './loot.js';
 
 export const SEARCHABLE_TYPES = Object.freeze({
-  chest: { name: 'Chest', duration: SEARCH.chestTime, count: 2, color: '#b79055', pool: ['ruby', 'coin', 'candlestick', 'horn'] },
-  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, count: 3, color: '#889e86', pool: ['scroll', 'candlestick', 'horn', 'coin', 'cloth'] },
-  crate: { name: 'Crate', duration: SEARCH.crateTime, count: 1, color: '#ab815c', pool: ['sword', 'scroll', 'horn', 'coin', 'scrap', 'cloth'] }
+  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['ruby', 'coin', 'candlestick', 'horn'] },
+  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'candlestick', 'horn', 'coin'] },
+  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['sword', 'scroll', 'horn', 'coin'] }
 });
 
 export function createSearchables(world) {
@@ -15,16 +15,17 @@ export function createSearchables(world) {
   const add = (type, x, y) => {
     if (!canStand(world, x, y, 0.2) || objects.some(o => Math.hypot(o.x - x, o.y - y) < 0.8)) return;
     const definition = SEARCHABLE_TYPES[type];
-    const contents = Array.from({ length: definition.count }, () => definition.pool[Math.floor(random() * definition.pool.length)]);
+    const count = random() < SEARCH_LOOT.emptyChance ? 0 : random() < SEARCH_LOOT.twoItemChance ? 2 : 1;
+    const contents = Array.from({ length: count }, () => {
+      const pool = random() < SEARCH_LOOT.materialChance ? ['scrap', 'cloth'] : definition.pool;
+      return pool[Math.floor(random() * pool.length)];
+    });
     objects.push({ id: `${world.seed}-search-${objects.length}`, type, x, y, contents, searched: false });
   };
   const first = world.rooms[0];
   add('chest', world.spawn.x + 1.5, world.spawn.y);
-  // Two small valuables in the first chest make the controls quick to learn.
-  objects[0].contents = ['ruby', 'coin'];
   add('cupboard', first.x + 1.5, first.y + 1.5);
   add('crate', first.x + first.w - 1.5, first.y + first.h - 1.5);
-  objects.find(object => object.type === 'crate').contents = ['scrap', 'scrap', 'cloth'];
   const types = Object.keys(SEARCHABLE_TYPES);
   world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], i % 2 ? room.x + room.w - 1.5 : room.x + 1.5, room.cy + 0.5));
   return objects;

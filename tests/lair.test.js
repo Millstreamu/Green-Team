@@ -10,6 +10,7 @@ test('search, pack, escape, bank materials and craft a snare complete a conserve
   const camp = createCamp(); camp.counts.scrap = 0; camp.counts.cloth = 0; camp.counts.snare = 0;
   const world = generateDungeon(42), loot = createLoot(), run = createRun(world);
   const crate = createSearchables(world).find(object => object.type === 'crate');
+  crate.contents = ['scrap', 'scrap', 'cloth']; // Economy fixture, not guaranteed generated rewards.
   const player = { x: crate.x, y: crate.y, state: 'active' }, search = createSearchSession();
   assert.ok(beginSearch(search, world, player, loot, crate));
   assert.equal(updateSearch(search, world, player, loot, true, 2).type, 'completed');
