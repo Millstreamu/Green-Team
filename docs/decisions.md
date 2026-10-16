@@ -142,3 +142,11 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Preview stays within 1.5 tiles and rejects walls, blocked reach, furniture and other live traps. Movement, changing position, releasing E or taking damage interrupts the hold. Escape cancels; the item remains reserved in its existing sack cell until successful placement.
 - New snares wait for setter clearance (trigger radius plus goblin radius plus margin), followed by a short arm delay. Once armed, goblins waste them harmlessly; guards are held without movement/attacks for three seconds. All snares are single-use.
 - Supplies are excluded from stolen treasure totals; downed loss lists include carried supplies as items. Crafting, loadouts, trap recovery, more trap types and multiplayer remain deferred. Multiplayer must pass every goblin to the shared trigger rule and assign stable owner IDs.
+
+
+## V13: pre-run trap debug setup — 17 October 2026
+
+- Agreed behaviour: user requested a super-simple screen before a run to choose which traps and how many enter the sack. Traps do not stack.
+- Only snare currently exists; its quantity can be 0–9. Zero leaves it behind. Each snare is a separate one-square item with a unique ID, packed with the shared inventory fit rules. Full loadouts leave no initial space for loot.
+- Setup appears at launch and before every new run; guards and movement are paused until Start run. Shows used/free squares and blocks invalid, fractional, negative or excessive counts. Last quantity is remembered in this open page for quick experiments.
+- Replaces V12's fixed one-snare grant. This debug screen does not introduce crafting, unlocks, permanent saved loadouts, additional trap effects or multiplayer.

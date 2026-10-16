@@ -6,9 +6,9 @@ Exploration with looping routes, searchable furniture, sack, guard patrol/chase/
 
 ## Play
 
-Download `play.html` and open it in a desktop browser. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack slides off the lower-right edge while moving, leaving a tab. I or the tab opens/closes it. Highlighting loose loot briefly reveals it; pickup attempts reveal it too (including a full sack). It stays open while holding an item so placement remains available. Furniture highlights do not open it.
+Download `play.html` and open it in a desktop browser. Before each run, the simple debug setup lets you choose 0–9 snares, then press Start run. Every trap occupies its own square; traps never stack. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack slides off the lower-right edge while moving, leaving a tab. I or the tab opens/closes it. Highlighting loose loot briefly reveals it; pickup attempts reveal it too (including a full sack). It stays open while holding an item so placement remains available. Furniture highlights do not open it.
 
-Return to the secret tunnel where you started (gold marker on the map) and press E to finish the run. At the tunnel, E means leave; while holding an item it still means drop. The haul screen lists only loot packed in your sack. **Start next run** generates a new dungeon and an empty sack.
+Return to the secret tunnel where you started (gold marker on the map) and press E to finish the run. At the tunnel, E means leave; while holding an item it still means drop. The haul screen lists only loot packed in your sack. **Start next run** generates a new dungeon and returns to trap setup.
 
 **Abandon / new dungeon** discards an unfinished run after confirmation. The small map shows your position. This prototype shows the current haul only; no permanent stash or save system has been added.
 
@@ -34,7 +34,7 @@ Walls block sight. A question mark and filling bar give notice before a chase. G
 
 The guard attacks at close range with a visible wind-up and red strike circle. Move away to make it miss. You have three health points with a short gap between damaging hits. Zero health puts you down. In this solo test there is no teammate left to recover you, so the run ends and bag/cursor loot is lost. Start next run restores health; getting close to a guard is not an instant failure.
 
-Teammate recovery, its rules and returning after the team run are future multiplayer work. There is no player attack or trap system yet.
+Teammate recovery, its rules and returning after the team run are future multiplayer work. There is no player attack; single-use snares are available for testing.
 
 ## Development
 
@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: try V11 by turning out of sight around a hallway corner into a room. The user reported V10 works pretty well but guards stopped at the corner; V11 adds the short invisible trail to carry that investigation farther. Traps to bring into a run are the next planned feature after reviewing these guard patterns; trap equipment/placement details still need defining. Server setup and multiplayer testing are deferred.
+Next: try V13 with different trap quantities to test placement and guard escape timing. Only snares are implemented. The setup is a temporary debugging screen; crafting, permanent loadouts, server setup and multiplayer remain deferred.
 
 
 ## V12: single-use snare
@@ -78,3 +78,10 @@ Each prototype run starts with one snare occupying one sack square. I opens the 
 A placed snare waits until its setter is fully clear, then arms after 0.25 seconds. Any goblin crossing an armed snare spends it harmlessly; a guard crossing it is held for three seconds and cannot attack during the hold. This is a test supply, not crafting or a permanent loadout system. Unused snares do not count as stolen treasure. Tune values in `TRAPS` in src/config.js.
 
 V12 verification: 53 automated tests, standalone build and bundled JavaScript syntax check. Rendered browser appearance/feel awaits user playtest. Download/build `play.html`; the distinct review copy is `green-team-snares-v12.html`.
+
+
+## V13: pre-run trap debug setup
+
+A small dialog reuses the existing result-panel/button style before the initial run and every subsequent run. Select a trap by choosing its quantity (0 excludes it); currently only snare exists. The counter shows used/free sack squares. Start run packs that many individual items with unique IDs using the existing inventory fit rules. Quantities must be whole numbers from 0–9; invalid values prevent starting. The dungeon/guards stay paused during setup. Last quantity persists for retesting within this open game, without a save system.
+
+`src/loadout.js` validates and packs supplies; `src/loadout-view.js` connects the simple screen. The old automatic one-snare grant is replaced. Existing equip/place controls and safe arming rules remain. Verified: 55 tests, standalone build and bundled syntax check. Browser visual review pending. Review copy: `green-team-trap-setup-v13.html`.

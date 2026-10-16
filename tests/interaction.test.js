@@ -20,7 +20,8 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run'].map(id => [id, new Surface(id)]));
+  elements.get('snare-count').value = '1';
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
   doc.createElement = tag => new Surface(tag);
@@ -40,6 +41,16 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   const release = code => win.send('keyup', { code, target: elements.get('game') });
   const tap = code => { key(code); tick(); release(code); tick(); };
   tick();
+  assert.equal(elements.get('run-setup').open, true);
+  assert.equal(elements.get('sack-used').textContent, '0 / 9');
+  key('KeyD'); tick(); release('KeyD');
+  elements.get('snare-count').value = '10'; elements.get('snare-count').send('input');
+  assert.equal(elements.get('start-run').disabled, true);
+  elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('run-setup').open, true);
+  elements.get('snare-count').value = '1'; elements.get('snare-count').send('input');
+  elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('run-setup').open, false);
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
   assert.equal(elements.get('sack-panel').dataset.open, 'false');
@@ -91,6 +102,8 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   assert.equal(elements.get('haul-total').textContent, summary);
   assert.match(elements.get('target-label').textContent, /run complete/);
   elements.get('next-run').send('click'); tick();
+  assert.equal(elements.get('run-setup').open, true);
+  elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
@@ -124,10 +137,22 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.equal(elements.get('held-label').textContent, 'Click loot to lift · snare: select, E equip');
   elements.get('next-run').send('click'); tick();
+  assert.equal(elements.get('run-setup').open, true);
+  elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('health-label').textContent, 'Health ●●●');
   tap('KeyI'); tap('KeyE'); key('KeyE');
   for (let i = 0; i < 65; i++) tick(); release('KeyE'); tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('status').textContent, /Snare placed/);
+  elements.get('regenerate').send('click'); tick();
+  elements.get('snare-count').value = '9'; elements.get('snare-count').send('input');
+  assert.match(elements.get('loadout-total').textContent, /9 \/ 9.*0 free/);
+  elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('sack-used').textContent, '9 / 9');
+  elements.get('regenerate').send('click'); tick();
+  assert.equal(elements.get('snare-count').value, '9');
+  elements.get('snare-count').value = '0'; elements.get('snare-count').send('input');
+  elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('sack-used').textContent, '0 / 9');
 });

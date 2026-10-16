@@ -1,4 +1,6 @@
-import { addStartingSnare, createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps } from './traps.js';
+import { buildTrapLoadout } from './loadout.js';
+import { createLoadoutView } from './loadout-view.js';
+import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps } from './traps.js';
 import { generateDungeon, movePlayer } from './world.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
@@ -39,15 +41,22 @@ const reset = () => {
   world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
   player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
   guards = createGuards(world);
-  loot = createLoot(); addStartingSnare(loot, world.seed); traps = []; placement = createPlacement(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
-  run = createRun(world, performance.now());
+  loot = createLoot(); traps = []; placement = createPlacement(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
+  run = createRun(world, performance.now()); run.phase = 'setup';
   sack.reset();
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
   tell('Hold E beside a highlighted chest, cupboard or crate. Search it, collect the spilled loot, then return to the tunnel.');
-  canvas.focus(); updateTarget();
+  updateTarget(); loadout.open();
 };
+const loadout = createLoadoutView(document.querySelector('#run-setup'), quantities => {
+  const selected = buildTrapLoadout(quantities, world.seed);
+  if (!selected) return;
+  loot.bag = selected.bag; run.phase = 'exploring'; run.startedAt = performance.now();
+  input.clear(); previous = 0; canvas.focus();
+  tell('Hold E to search furniture. I opens your sack; select a snare and press E to equip.');
+});
 const showRunResult = (result, message) => {
   if (!result) return;
   cancelSearch(searchSession);
@@ -174,7 +183,8 @@ const frame = time => {
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId }, dt);
   render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement); sack.paint(loot, pointer);
   let targetText;
-  if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
+  if (run.phase === 'setup') targetText = 'Choose your traps, then start the run';
+  else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (placement.itemId) targetText = 'Placing snare · hold E for 1 second · Escape cancel';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';

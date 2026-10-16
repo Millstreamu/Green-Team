@@ -1,14 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon } from '../src/world.js';
+import { buildTrapLoadout } from '../src/loadout.js';
 import { createLoot } from '../src/loot.js';
 import { createRun, finishRun } from '../src/run.js';
 import { createGuards, updateGuard, createVitality } from '../src/guard.js';
-import { addStartingSnare, createPlacement, equipSnare, cancelPlacement, updatePlacement, updateTraps, validTrapPosition, placementPoint } from '../src/traps.js';
+import { createPlacement, equipSnare, cancelPlacement, updatePlacement, updateTraps, validTrapPosition, placementPoint } from '../src/traps.js';
 
 const setup = () => {
   const world = generateDungeon(42), player = { ...world.spawn, ...createVitality(), id: 'goblin', facing: 1, moving: false }, loot = createLoot(), placement = createPlacement(), traps = [];
-  addStartingSnare(loot, 42); equipSnare(placement, loot, loot.bag[0].id);
+  loot.bag = buildTrapLoadout({ snare: 1 }, 42).bag; equipSnare(placement, loot, loot.bag[0].id);
   return { world, player, loot, placement, traps };
 };
 test('equip requires release, a full stationary second and consumes exactly once', () => {

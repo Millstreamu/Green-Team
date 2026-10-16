@@ -1,11 +1,7 @@
 import { CONFIG, TRAPS } from './config.js';
 import { canStand } from './world.js';
-import { clearPath, findSpace } from './loot.js';
+import { clearPath } from './loot.js';
 
-export function addStartingSnare(loot, seed) {
-  const item = findSpace(loot.bag, { id: `${seed}-snare`, type: 'snare', rotation: 0 });
-  if (item) loot.bag.push(item);
-}
 export function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null }; }
 export function cancelPlacement(placement) { Object.assign(placement, createPlacement()); }
 export function interruptPlacement(placement) { placement.elapsed = 0; placement.ready = false; placement.origin = null; }

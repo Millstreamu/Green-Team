@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: V12 snare placement, awaiting playtest
+## Current task: V13 pre-run trap debug setup, awaiting playtest
 
 The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
@@ -125,3 +125,12 @@ Download: green-team-trail-v11.html. Git canonical build remains play.html. Trap
 - One test snare per fresh run. Three-second guard hold. Setter-clearance gate before arming prevents accidental overlap triggers; goblins waste armed snares unharmed. No crafting/loadout system was added.
 - Verification: 53 automated tests passed, including full event wiring for equipping/cancelling/placing plus existing searching, loot, escape, guard loss and restart. Standalone build and bundled syntax check passed. No rendered browser test was available; user review is pending.
 - Preserve the user goblin art, previous UX and bounded invisible trail. No server or multiplayer setup. `play.html` is current; `green-team-snares-v12.html` is the distinct review download.
+
+
+## V13 handoff
+
+User requested a very simple pre-run trap selection/count screen, with no stacking. Implemented a dialog using the existing result-panel/button styles, currently listing only implemented snare traps. Choose 0–9, see used/free sack squares, Start run. Invalid quantities cannot start. Quantity remains selected between runs within the page. Starting packs separate uniquely identified items via existing findSpace; no fixed starter grant remains. Setup phase pauses movement/guards and resets the run timer when starting.
+
+Files: new src/loadout.js and src/loadout-view.js; main.js handles setup/start, index.html provides dialog; build script includes modules. Removed obsolete one-snare helper from traps.js; trap tests use the actual loadout packer. Existing interaction test now exercises paused setup, invalid start rejection, initial/repeat runs and zero/full inventory. Two rule tests cover independent items, fit, IDs and invalid counts.
+
+Verification: all 55 automated tests passed. Standalone build and bundled syntax check passed. No rendered browser test; review screen appearance and quantity controls in user playtest. `play.html` is current; distinct download `green-team-trap-setup-v13.html`. Work is on prototype/dungeon-exploration; PR #2 is the current draft (PR #1 was already merged). Crafting, saved loadouts, additional traps and multiplayer remain deferred.
