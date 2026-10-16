@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 // Exercise real event wiring without claiming this is a rendered browser test.
 test('game loop connects held-E searching, packing, escape, guard loss and restart', async () => {
   class Surface {
-    constructor(id = '') { this.id = id; this.listeners = {}; this.style = {}; this.width = 0; this.height = 0; this.textContent = ''; }
+    constructor(id = '') { this.id = id; this.listeners = {}; this.style = {}; this.dataset = {}; this.width = 0; this.height = 0; this.textContent = ''; }
     addEventListener(type, callback) { (this.listeners[type] ??= []).push(callback); }
     send(type, properties = {}) {
       const event = { target: this, code: '', button: 0, preventDefault() {}, ...properties };
@@ -20,7 +20,7 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'search-panel', 'search-label', 'search-progress'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'search-panel', 'search-label', 'search-progress', 'sack-panel', 'sack-tab'].map(id => [id, new Surface(id)]));
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
   doc.createElement = tag => new Surface(tag);
@@ -39,7 +39,12 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
+  assert.equal(elements.get('sack-panel').dataset.open, 'false');
+  tap('KeyI'); assert.equal(elements.get('sack-panel').dataset.open, 'true');
+  tap('KeyI'); assert.equal(elements.get('sack-panel').dataset.open, 'false');
+  elements.get('sack-tab').send('click'); tick(); assert.equal(elements.get('sack-panel').dataset.open, 'true');
   key('KeyD'); for (let i = 0; i < 14; i++) tick(); win.send('keyup', { code: 'KeyD' });
+  assert.equal(elements.get('sack-panel').dataset.open, 'false');
   assert.match(elements.get('target-label').textContent, /Chest.*hold E/);
   key('KeyE'); for (let i = 0; i < 30; i++) tick();
   assert.equal(elements.get('search-panel').hidden, false);
@@ -51,12 +56,14 @@ test('game loop connects held-E searching, packing, escape, guard loss and resta
   assert.equal(elements.get('search-panel').hidden, true);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('target-label').textContent, /Ruby/);
+  assert.equal(elements.get('sack-panel').dataset.open, 'true');
   release('KeyE'); tick();
   tap('KeyE');
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
   doc.send('pointerdown', { target: elements.get('sack-grid'), clientX: 710, clientY: 380 }); tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('held-label').textContent, /Holding Ruby/);
+  tap('KeyI'); assert.equal(elements.get('sack-panel').dataset.open, 'true');
   key('KeyR'); assert.match(elements.get('status').textContent, /rotated/);
   tap('KeyE');
   assert.match(elements.get('status').textContent, /dropped nearby/);

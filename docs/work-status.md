@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: search-before-looting loop
+## Current task: sliding sack visibility
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. V7 implements searching and awaits browser feedback.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; V8 implements it and awaits browser feedback.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art, sack, guard loop and V6 routes have positive user feedback. Ask the user to try V7's timed furniture search, spills and pickup under guard pressure. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack, guard loop, V6 routes and V7 searching have positive user feedback. Ask the user to try V8's sack slide, I/tab toggle and automatic loot reveals. Keep the builder/balance panel deferred until the user is ready. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -77,3 +77,13 @@ SEARCH values: reach 1.6 tiles, movement tolerance 0.08, crate/chest/cupboard 1.
 Validation: 34 tests pass. Search generation and all spills checked across 100 maps for valid accessible floor and unique IDs. Cases cover partial holds, release/movement/distance/wall/held-item/downed cancellation, restart timing, full sacks, target preference and one-time release. Existing dungeon loops, guard navigation/combat, inventory and run tests pass. Packing/run unit tests now use explicit loose-loot fixtures, while the real event-wiring smoke searches actual furniture before pickup, checks release cancellation and no auto-pack, then packing, extraction, a second search, guard downing/lost cursor loot and healthy restart. Build and standalone module syntax pass. No rendered browser QA was available; timing/visual feel need user review.
 
 Download: green-team-search-v7.html. Canonical generated file remains play.html. No builder panel or balance pass, persistent stash, lair, traps, new map view, hosting or multiplayer added.
+
+## V8 sliding sack handoff
+
+Reuses src/sack-view.js, the same sack canvas and existing placement rules. New src/sack-panel.js handles only visibility: closed at start, manual I/tab toggle, movement hide, short new-loot highlight peek and pickup-attempt reveal. Idle highlighted loot keeps it open; explicit dismissal suppresses the same unchanged highlight. Held items force it open, including while moving, so manual placement never becomes inaccessible. Furniture/search targets do not open the sack. Results and a fresh run reset/hide it.
+
+index.html slides the existing panel off the stage's right edge with a remaining tab, inert/aria-hidden state for the closed panel, expanded state on the tab, and a reduced-motion override. Cell hit testing ignores hidden grids. No changes to search, guard, inventory data, collision or loot distribution.
+
+Validation: 39 tests pass. Five visibility tests cover initial/manual state, movement, highlight peeks, pickup precedence, dismissal and held-item/results behavior. The full mock-DOM smoke checks I and tab opening, movement closure, search-completion loot reveal and refusal to hide a held item while retaining the existing pack/escape/down/restart flow. Standalone build and syntax checks pass. CSS transition and actual mouse/focus behavior still need rendered browser/user review; mock-DOM checks are not that review.
+
+Download: green-team-sack-slide-v8.html. Canonical Git build remains play.html. Builder, future map view, persistence and multiplayer remain deferred.

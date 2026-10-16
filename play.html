@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Search and steal V7</title>
+<title>Green Team · Sliding sack V8</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
 
@@ -13,11 +13,13 @@
 .vitals{position:absolute;top:52px;left:12px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:none;max-width:calc(100% - 24px)}.vitals span{background:#10191be6;border:1px solid #48594b;border-radius:4px;padding:7px 10px;font-size:12px}#health-label{color:#e9b096}#alert-label{color:#e6d6ab}@media(max-width:760px){.vitals{top:65px}}
 
 #search-panel{position:absolute;bottom:18px;left:14px;width:min(250px,calc(100% - 240px));padding:12px;background:#182322f5;border:1px solid #839963;border-radius:5px;pointer-events:none}#search-label{font-size:12px;color:#d9e8c0}#search-progress{display:block;width:100%;height:12px;margin-top:8px;accent-color:#c6e88f}#search-progress::-webkit-progress-bar{background:#303e34;border-radius:3px}#search-progress::-webkit-progress-value{background:#c6e88f;border-radius:3px}@media(max-width:760px){#search-panel{width:calc(100% - 206px);left:10px;padding:8px}}
+
+.stage{overflow:hidden;border-radius:5px}#game:focus-visible{outline-offset:-3px}.sack{right:34px;transition:transform .22s ease;will-change:transform}.sack[data-open="false"]{transform:translateX(calc(100% + 34px));pointer-events:none}.sack-tab{position:absolute;right:0;bottom:30px;z-index:2;width:30px;min-height:112px;padding:9px 6px;writing-mode:vertical-rl;border:1px solid #829260;border-right:0;border-radius:5px 0 0 5px;background:#2b3827;color:#d5e7af;font-size:11px;letter-spacing:1px}.sack-tab:hover{background:#425139}.sack-tab:focus-visible{outline-offset:-3px}@media(max-width:760px){.sack{right:30px}.sack[data-open="false"]{transform:translateX(calc(100% + 30px))}}@media(prefers-reduced-motion:reduce){.sack{transition:none}}
 </style>
 </head>
 <body><main>
-<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Search &amp; steal · V7</h1><p>Search the furniture. Pack what falls out. Keep an eye on the guard.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><div id="search-panel" hidden><span id="search-label" role="status"></span><progress id="search-progress" max="1" value="0" aria-label="Search progress"></progress></div><section class="sack" aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls">Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Release E or move to cancel a search.<br>Loot falls out when searching finishes.<br>Repack the sack while the guard patrols.<br>Gold map marker = your tunnel.<br>Look for another entrance to loop around the guard.<br>Some rooms remain dead ends.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Sliding sack · V8</h1><p>Search the furniture. Pack what falls out. Keep an eye on the guard.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><div id="search-panel" hidden><span id="search-label" role="status"></span><progress id="search-progress" max="1" value="0" aria-label="Search progress"></progress></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut I.">‹ SACK · I</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>I</kbd> open / close sack<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">The sack slides away as you move.<br>I or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Look for another entrance to loop around the guard.<br>Some rooms remain dead ends.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
 </main><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><ul id="haul-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Start next run →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
@@ -551,13 +553,49 @@ function drawItem(ctx, item, x, y, size, outline = null) {
   }
 }
 
+// Visibility only: never touches inventory contents or placement rules.
+function createSackPanel() {
+  return { open: false, manual: false, peek: 0, revealPending: false, lastTarget: null, suppressed: null, wasMoving: false };
+}
+
+function toggleSackPanel(panel, targetId = null, holding = false) {
+  if (holding) { panel.open = true; return; }
+  panel.manual = !panel.open; panel.open = panel.manual; panel.peek = 0;
+  panel.suppressed = panel.manual ? null : targetId;
+}
+
+function revealSackPanel(panel) { panel.revealPending = true; }
+
+function stepSackPanel(panel, { moving = false, targetId = null, holding = false, hovering = false, active = true }, dt) {
+  if (!active) { panel.open = false; panel.manual = false; panel.peek = 0; panel.revealPending = false; return false; }
+  panel.peek = Math.max(0, panel.peek - Math.max(0, dt));
+  if (moving) {
+    panel.manual = false;
+    if (!panel.wasMoving) panel.peek = 0;
+  }
+  // A newly highlighted loose item gets a short peek, including while walking.
+  // The same target cannot reopen the panel every frame after it is dismissed.
+  if (targetId !== panel.lastTarget) {
+    panel.suppressed = null;
+    if (targetId) panel.peek = 1.1;
+    panel.lastTarget = targetId;
+  }
+  if (panel.revealPending) { panel.peek = 1.6; panel.revealPending = false; panel.suppressed = null; }
+  panel.open = !!(holding || panel.manual || panel.peek > 0 || !moving && (targetId && targetId !== panel.suppressed || hovering && panel.open));
+  panel.wasMoving = moving;
+  return panel.open;
+}
+
 
 function createSackView(canvas, ghost) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
+  const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
+  let visibility = createSackPanel(), currentTarget = null, holding = false;
   const cell = 56;
   canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
   ghost.width = 96; ghost.height = 96;
   const cellAt = (pointer) => {
+    if (!visibility.open) return null;
     const rect = canvas.getBoundingClientRect();
     if (pointer.x < rect.left || pointer.y < rect.top || pointer.x >= rect.right || pointer.y >= rect.bottom) return null;
     return { x: Math.floor((pointer.x - rect.left) / rect.width * SACK.width), y: Math.floor((pointer.y - rect.top) / rect.height * SACK.height) };
@@ -586,7 +624,17 @@ function createSackView(canvas, ghost) {
     const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click an item to lift it';
     document.querySelector('#held-label').textContent = heldText;
   };
-  return { paint, cellAt };
+  const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
+    currentTarget = targetId; holding = !!held;
+    const bounds = panel.getBoundingClientRect();
+    const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
+    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    panel.dataset.open = String(open); panel.inert = !open;
+    panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
+    tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
+    canvas.tabIndex = open ? 0 : -1;
+  };
+  return { paint, cellAt, updateVisibility, toggle: () => toggleSackPanel(visibility, currentTarget, holding), reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); } };
 }
 
 
@@ -817,6 +865,7 @@ const reset = () => {
   guard = createGuard(world);
   loot = createLoot(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
   run = createRun(world, performance.now());
+  sack.reset();
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
@@ -881,6 +930,7 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('keydown', e => {
   if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (e.code === 'KeyI') { e.preventDefault(); sack.toggle(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
@@ -900,11 +950,16 @@ window.addEventListener('keydown', e => {
   }
   if (!target) { tell('No loot or unsearched object within reach. Move closer.'); return; }
   const name = LOOT_TYPES[target.type].name;
+  sack.reveal();
   if (autoPickup(loot, target.id)) tell(`${name} packed into your sack.`);
   else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
 });
 document.querySelector('#regenerate').addEventListener('click', reset);
 document.querySelector('#next-run').addEventListener('click', reset);
+document.querySelector('#sack-tab').addEventListener('click', () => {
+  if (run.phase !== 'exploring') return;
+  sack.toggle(); canvas.focus();
+});
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
@@ -922,7 +977,9 @@ const frame = time => {
     }
   }
   const tunnelReady = atTunnel(run, world, player) && !loot.held;
-  updateTarget(); render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer); updateSearchPanel(searchSession);
+  updateTarget();
+  sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' }, dt);
+  render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer); updateSearchPanel(searchSession);
   let targetText;
   if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';

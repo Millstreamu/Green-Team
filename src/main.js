@@ -39,6 +39,7 @@ const reset = () => {
   guard = createGuard(world);
   loot = createLoot(); objects = createSearchables(world); searchSession = createSearchSession(); dragStart = null;
   run = createRun(world, performance.now());
+  sack.reset();
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
@@ -103,6 +104,7 @@ window.addEventListener('keyup', e => {
 });
 window.addEventListener('keydown', e => {
   if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (e.code === 'KeyI') { e.preventDefault(); sack.toggle(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
@@ -122,11 +124,16 @@ window.addEventListener('keydown', e => {
   }
   if (!target) { tell('No loot or unsearched object within reach. Move closer.'); return; }
   const name = LOOT_TYPES[target.type].name;
+  sack.reveal();
   if (autoPickup(loot, target.id)) tell(`${name} packed into your sack.`);
   else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
 });
 document.querySelector('#regenerate').addEventListener('click', reset);
 document.querySelector('#next-run').addEventListener('click', reset);
+document.querySelector('#sack-tab').addEventListener('click', () => {
+  if (run.phase !== 'exploring') return;
+  sack.toggle(); canvas.focus();
+});
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
@@ -144,7 +151,9 @@ const frame = time => {
     }
   }
   const tunnelReady = atTunnel(run, world, player) && !loot.held;
-  updateTarget(); render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer); updateSearchPanel(searchSession);
+  updateTarget();
+  sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' }, dt);
+  render(world, player, loot, target, run, tunnelReady, guard, objects, searchTarget, searchSession); sack.paint(loot, pointer); updateSearchPanel(searchSession);
   let targetText;
   if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';

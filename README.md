@@ -6,7 +6,7 @@ Exploration with looping routes, searchable furniture, sack, guard patrol/chase/
 
 ## Play
 
-Download `play.html` and open it in a desktop browser. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack stays visible at the lower right.
+Download `play.html` and open it in a desktop browser. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack slides off the lower-right edge while moving, leaving a tab. I or the tab opens/closes it. Highlighting loose loot briefly reveals it; pickup attempts reveal it too (including a full sack). It stays open while holding an item so placement remains available. Furniture highlights do not open it.
 
 Return to the secret tunnel where you started (gold marker on the map) and press E to finish the run. At the tunnel, E means leave; while holding an item it still means drop. The haul screen lists only loot packed in your sack. **Start next run** generates a new dungeon and an empty sack.
 
@@ -43,6 +43,7 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `src/config.js`: dungeon dimensions, room count, movement speed and hop values.
 - `src/world.js`: base generation and collision rules; `src/dungeon-layout.js`: room entrances and useful bypass connections, independent of browser drawing.
 - `src/input.js`: keyboard controls; `src/render.js`: temporary visuals; `src/main.js`: connects them.
+- `src/sack-panel.js`: visibility/peek rules; the existing src/sack-view.js draws the same inventory and exposes the I/tab controls.
 - `src/search.js`: searchable objects, contents, targeting and timed holds; `src/search-view.js`: object art and progress feedback; spilled items reuse existing loot rules/visuals.
 - `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
 - `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
@@ -64,4 +65,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: review V7's search → spill → pack loop under guard pressure. The user approved V6 routes and requested searching before builder/balance tools. Search, layout, guard/navigation/combat and event-wiring checks pass; rendered search timing and interaction feel still need browser playtesting. Server setup and multiplayer testing are deferred.
+Next: review V8's sliding sack. The user approved V7 searching and requested less screen obstruction while moving. Drawer-state and existing search, layout, combat, inventory and event-wiring checks pass; rendered slide timing still needs browser playtesting. Server setup and multiplayer testing are deferred.

@@ -1,12 +1,16 @@
 import { fits, itemCells, LOOT_TYPES, SACK } from './loot.js';
 import { drawItem } from './item-view.js';
+import { createSackPanel, toggleSackPanel, revealSackPanel, stepSackPanel } from './sack-panel.js';
 
 export function createSackView(canvas, ghost) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
+  const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
+  let visibility = createSackPanel(), currentTarget = null, holding = false;
   const cell = 56;
   canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
   ghost.width = 96; ghost.height = 96;
   const cellAt = (pointer) => {
+    if (!visibility.open) return null;
     const rect = canvas.getBoundingClientRect();
     if (pointer.x < rect.left || pointer.y < rect.top || pointer.x >= rect.right || pointer.y >= rect.bottom) return null;
     return { x: Math.floor((pointer.x - rect.left) / rect.width * SACK.width), y: Math.floor((pointer.y - rect.top) / rect.height * SACK.height) };
@@ -35,5 +39,15 @@ export function createSackView(canvas, ghost) {
     const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click an item to lift it';
     document.querySelector('#held-label').textContent = heldText;
   };
-  return { paint, cellAt };
+  const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
+    currentTarget = targetId; holding = !!held;
+    const bounds = panel.getBoundingClientRect();
+    const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
+    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    panel.dataset.open = String(open); panel.inert = !open;
+    panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
+    tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
+    canvas.tabIndex = open ? 0 : -1;
+  };
+  return { paint, cellAt, updateVisibility, toggle: () => toggleSackPanel(visibility, currentTarget, holding), reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); } };
 }

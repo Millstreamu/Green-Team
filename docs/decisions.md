@@ -48,7 +48,7 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 
 ## Sack and loot — agreed 16 October 2026
 
-- Always-visible 3×3 sack at the bottom right; 1-, 2- and 3-square footprints, including straight and L-shaped three-square loot.
+- Initial design: always-visible 3×3 sack at the bottom right; visibility is superseded by the V8 sliding-sack decision below. Item footprints remain 1, 2 and 3 squares, including straight and L-shaped three-square loot.
 - R rotates an item being held. Click a sack item to lift/rearrange it; click an empty position to place it if it fits. Drag-and-drop is also supported.
 - A highlight reticle identifies the E pickup target. Prefer loot near the cursor within goblin reach; otherwise highlight the closest reachable loot. Walls block pickup.
 - E with empty hands tries to pack the highlighted item automatically, trying rotations without moving packed items.
@@ -100,3 +100,11 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Completion spills loot to accessible nearby floor with a brief animation. It does not auto-pack or collect multiple items from the held search key. Release and press E again to pack, or click spilled loot for manual placement.
 - The same reach/cursor preference and highlight style select either floor loot or an unsearched object. E still drops a held item first and exits at the tunnel when hands are empty; outside the tunnel it performs the highlighted action.
 - Initial search times and contents are provisional test data. Furniture art is temporary and does not add collision yet. No builder panel, permanent stash, map redesign, new alarm system or multiplayer added in this chunk.
+
+## Sliding sack — 16 October 2026
+
+- User approved V7 searching and requested that the sack inventory slide right out of the way during movement, leaving a tab.
+- I or the tab opens/closes it. Highlighting loose loot or picking it up reveals it automatically. This changes visibility, not inventory rules or storage.
+- V8 details: new loose-loot highlights get a brief peek, pickup/full-bag attempts get a slightly longer peek, and movement tucks it away afterwards. Remaining still with a highlighted item keeps it visible. Manual dismissal is respected until target changes or a pickup is attempted.
+- Holding an item keeps the sack open while moving so it can be placed safely; I/tab do not hide it in that state. Furniture highlights alone do not open it. These are interaction choices explained to the user and awaiting V8 playtest.
+- Closed panels are not clickable/focusable, and the tab remains accessible with an expanded-state label. Sliding respects reduced-motion settings. No new inventory or UI system replaces the shared sack display.
