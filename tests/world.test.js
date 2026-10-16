@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, isFloor, canStand, movePlayer } from '../src/world.js';
+import { CONFIG } from '../src/config.js';
+import { roomEntrances } from '../src/dungeon-layout.js';
+import { findPath } from '../src/navigation.js';
 
 test('200 dungeon seeds have connected floors, valid spawn and closed boundaries', () => {
   for (let seed = 0; seed < 200; seed++) {
@@ -22,6 +25,42 @@ test('200 dungeon seeds have connected floors, valid spawn and closed boundaries
 test('same seed reproduces a layout; different seeds vary', () => {
   assert.deepEqual(generateDungeon(123), generateDungeon(123));
   assert.notDeepEqual(generateDungeon(123).tiles, generateDungeon(124).tiles);
+});
+
+test('200 layouts add useful alternate routes and preserve two single-entrance rooms', () => {
+  for (let seed = 0; seed < 200; seed++) {
+    const world = generateDungeon(seed);
+    assert.equal(world.shortcuts.length, 3, `Missing shortcuts for seed ${seed}`);
+    assert.equal(world.preservedDeadEnds.length, 2);
+    for (const index of world.preservedDeadEnds) assert.equal(roomEntrances(world, world.rooms[index]).length, 1);
+    for (const shortcut of world.shortcuts) assert.ok(shortcut.oldDistance - shortcut.newDistance >= CONFIG.minLoopDetour);
+    // Block a multi-entrance room completely. Its outside doors must still be
+    // linked around it, proving a real bypass instead of two isolated branches.
+    const bypass = world.rooms.some(room => {
+      const doors = roomEntrances(world, room);
+      if (doors.length < 2) return false;
+      const blocked = { ...world, tiles: world.tiles.slice() };
+      for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) blocked.tiles[y * world.width + x] = 0;
+      const a = doors[0].cells[0];
+      return doors.slice(1).some(door => {
+        const b = door.cells[0];
+        return Math.hypot(a.x - b.x, a.y - b.y) >= 3 && findPath(blocked, { x: a.x + 0.5, y: a.y + 0.5 }, { x: b.x + 0.5, y: b.y + 0.5 }).length > 0;
+      });
+    });
+    assert.ok(bypass, `No physical room bypass for seed ${seed}`);
+  }
+});
+
+test('loop parameters can be disabled or reduced without changing room placement or disconnecting floors', () => {
+  const base = generateDungeon(42, { ...CONFIG, extraConnections: 0 });
+  const one = generateDungeon(42, { ...CONFIG, extraConnections: 1 });
+  const three = generateDungeon(42);
+  assert.equal(base.shortcuts.length, 0); assert.equal(one.shortcuts.length, 1);
+  const shape = room => [room.x, room.y, room.w, room.h];
+  assert.deepEqual(base.rooms.map(shape), three.rooms.map(shape));
+  assert.deepEqual(base.spawn, three.spawn);
+  base.tiles.forEach((tile, i) => { if (tile) assert.equal(three.tiles[i], 1); });
+  for (const room of one.rooms) assert.ok(findPath(one, one.spawn, { x: room.cx + 0.5, y: room.cy + 0.5 }).length || room.cx + 0.5 === one.spawn.x && room.cy + 0.5 === one.spawn.y);
 });
 const arena = () => ({ width: 12, height: 12, tiles: Uint8Array.from({ length: 144 }, (_, i) => i % 12 > 0 && i % 12 < 11 && Math.floor(i / 12) > 0 && Math.floor(i / 12) < 11 ? 1 : 0) });
 const goblin = () => ({ x: 5, y: 5, phase: 0, facing: 1 });

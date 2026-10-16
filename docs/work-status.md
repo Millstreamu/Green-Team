@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: guard patrol, chase, attacks and downed solo outcome
+## Current task: looping dungeon routes with retained dead ends
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule; V5 implements the first guard test and awaits browser feedback.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule; The user reported V5 works pretty well and approved looping dungeon routes next. V6 now awaits route playtesting.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art and the sack are accepted. Ask the user to try V5's guard and escape behaviour. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. V5 has automated generated-map patrol/navigation tests; rendered behaviour and balance still need user review. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art, sack and the first guard loop have positive user feedback. Ask the user to try V6's looped routes around guards. V6 implements the extra entrances and loops while preserving dead ends. The map view without player/tunnel markers remains deferred. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -57,3 +57,11 @@ run.js adds a solo loss outcome, shared through results-view.js with the success
 Validation: 26 tests pass. Added all-patrol-goal traversal/collision checks across 100 generated maps and actual guard patrol updates across ten maps, sight facing/range/walls, delayed detection, chase/search return, dodgeable wind-up, health/recovery spacing, no hits through walls, and one-time solo loot loss. The mock-DOM smoke now waits for the real guard to arrive and down a cursor-item-holding goblin, checks lost-loot results and full health next run, while retaining success/packing checks. Standalone build and module syntax checks pass. No rendered browser QA was available; actual visuals, control feel and balance await user playtest.
 
 User download: green-team-guards-v5.html. Git canonical generated file remains play.html. Deferred map view without player/tunnel markers and future looping room entrances are preserved; neither was implemented. No persistent stash, lair, traps, hosting or multiplayer added.
+
+## V6 layout handoff
+
+Adds src/dungeon-layout.js as a post-process of the existing connected generator. It searches nearby room pairs whose current walking route has a substantial detour, evaluates two corridor orientations, requires new room-entrance gain, rejects routes touching protected leaf-room perimeters, and carves the best useful shortcut. Room placement and seed determinism are retained; no render/input/guard algorithm rewrite. CONFIG adds extraConnections=3, preserveDeadEnds=2, minLoopDetour=8 and maxLoopLength=40. These are prototype tuning values. If no useful candidate exists, stop rather than force one.
+
+Validation: 28 tests pass. Across seeds 0–199 the defaults produced three shortcuts and preserved two single-entrance rooms on every map. Each recorded shortcut shortened its previous route by at least eight tiles; an independent test blocks a multi-entrance room and verifies its outside entrances still connect around it. This proves a physical bypass, not just added room graph metadata. Existing 200-seed connectivity and spawn checks, 100-map guard path/collision checks, ten actual guard patrol simulations, combat, loot and full event-wiring checks pass on the new layouts. Zero/one-loop configuration and unchanged room placement also pass. Standalone build/module syntax pass. Browser visuals and escape-route feel still need user playtest.
+
+Download: green-team-loops-v6.html. Canonical generated file remains play.html. The current diagnostic map remains as before; the future openable map without player/tunnel markers is not implemented. No additional mechanics, server or multiplayer changes.

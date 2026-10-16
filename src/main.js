@@ -36,7 +36,7 @@ const reset = () => {
   run = createRun(world, performance.now());
   input.clear();
   document.querySelector('#seed').textContent = String(world.seed);
-  document.querySelector('#rooms').textContent = `${world.rooms.length} connected rooms`;
+  document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
   tell('A guard patrols these rooms. Gather loot, avoid its sight, and return to the secret tunnel.');
   canvas.focus(); updateTarget();
 };

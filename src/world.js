@@ -1,4 +1,5 @@
 import { CONFIG } from './config.js';
+import { addRoomLoops } from './dungeon-layout.js';
 
 export function generateDungeon(seed, config = CONFIG) {
   let state = seed >>> 0;
@@ -25,7 +26,7 @@ export function generateDungeon(seed, config = CONFIG) {
     }
     rooms.push(room);
   }
-  return { seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } };
+  return addRoomLoops({ seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
 }
 
 export function isFloor(world, x, y) {

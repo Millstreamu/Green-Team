@@ -2,7 +2,7 @@
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
-Exploration, sack, guard patrol/chase/attacks and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
+Exploration with looping routes, sack, guard patrol/chase/attacks and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
 
 ## Play
 
@@ -13,6 +13,12 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 **Abandon / new dungeon** discards an unfinished run after confirmation. The small map shows your position. This prototype shows the current haul only; no permanent stash or save system has been added.
 
 The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and one temporary guard, with no crafting or multiplayer.
+
+## Dungeon routes
+
+The generator adds up to three useful extra room connections, preferring routes that shorten a substantial detour and create another room entrance. It preserves two existing single-entrance rooms where available, so some dead ends remain. Rooms, controls and guard rules are otherwise retained.
+
+Tune `extraConnections`, `preserveDeadEnds`, `minLoopDetour` and `maxLoopLength` in src/config.js. The sidebar shows how many extra routes were made. Setting extraConnections to zero disables the added routes without changing room placement for the same seed.
 
 ## Guard test
 
@@ -29,7 +35,7 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `npm test`: check dungeon connectivity and movement rules (Node.js required).
 - `npm run build`: regenerate the standalone `play.html` after source changes.
 - `src/config.js`: dungeon dimensions, room count, movement speed and hop values.
-- `src/world.js`: generation and collision rules, independent of browser drawing.
+- `src/world.js`: base generation and collision rules; `src/dungeon-layout.js`: room entrances and useful bypass connections, independent of browser drawing.
 - `src/input.js`: keyboard controls; `src/render.js`: temporary visuals; `src/main.js`: connects them.
 - `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
 - `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
@@ -51,4 +57,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: review the V5 guard patrol, sight, chase and attack feel while looting and escaping. Movement/art and the V3 sack were accepted. Guard/navigation/combat and event-wiring checks pass; rendered V5 feedback and balance still need browser playtesting. Server setup and multiplayer testing are deferred.
+Next: review V6's alternate routes while slipping around the guard. V5 was reported to work pretty well. Layout, guard/navigation/combat and event-wiring checks pass; rendered route feel and chase balance still need browser playtesting. Server setup and multiplayer testing are deferred.
