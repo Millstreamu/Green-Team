@@ -66,3 +66,9 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Implementation details for this test: only packed items count; a cursor item must first be packed or dropped. While holding, E retains its drop behaviour. With empty hands inside the small tunnel interaction area, E takes priority as leave; the on-screen prompt and reticle reflect this. Outside that area, E continues to pack highlighted loot.
 - Results freeze gameplay. Start next run creates a fresh dungeon and empty sack. The result is a single-run haul display, not permanent storage; lair/stash and saving remain future work.
 - Empty-handed returns are allowed. The header action abandons an unfinished run after confirmation; it does not count as a successful return.
+
+## Future map note — 16 October 2026
+
+- User wants a map that can be opened to view the dungeon layout, with no indicator for player position or the secret tunnel.
+- Deferred for later; no implementation requested now. The current always-visible diagnostic minimap and its markers are temporary prototype aids, not the intended final map behaviour.
+- Opening control and whether the full layout is known from the start or revealed by exploration remain undecided.
