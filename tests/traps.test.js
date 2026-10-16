@@ -60,3 +60,17 @@ test('unused supplies occupy sack space but are not counted as stolen treasure',
   const result = finishRun(createRun(world), world, player, loot, 1000);
   assert.equal(result.count, 0); assert.equal(loot.bag.length, 1);
 });
+
+test('keyboard trap aiming moves preview within reach, resets hold and never moves the goblin', async () => {
+  const { moveTrapAim } = await import('../src/traps.js');
+  const { placement, player } = setup(), origin = { ...player };
+  placement.elapsed = .8;
+  moveTrapAim(placement, player, { x: 0, y: -1 }, .2);
+  assert.ok(placement.aimPoint.y < player.y);
+  assert.equal(placement.elapsed, 0); assert.deepEqual(player, origin);
+  for (let i = 0; i < 100; i++) moveTrapAim(placement, player, { x: -1, y: -1 }, .05);
+  assert.ok(Math.hypot(placement.aimPoint.x - player.x, placement.aimPoint.y - player.y) <= 1.501);
+  const stopped = { ...placement.aimPoint };
+  assert.equal(moveTrapAim(placement, player, { x: 0, y: 0 }, 1), false);
+  assert.deepEqual(placement.aimPoint, stopped);
+});

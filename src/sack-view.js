@@ -6,7 +6,7 @@ export function createSackView(canvas, ghost) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
   const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
   let visibility = createSackPanel(), currentTarget = null, holding = false;
-  let selected = { x: 0, y: 0 }, keyboardSelection = false;
+  let selected = { x: 0, y: 0 }, keyboardSelection = false, heldDismissed = false;
   const cell = 56;
   canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
   ghost.width = 96; ghost.height = 96;
@@ -44,18 +44,25 @@ export function createSackView(canvas, ghost) {
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
     currentTarget = targetId; holding = !!held;
+    if (!held) heldDismissed = false;
     const bounds = panel.getBoundingClientRect();
     const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
-    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active: active && !heldDismissed }, dt);
     if (!open) keyboardSelection = false;
     panel.dataset.open = String(open); panel.inert = !open;
     panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
-    tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
+    tab.textContent = open ? 'SACK › · Tab' : '‹ SACK · Tab';
     canvas.tabIndex = open ? 0 : -1;
   };
-  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open,
+  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open, isNavigating: () => visibility.manual,
     navigate: (dx, dy) => { keyboardSelection = true; selected = { x: Math.max(0, Math.min(2, selected.x + dx)), y: Math.max(0, Math.min(2, selected.y + dy)) }; },
     selectAt: pointer => { const at = cellAt(pointer); if (at) { selected = at; keyboardSelection = true; } },
     itemForEquip: (state, pointer) => { const at = keyboardSelection ? selected : cellAt(pointer); return visibility.open && at ? bagItemAt(state.bag, at.x, at.y) : null; },
-    toggle: () => { toggleSackPanel(visibility, currentTarget, holding); keyboardSelection = visibility.open && !holding; }, reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
+    toggle: () => {
+      if (visibility.manual) {
+        if (holding) { heldDismissed = true; visibility = createSackPanel(); }
+        else toggleSackPanel(visibility, currentTarget, false);
+      } else { heldDismissed = false; visibility.manual = true; visibility.open = true; visibility.suppressed = null; }
+      keyboardSelection = visibility.open && !holding;
+    }, reveal: () => revealSackPanel(visibility), reset: () => { heldDismissed = false; visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
 }

@@ -2,7 +2,7 @@ import { CONFIG, TRAPS } from './config.js';
 import { canStand } from './world.js';
 import { clearPath } from './loot.js';
 
-export function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null }; }
+export function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null, aimPoint: null }; }
 export function cancelPlacement(placement) { Object.assign(placement, createPlacement()); }
 export function interruptPlacement(placement) { placement.elapsed = 0; placement.ready = false; placement.origin = null; }
 export function equipSnare(placement, loot, id) {
@@ -57,4 +57,13 @@ export function updateTraps(traps, goblins, guards, dt) {
     events.push({ type: goblin ? 'goblin-triggered' : 'guard-triggered', trap, guard: goblin ? null : guard });
   }
   return events;
+}
+
+export function moveTrapAim(placement, player, direction, dt) {
+  const length = Math.hypot(direction.x, direction.y);
+  if (!length) return false;
+  const current = placement.aimPoint ?? placement.point ?? placementPoint(player);
+  placement.aimPoint = placementPoint(player, { x: current.x + direction.x / length * 2.5 * dt, y: current.y + direction.y / length * 2.5 * dt });
+  placement.elapsed = 0; placement.origin = null;
+  return true;
 }

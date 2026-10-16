@@ -150,3 +150,11 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - Only snare currently exists; its quantity can be 0–9. Zero leaves it behind. Each snare is a separate one-square item with a unique ID, packed with the shared inventory fit rules. Full loadouts leave no initial space for loot.
 - Setup appears at launch and before every new run; guards and movement are paused until Start run. Shows used/free squares and blocks invalid, fractional, negative or excessive counts. Last quantity is remembered in this open page for quick experiments.
 - Replaces V12's fixed one-snare grant. This debug screen does not introduce crafting, unlocks, permanent saved loadouts, additional trap effects or multiplayer.
+
+
+## V14: keyboard-first sack/placement — 17 October 2026
+
+- Agreed: user requested friendlier keyboard-only trap placement, WASD moving the sack cursor while open, close with the same key, and Tab replacing I.
+- Implementation choice for review: Tab opens manual navigation; WASD/arrows select without walking. E equips snare and hides sack. During placement, WASD/arrows move the nearby preview while the goblin stays still; mouse aiming remains available through actual pointer movement. Existing one-second E hold, directionless trap, cancel and safe arming are reused.
+- Passive automatic loot peeks do not capture movement; Tab activates them for navigation. Repeated movement keys move selection. Clear held movement on mode changes to prevent drift. Tab cancels placement and opens sack; Escape cancels placement. Setup/results keep browser Tab focus controls.
+- Explicit Tab closure works even with cursor loot, replacing V8's refusal to hide in that case. Otherwise held items still reveal/pin the sack. Ordinary loot rearranging remains mouse-based in this slice.

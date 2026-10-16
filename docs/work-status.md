@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: V13 pre-run trap debug setup, awaiting playtest
+## Current task: V14 keyboard sack/placement, awaiting playtest
 
 The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
@@ -134,3 +134,12 @@ User requested a very simple pre-run trap selection/count screen, with no stacki
 Files: new src/loadout.js and src/loadout-view.js; main.js handles setup/start, index.html provides dialog; build script includes modules. Removed obsolete one-snare helper from traps.js; trap tests use the actual loadout packer. Existing interaction test now exercises paused setup, invalid start rejection, initial/repeat runs and zero/full inventory. Two rule tests cover independent items, fit, IDs and invalid counts.
 
 Verification: all 55 automated tests passed. Standalone build and bundled syntax check passed. No rendered browser test; review screen appearance and quantity controls in user playtest. `play.html` is current; distinct download `green-team-trap-setup-v13.html`. Work is on prototype/dungeon-exploration; PR #2 is the current draft (PR #1 was already merged). Crafting, saved loadouts, additional traps and multiplayer remain deferred.
+
+
+## V14 handoff
+
+Replaces I with Tab. Manual sack navigation routes WASD/arrows to the selected square and suppresses player movement. Passive automatic peeks retain walking; Tab activates navigation. E selects/equips the snare as before. Placement now starts with a nearby default point, independently of stale mouse coordinates. moveTrapAim moves/clamps the preview from keyboard input, resetting the hold on any aim movement; goblin remains stationary. An actual pointer event can still aim. One-second hold, release latch, shared pixel bar, damage interruption, cancellation and clearance arming remain.
+
+Changed input.js, sack-view.js, traps.js, main.js and index.html; no new UI framework. Tab mode changes clear held movement. Tab explicitly closes even when holding loot (otherwise automatic hold pinning remains). Normal Tab focus remains available in pre-run/result dialogs. No keyboard loot rearranging added.
+
+Validation: 56 tests pass. Interaction checks now cover WASD selection without walking, Tab closing, existing full gameplay loop, keyboard preview aiming and placement, closing/reopening while holding loot, zero/full pre-run loadouts. A rule test checks aim range, stationary goblin and progress reset. Standalone build and bundled syntax pass. Browser visual/focus feel still awaits user review. Current download: green-team-keyboard-traps-v14.html. Same prototype branch and draft PR #2; no server/multiplayer changes.

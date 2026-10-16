@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Trap setup V13</title>
+<title>Green Team · Keyboard traps V14</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
 
@@ -19,8 +19,8 @@
 </style>
 </head>
 <body><main>
-<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Trap setup · V13</h1><p>Break their sight. Leave them searching. Get back to the tunnel.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut I.">‹ SACK · I</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>I</kbd> open / close sack<br>Arrows or click: select snare<br><kbd>E</kbd> equip selected snare<br>Then hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Choose your test traps before each run.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>I or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Keyboard traps · V14</h1><p>Break their sight. Leave them searching. Get back to the tunnel.</p></div><button id="regenerate">Abandon / new dungeon ↻</button></header>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="alert-label" role="status"></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected snare<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br>Hold <kbd>E</kbd> search object<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Choose your test traps before each run.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>Many rooms have no assigned guard.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span>LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
 </main><dialog id="run-setup" class="results" aria-labelledby="setup-title"><div class="eyebrow">DEBUG / BEFORE THE RUN</div><h2 id="setup-title">Pack your traps</h2><p>Choose what goes into your sack. Each trap uses its own square. Set 0 to leave it behind.</p><label class="loadout-row" for="snare-count"><span>Snare trap · 1 square each</span><input id="snare-count" type="number" min="0" max="9" step="1" value="1" aria-describedby="loadout-total"></label><p>Snare is the only trap type available so far.</p><p id="loadout-total" role="status"></p><button id="start-run">Start run →</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><ul id="haul-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Start next run →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
@@ -193,14 +193,14 @@ function createInput(target, inventoryOpen = () => false) {
   const movementKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
   target.addEventListener('keydown', e => {
     if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select,button')) return;
-    if (e.code.startsWith('Arrow') && inventoryOpen()) { e.preventDefault(); return; }
+    if (movementKeys.has(e.code) && inventoryOpen()) { e.preventDefault(); return; }
     if (movementKeys.has(e.code) || e.code === 'KeyE') { e.preventDefault(); keys.add(e.code); }
   });
   target.addEventListener('keyup', e => keys.delete(e.code));
   const clear = () => keys.clear();
   target.addEventListener('blur', clear);
   document.addEventListener('visibilitychange', clear);
-  return { clear, held: code => keys.has(code), read: () => ({
+  return { clear, clearMovement: () => { for (const code of movementKeys) keys.delete(code); }, held: code => keys.has(code), read: () => ({
     x: Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')),
     y: Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'))
   }) };
@@ -304,7 +304,7 @@ function dropHeld(state, world, player) {
 }
 
 
-function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null }; }
+function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null, aimPoint: null }; }
 function cancelPlacement(placement) { Object.assign(placement, createPlacement()); }
 function interruptPlacement(placement) { placement.elapsed = 0; placement.ready = false; placement.origin = null; }
 function equipSnare(placement, loot, id) {
@@ -359,6 +359,15 @@ function updateTraps(traps, goblins, guards, dt) {
     events.push({ type: goblin ? 'goblin-triggered' : 'guard-triggered', trap, guard: goblin ? null : guard });
   }
   return events;
+}
+
+function moveTrapAim(placement, player, direction, dt) {
+  const length = Math.hypot(direction.x, direction.y);
+  if (!length) return false;
+  const current = placement.aimPoint ?? placement.point ?? placementPoint(player);
+  placement.aimPoint = placementPoint(player, { x: current.x + direction.x / length * 2.5 * dt, y: current.y + direction.y / length * 2.5 * dt });
+  placement.elapsed = 0; placement.origin = null;
+  return true;
 }
 
 
@@ -783,7 +792,7 @@ function createSackView(canvas, ghost) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
   const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
   let visibility = createSackPanel(), currentTarget = null, holding = false;
-  let selected = { x: 0, y: 0 }, keyboardSelection = false;
+  let selected = { x: 0, y: 0 }, keyboardSelection = false, heldDismissed = false;
   const cell = 56;
   canvas.width = SACK.width * cell; canvas.height = SACK.height * cell;
   ghost.width = 96; ghost.height = 96;
@@ -821,20 +830,27 @@ function createSackView(canvas, ghost) {
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
     currentTarget = targetId; holding = !!held;
+    if (!held) heldDismissed = false;
     const bounds = panel.getBoundingClientRect();
     const hovering = pointer.active && pointer.x >= bounds.left && pointer.x < bounds.right && pointer.y >= bounds.top && pointer.y < bounds.bottom;
-    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active }, dt);
+    const open = stepSackPanel(visibility, { moving, targetId, holding, hovering, active: active && !heldDismissed }, dt);
     if (!open) keyboardSelection = false;
     panel.dataset.open = String(open); panel.inert = !open;
     panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
-    tab.textContent = open ? 'SACK › · I' : '‹ SACK · I';
+    tab.textContent = open ? 'SACK › · Tab' : '‹ SACK · Tab';
     canvas.tabIndex = open ? 0 : -1;
   };
-  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open,
+  return { paint, cellAt, updateVisibility, isOpen: () => visibility.open, isNavigating: () => visibility.manual,
     navigate: (dx, dy) => { keyboardSelection = true; selected = { x: Math.max(0, Math.min(2, selected.x + dx)), y: Math.max(0, Math.min(2, selected.y + dy)) }; },
     selectAt: pointer => { const at = cellAt(pointer); if (at) { selected = at; keyboardSelection = true; } },
     itemForEquip: (state, pointer) => { const at = keyboardSelection ? selected : cellAt(pointer); return visibility.open && at ? bagItemAt(state.bag, at.x, at.y) : null; },
-    toggle: () => { toggleSackPanel(visibility, currentTarget, holding); keyboardSelection = visibility.open && !holding; }, reveal: () => revealSackPanel(visibility), reset: () => { visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
+    toggle: () => {
+      if (visibility.manual) {
+        if (holding) { heldDismissed = true; visibility = createSackPanel(); }
+        else toggleSackPanel(visibility, currentTarget, false);
+      } else { heldDismissed = false; visibility.manual = true; visibility.open = true; visibility.suppressed = null; }
+      keyboardSelection = visibility.open && !holding;
+    }, reveal: () => revealSackPanel(visibility), reset: () => { heldDismissed = false; visibility = createSackPanel(); keyboardSelection = false; selected = { x: 0, y: 0 }; } };
 }
 
 
@@ -1078,7 +1094,7 @@ async function createRenderer(canvas, mapCanvas) {
 
 const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
-const input = createInput(window, () => sack.isOpen());
+const input = createInput(window, () => sack.isNavigating());
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
 const results = createResultsView(document.querySelector('#run-results'));
 let render;
@@ -1120,7 +1136,7 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), quantiti
   if (!selected) return;
   loot.bag = selected.bag; run.phase = 'exploring'; run.startedAt = performance.now();
   input.clear(); previous = 0; canvas.focus();
-  tell('Hold E to search furniture. I opens your sack; select a snare and press E to equip.');
+  tell('Hold E to search furniture. Tab opens your sack; select a snare and press E to equip.');
 });
 const showRunResult = (result, message) => {
   if (!result) return;
@@ -1139,7 +1155,7 @@ const placeAtPointer = () => {
   if (placeHeld(loot, cell.x, cell.y)) tell(`${name} packed.`);
   else tell('It will not fit there. R rotates; try another space, or E to drop it.');
 };
-const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (e.target === sackCanvas) sack.selectAt(pointer); };
+const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (placement.itemId && pointer.overGame) { placement.aimPoint = placementPoint(player, screenToWorld(canvas, player, pointer)); } if (e.target === sackCanvas) sack.selectAt(pointer); };
 // Boundaries for clicks are checked from event targets; cursor proximity never extends pickup reach.
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
@@ -1181,10 +1197,13 @@ window.addEventListener('keyup', e => {
   if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
 });
 window.addEventListener('keydown', e => {
-  if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (!world || run.phase !== 'exploring' || e.target.closest?.('input,textarea,select,button')) return;
+  const dx = Number(e.code === 'KeyD' || e.code === 'ArrowRight') - Number(e.code === 'KeyA' || e.code === 'ArrowLeft');
+  const dy = Number(e.code === 'KeyS' || e.code === 'ArrowDown') - Number(e.code === 'KeyW' || e.code === 'ArrowUp');
+  if ((dx || dy) && sack.isNavigating()) { e.preventDefault(); sack.navigate(dx, dy); return; }
+  if (e.repeat) return;
   if (e.code === 'Escape' && placement.itemId) { e.preventDefault(); cancelPlacement(placement); tell('Placement cancelled. Snare is still in your sack.'); return; }
-  if (e.code === 'KeyI') { e.preventDefault(); cancelPlacement(placement); sack.toggle(); return; }
-  if (e.code.startsWith('Arrow') && sack.isOpen()) { e.preventDefault(); sack.navigate(Number(e.code === 'ArrowRight') - Number(e.code === 'ArrowLeft'), Number(e.code === 'ArrowDown') - Number(e.code === 'ArrowUp')); return; }
+  if (e.code === 'Tab') { e.preventDefault(); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
@@ -1193,7 +1212,7 @@ window.addEventListener('keydown', e => {
   e.preventDefault();
   if (placement.itemId) return;
   const chosen = sack.itemForEquip(loot, pointer);
-  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { cancelSearch(searchSession); sack.reset(); tell('Release E, then hold E for one second to place. Aim nearby with the mouse. Escape cancels.'); return; }
+  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { cancelSearch(searchSession); input.clearMovement(); sack.reset(); placement.aimPoint = placementPoint(player); tell('WASD aims the preview. Release E, then hold E for one second to place. Escape cancels.'); return; }
   if (loot.held) { drop(); return; }
   if (atTunnel(run, world, player)) {
     const result = finishRun(run, world, player, loot, performance.now());
@@ -1215,13 +1234,15 @@ document.querySelector('#regenerate').addEventListener('click', reset);
 document.querySelector('#next-run').addEventListener('click', reset);
 document.querySelector('#sack-tab').addEventListener('click', () => {
   if (run.phase !== 'exploring') return;
-  cancelPlacement(placement); sack.toggle(); canvas.focus();
+  input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus();
 });
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
   if (run.phase === 'exploring') {
-    movePlayer(world, player, input.read(), dt); tickVitality(player, dt);
+    const direction = input.read();
+    const aiming = !!placement.itemId && moveTrapAim(placement, player, direction, dt);
+    movePlayer(world, player, placement.itemId || sack.isNavigating() ? { x: 0, y: 0 } : direction, dt); tickVitality(player, dt);
     for (const event of updateTraps(traps, [player], guards, dt)) {
       if (event.type === 'goblin-triggered') tell('A goblin triggered the snare. No harm, but the trap is spent.');
       if (event.type === 'guard-triggered') tell('Guard snared! You have three seconds to get away.');
@@ -1236,7 +1257,7 @@ const frame = time => {
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
     else {
       for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
-      const placed = updatePlacement(placement, world, player, loot, traps, objects, placementPoint(player, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null), input.held('KeyE'), dt);
+      const placed = updatePlacement(placement, world, player, loot, traps, objects, placement.aimPoint ?? placementPoint(player), input.held('KeyE') && !aiming, dt);
       if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
       const searched = !placement.itemId && updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
       if (searched?.type === 'completed') tell(`Found ${searched.count} items. Release E, then press again to pack loot, or click to lift it.`);
@@ -1250,7 +1271,8 @@ const frame = time => {
   let targetText;
   if (run.phase === 'setup') targetText = 'Choose your traps, then start the run';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
-  else if (placement.itemId) targetText = 'Placing snare · hold E for 1 second · Escape cancel';
+  else if (placement.itemId) targetText = 'WASD aim snare · hold E for 1 second · Esc cancel';
+  else if (sack.isNavigating()) targetText = 'Sack · WASD select · E equip snare · Tab close';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
@@ -1263,7 +1285,7 @@ const frame = time => {
   const guardText = run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Observe lookouts and room patrols · learn their pauses';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
-    const hint = placement.itemId ? 'Aim nearby · stand still and hold E · Escape cancels · I opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
+    const hint = placement.itemId ? 'WASD aim · hold E to place · Esc cancels · Tab opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);

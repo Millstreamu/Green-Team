@@ -1,6 +1,6 @@
 import { buildTrapLoadout } from './loadout.js';
 import { createLoadoutView } from './loadout-view.js';
-import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps } from './traps.js';
+import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps, moveTrapAim } from './traps.js';
 import { generateDungeon, movePlayer } from './world.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
@@ -13,7 +13,7 @@ import { createSearchables, createSearchSession, selectInteraction, beginSearch,
 
 const canvas = document.querySelector('#game');
 const sackCanvas = document.querySelector('#sack-grid');
-const input = createInput(window, () => sack.isOpen());
+const input = createInput(window, () => sack.isNavigating());
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
 const results = createResultsView(document.querySelector('#run-results'));
 let render;
@@ -55,7 +55,7 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), quantiti
   if (!selected) return;
   loot.bag = selected.bag; run.phase = 'exploring'; run.startedAt = performance.now();
   input.clear(); previous = 0; canvas.focus();
-  tell('Hold E to search furniture. I opens your sack; select a snare and press E to equip.');
+  tell('Hold E to search furniture. Tab opens your sack; select a snare and press E to equip.');
 });
 const showRunResult = (result, message) => {
   if (!result) return;
@@ -74,7 +74,7 @@ const placeAtPointer = () => {
   if (placeHeld(loot, cell.x, cell.y)) tell(`${name} packed.`);
   else tell('It will not fit there. R rotates; try another space, or E to drop it.');
 };
-const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (e.target === sackCanvas) sack.selectAt(pointer); };
+const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (placement.itemId && pointer.overGame) { placement.aimPoint = placementPoint(player, screenToWorld(canvas, player, pointer)); } if (e.target === sackCanvas) sack.selectAt(pointer); };
 // Boundaries for clicks are checked from event targets; cursor proximity never extends pickup reach.
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
@@ -116,10 +116,13 @@ window.addEventListener('keyup', e => {
   if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
 });
 window.addEventListener('keydown', e => {
-  if (!world || run.phase !== 'exploring' || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (!world || run.phase !== 'exploring' || e.target.closest?.('input,textarea,select,button')) return;
+  const dx = Number(e.code === 'KeyD' || e.code === 'ArrowRight') - Number(e.code === 'KeyA' || e.code === 'ArrowLeft');
+  const dy = Number(e.code === 'KeyS' || e.code === 'ArrowDown') - Number(e.code === 'KeyW' || e.code === 'ArrowUp');
+  if ((dx || dy) && sack.isNavigating()) { e.preventDefault(); sack.navigate(dx, dy); return; }
+  if (e.repeat) return;
   if (e.code === 'Escape' && placement.itemId) { e.preventDefault(); cancelPlacement(placement); tell('Placement cancelled. Snare is still in your sack.'); return; }
-  if (e.code === 'KeyI') { e.preventDefault(); cancelPlacement(placement); sack.toggle(); return; }
-  if (e.code.startsWith('Arrow') && sack.isOpen()) { e.preventDefault(); sack.navigate(Number(e.code === 'ArrowRight') - Number(e.code === 'ArrowLeft'), Number(e.code === 'ArrowDown') - Number(e.code === 'ArrowUp')); return; }
+  if (e.code === 'Tab') { e.preventDefault(); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
     tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
@@ -128,7 +131,7 @@ window.addEventListener('keydown', e => {
   e.preventDefault();
   if (placement.itemId) return;
   const chosen = sack.itemForEquip(loot, pointer);
-  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { cancelSearch(searchSession); sack.reset(); tell('Release E, then hold E for one second to place. Aim nearby with the mouse. Escape cancels.'); return; }
+  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { cancelSearch(searchSession); input.clearMovement(); sack.reset(); placement.aimPoint = placementPoint(player); tell('WASD aims the preview. Release E, then hold E for one second to place. Escape cancels.'); return; }
   if (loot.held) { drop(); return; }
   if (atTunnel(run, world, player)) {
     const result = finishRun(run, world, player, loot, performance.now());
@@ -150,13 +153,15 @@ document.querySelector('#regenerate').addEventListener('click', reset);
 document.querySelector('#next-run').addEventListener('click', reset);
 document.querySelector('#sack-tab').addEventListener('click', () => {
   if (run.phase !== 'exploring') return;
-  cancelPlacement(placement); sack.toggle(); canvas.focus();
+  input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus();
 });
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
   if (run.phase === 'exploring') {
-    movePlayer(world, player, input.read(), dt); tickVitality(player, dt);
+    const direction = input.read();
+    const aiming = !!placement.itemId && moveTrapAim(placement, player, direction, dt);
+    movePlayer(world, player, placement.itemId || sack.isNavigating() ? { x: 0, y: 0 } : direction, dt); tickVitality(player, dt);
     for (const event of updateTraps(traps, [player], guards, dt)) {
       if (event.type === 'goblin-triggered') tell('A goblin triggered the snare. No harm, but the trap is spent.');
       if (event.type === 'guard-triggered') tell('Guard snared! You have three seconds to get away.');
@@ -171,7 +176,7 @@ const frame = time => {
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
     else {
       for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
-      const placed = updatePlacement(placement, world, player, loot, traps, objects, placementPoint(player, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null), input.held('KeyE'), dt);
+      const placed = updatePlacement(placement, world, player, loot, traps, objects, placement.aimPoint ?? placementPoint(player), input.held('KeyE') && !aiming, dt);
       if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
       const searched = !placement.itemId && updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
       if (searched?.type === 'completed') tell(`Found ${searched.count} items. Release E, then press again to pack loot, or click to lift it.`);
@@ -185,7 +190,8 @@ const frame = time => {
   let targetText;
   if (run.phase === 'setup') targetText = 'Choose your traps, then start the run';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
-  else if (placement.itemId) targetText = 'Placing snare · hold E for 1 second · Escape cancel';
+  else if (placement.itemId) targetText = 'WASD aim snare · hold E for 1 second · Esc cancel';
+  else if (sack.isNavigating()) targetText = 'Sack · WASD select · E equip snare · Tab close';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
@@ -198,7 +204,7 @@ const frame = time => {
   const guardText = run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard winding up a strike—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Observe lookouts and room patrols · learn their pauses';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
-    const hint = placement.itemId ? 'Aim nearby · stand still and hold E · Escape cancels · I opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
+    const hint = placement.itemId ? 'WASD aim · hold E to place · Esc cancels · Tab opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);
