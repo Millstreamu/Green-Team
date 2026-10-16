@@ -2,7 +2,7 @@
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
-Exploration, sack and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
+Exploration, sack, guard patrol/chase/attacks and return-to-tunnel prototype implemented. Hosting, multiplayer and player limits remain undecided.
 
 ## Play
 
@@ -12,7 +12,15 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Abandon / new dungeon** discards an unfinished run after confirmation. The small map shows your position. This prototype shows the current haul only; no permanent stash or save system has been added.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot and a 3×3 sack, with no guards, crafting or multiplayer.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and one temporary guard, with no crafting or multiplayer.
+
+## Guard test
+
+One guard patrols room centres using floor paths. Walls block sight. A question mark and filling bar give notice before a chase; breaking sight makes it search the last place it saw you before resuming patrol. The faint cone is a prototype sight aid.
+
+The guard attacks at close range with a visible wind-up and red strike circle. Move away to make it miss. You have three health points with a short gap between damaging hits. Zero health puts you down. In this solo test there is no teammate left to recover you, so the run ends and bag/cursor loot is lost. Start next run restores health; getting close to a guard is not an instant failure.
+
+Teammate recovery, its rules and returning after the team run are future multiplayer work. There is no player attack or trap system yet.
 
 ## Development
 
@@ -23,7 +31,9 @@ The prototype uses JavaScript and the browser's Canvas drawing surface, with no 
 - `src/config.js`: dungeon dimensions, room count, movement speed and hop values.
 - `src/world.js`: generation and collision rules, independent of browser drawing.
 - `src/input.js`: keyboard controls; `src/render.js`: temporary visuals; `src/main.js`: connects them.
-- `src/run.js`: entrance proximity and completion rules; `src/results-view.js`: haul summary reusing the item display.
+- `src/run.js`: entrance proximity, escape and solo loss outcomes; `src/results-view.js`: shared haul/lost-loot display.
+- `src/navigation.js`: floor pathfinding and following; `src/guard.js`: guard states, sight and health; `src/guard-view.js`: temporary guard art and feedback.
+- `COMBAT` in `src/config.js`: provisional health, speeds, sight, notice/search duration, attack range and timing.
 
 Proplet imports will be designed after inspecting real export examples. No import format is assumed here.
 
@@ -41,4 +51,4 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: review the complete explore → pack → return → haul → next-run loop in V4. Movement/art and the V3 sack were accepted. Automated run, inventory, targeting and event-wiring checks pass; the tunnel/results interface still needs browser playtesting. Server setup and multiplayer testing are deferred.
+Next: review the V5 guard patrol, sight, chase and attack feel while looting and escaping. Movement/art and the V3 sack were accepted. Guard/navigation/combat and event-wiring checks pass; rendered V5 feedback and balance still need browser playtesting. Server setup and multiplayer testing are deferred.

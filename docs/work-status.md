@@ -1,8 +1,8 @@
 # Work status
 
-## Current task: secret tunnel and completed run loop
+## Current task: guard patrol, chase, attacks and downed solo outcome
 
-The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop and awaits browser feedback.
+The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule; V5 implements the first guard test and awaits browser feedback.
 
 Intended behaviour: a top-down goblin moves freely through a generated, connected dungeon with WASD, a visual hop, solid walls, and a new-dungeon button. Works locally without server setup.
 
@@ -20,7 +20,7 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-Movement/art and the sack are accepted. Ask the user to review the V4 return-to-tunnel and haul loop. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. Guard patrols on generated maps still require implementation and testing. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+Movement/art and the sack are accepted. Ask the user to try V5's guard and escape behaviour. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. V5 has automated generated-map patrol/navigation tests; rendered behaviour and balance still need user review. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
@@ -45,3 +45,15 @@ Adds src/run.js for run lifecycle, entrance proximity and packed-item haul snaps
 Validation: all 16 tests pass. New checks cover proximity and walls, packed-only snapshots, one-time completion, cursor-item blocking, empty returns and independent next-run state. The interaction smoke test covers movement out of the tunnel, pickup/repacking, return and extraction, ignored actions on results, and the next-run button. Build and standalone module syntax checks pass. No visual browser automation was available, so rendered tunnel/results feedback still needs user review.
 
 Download is green-team-tunnel-v4.html; canonical generated file in Git remains play.html. No persistent rewards, save system, lair, guards, hosting or multiplayer were added.
+
+## V5 guard handoff
+
+Adds src/navigation.js (cardinal floor paths and collision-safe following), src/guard.js (patrol/suspicion/chase/search, last-seen targeting, telegraphed strikes, health/invulnerability/downed state), and src/guard-view.js (temporary guard art, wall-clipped sight aid and attack indicator). COMBAT values in src/config.js are tuning choices. Guard patrol begins in a nearby different room and includes the starting room, so it can be encountered without exploring the whole dungeon.
+
+The goblin has three health, can dodge out of attack range during the wind-up, and can outrun the guard on clear ground. Losing sight makes the guard navigate to the last seen location and search; it does not track an invisible player. No body blocking or player combat added.
+
+run.js adds a solo loss outcome, shared through results-view.js with the successful-haul UI. Downed players cannot extract. Solo loss clears bag and cursor items, lists them as lost and freezes gameplay; next run resets vitality. Future multiplayer must separate a single player's downed/recoverable state from the team's run outcome. Teammate recovery is only a design possibility so far, not implemented.
+
+Validation: 26 tests pass. Added all-patrol-goal traversal/collision checks across 100 generated maps and actual guard patrol updates across ten maps, sight facing/range/walls, delayed detection, chase/search return, dodgeable wind-up, health/recovery spacing, no hits through walls, and one-time solo loot loss. The mock-DOM smoke now waits for the real guard to arrive and down a cursor-item-holding goblin, checks lost-loot results and full health next run, while retaining success/packing checks. Standalone build and module syntax checks pass. No rendered browser QA was available; actual visuals, control feel and balance await user playtest.
+
+User download: green-team-guards-v5.html. Git canonical generated file remains play.html. Deferred map view without player/tunnel markers and future looping room entrances are preserved; neither was implemented. No persistent stash, lair, traps, hosting or multiplayer added.

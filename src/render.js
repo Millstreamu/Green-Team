@@ -2,6 +2,7 @@ import { CONFIG, GOBLIN_ART } from './config.js';
 import { isFloor } from './world.js';
 import { itemCells } from './loot.js';
 import { drawItem } from './item-view.js';
+import { drawGuardVision, drawGuard } from './guard-view.js';
 
 export function screenToWorld(canvas, player, pointer) {
   const bounds = canvas.getBoundingClientRect();
@@ -22,7 +23,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady) => {
+  return (world, player, loot, target, run, tunnelReady, guard) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -41,6 +42,7 @@ export async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
+    drawGuardVision(ctx, world, guard, ox, oy);
     const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
     rect(tx - 13, ty - 9, 26, 18, tunnelReady ? '#d5c483' : '#8c805b');
     rect(tx - 10, ty - 6, 20, 12, '#080f12');
@@ -60,11 +62,14 @@ export async function createRenderer(canvas, mapCanvas) {
         ctx.fillText('E', x + w / 2, y - 6);
       }
     }
+    drawGuard(ctx, guard, ox, oy);
     // Feet and shadow stay on the floor; only the supplied sprite hops.
     const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
     const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
     rect(sx - 7, sy - 2, 14, 4, '#182222');
     ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+    if (player.state === 'down') ctx.rotate(Math.PI / 2);
+    else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
     const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
     ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
     ctx.restore();

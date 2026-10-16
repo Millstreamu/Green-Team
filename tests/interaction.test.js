@@ -20,7 +20,7 @@ test('game loop connects packing, tunnel extraction, paused results and another 
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label'].map(id => [id, new Surface(id)]));
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
   doc.createElement = tag => new Surface(tag);
@@ -29,6 +29,7 @@ test('game loop connects packing, tunnel extraction, paused results and another 
   globalThis.Image = class { async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
   globalThis.requestAnimationFrame = callback => frames.push(callback);
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues(array) { array[0] = 42; return array; } } });
   await import('../src/main.js');
   let clock = 0;
   const tick = () => frames.shift()(clock += 16);
@@ -64,4 +65,17 @@ test('game loop connects packing, tunnel extraction, paused results and another 
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
+  // Stay at the entrance holding a loose item. Let the real guard update arrive
+  // and attack; the main loop must show failure, not an escaped haul.
+  doc.send('pointerdown', { target: elements.get('game'), clientX: 498, clientY: 300 }); tick();
+  assert.match(elements.get('held-label').textContent, /Holding Ruby/);
+  for (let i = 0; i < 4000 && !elements.get('run-results').open; i++) tick();
+  assert.equal(elements.get('run-results').open, true);
+  assert.equal(elements.get('results-title').textContent, 'You went down.');
+  assert.match(elements.get('haul-total').textContent, /^1 treasure lost/);
+  assert.equal(elements.get('sack-used').textContent, '0 / 9');
+  assert.equal(elements.get('held-label').textContent, 'Click an item to lift it');
+  elements.get('next-run').send('click'); tick();
+  assert.equal(elements.get('run-results').open, false);
+  assert.equal(elements.get('health-label').textContent, 'Health ●●●');
 });
