@@ -1,5 +1,13 @@
 import { CONFIG, GOBLIN_ART } from './config.js';
 import { isFloor } from './world.js';
+import { itemCells } from './loot.js';
+import { drawItem } from './item-view.js';
+
+export function screenToWorld(canvas, player, pointer) {
+  const bounds = canvas.getBoundingClientRect();
+  const ox = Math.round(canvas.width / 2 - player.x * CONFIG.tile), oy = Math.round(canvas.height / 2 - player.y * CONFIG.tile);
+  return { x: ((pointer.x - bounds.left) / bounds.width * canvas.width - ox) / CONFIG.tile, y: ((pointer.y - bounds.top) / bounds.height * canvas.height - oy) / CONFIG.tile };
+}
 
 export async function createRenderer(canvas, mapCanvas) {
   const goblin = new Image();
@@ -14,7 +22,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player) => {
+  return (world, player, loot, target) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -31,6 +39,18 @@ export async function createRenderer(canvas, mapCanvas) {
           rect(px + 1, py + 8, t - 2, t - 9, '#3b4548'); rect(px + 11, py + 9, 1, 12, '#303a3d');
           if (isFloor(world, x, y + 1)) rect(px, py + t - 3, t, 3, '#20282b');
         }
+      }
+    }
+    for (const item of loot.ground) {
+      const cells = itemCells(item), size = 7;
+      const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
+      const x = Math.round(item.x * t + ox - w / 2), y = Math.round(item.y * t + oy - h / 2);
+      drawItem(ctx, item, x, y, size);
+      if (target?.id === item.id && !loot.held) {
+        ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
+        ctx.strokeRect(x - 3.5, y - 3.5, w + 7, h + 7);
+        ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('E', x + w / 2, y - 6);
       }
     }
     // Feet and shadow stay on the floor; only the supplied sprite hops.

@@ -45,3 +45,15 @@ Earlier scrapbot and goblin-management ideas are context only, not requirements 
 - User confirmed the prototype works, then approved their supplied goblin art and the higher movement hop in the V2 download.
 - Future dungeon generation should offer rooms with multiple entrances and looped routes for evading guards or hiding. This is a future design direction, not a requested change to the current prototype.
 - Guard navigation and patrols on generated maps remain unimplemented and unverified. When the guard stage begins, validate reachable patrol points, pursuit and recovery from blocked or failed routes together with dungeon layout. Patrols are feasible in principle; the current game has not demonstrated them.
+
+## Sack and loot — agreed 16 October 2026
+
+- Always-visible 3×3 sack at the bottom right; 1-, 2- and 3-square footprints, including straight and L-shaped three-square loot.
+- R rotates an item being held. Click a sack item to lift/rearrange it; click an empty position to place it if it fits. Drag-and-drop is also supported.
+- A highlight reticle identifies the E pickup target. Prefer loot near the cursor within goblin reach; otherwise highlight the closest reachable loot. Walls block pickup.
+- E with empty hands tries to pack the highlighted item automatically, trying rotations without moving packed items.
+- If no placement fits, leave loot on the floor and explain that the sack needs rearranging. No invisible extra storage or automatic repacking.
+- Clicking nearby floor loot lifts it onto the cursor for manual placement. While holding, E or clicking the dungeon drops it near the goblin. Dropped loot remains available.
+- Invalid sack placements keep the item held and show red feedback. Never silently replace an item or delete loot.
+- A sack on the goblin's body has not been agreed; the current request is the inventory panel. Item art is temporary and shared between floor, bag and held previews.
+- This chunk is pickup and packing only; extraction, persistence, guards, hosting and multiplayer remain outside it.

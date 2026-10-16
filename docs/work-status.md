@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: first exploration prototype
+## Current task: loot and sack prototype
 
 The user confirmed the prototype works in their browser and approved the V2 revision using their supplied left-facing goblin and higher hop. This is user playtest feedback; automated browser verification was not performed.
 
@@ -20,10 +20,20 @@ Implementation choice: dependency-free JavaScript and Canvas for this narrow pro
 
 ## Next handoff
 
-The current movement/art revision is accepted. Select the next playable chunk with the user. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. Guard patrols on generated maps still require implementation and testing. Temporary map art is drawn in Canvas; no Proplet importer has been built.
+The movement/art revision is accepted. The next chunk adds loot and the sack; ask the user to review the V3 download. Preserve the future note about multiple room entrances and looped escape routes; do not implement it yet. Guard patrols on generated maps still require implementation and testing. Temporary map art is drawn in Canvas; no Proplet importer has been built.
 
 Keep input, world rules and drawing separate. Read current main-branch files and compare changes before integrating this feature branch. Rebuild play.html when changing source. Do not start server setup or multiplayer tests as part of this milestone.
 
 ## Sprite revision
 
 Original Goblin.png is preserved unchanged as assets/goblin.png. Art faces left and is mirrored for rightward movement, rendered at an integer scale with smoothing disabled. Its feet stay anchored to the same collision position. The standalone build embeds the PNG, so no extra download is needed. Hop cadence and movement speed are unchanged. No Proplet importer is implied.
+
+## V3 loot/sack handoff
+
+Implements the agreed always-visible 3×3 sack, varied footprints, automatic E packing with rotations, cursor-oriented reachable target reticle, click/drag lifting, R rotation, placement previews and nearby drops. Items are shared definitions and drawItem visuals across floor, sack and cursor, rather than separate implementations.
+
+New source: src/loot.js (pure packing, transfer, reach and target rules), src/item-view.js (shared item drawing), src/sack-view.js (bag/cursor UI). src/main.js wires events; src/render.js draws floor loot and the target; index.html adds the sack overlay. Original goblin image and hop are retained.
+
+Validation: 12 tests passed including existing 200-seed dungeon checks, all item rotations, fragmented/full bags, automatic rotation into a free row, rejected placements, reach/wall targeting, repeated drop/repack item conservation across 100 maps, and a mock-DOM event-wiring smoke test for E pickup → click lift → R rotate → E drop → E pickup. npm run build and standalone module syntax checks passed. The mock-DOM test is not visual browser verification. New sack layout and mouse interactions still need real-browser/user review.
+
+No server, extraction or persistent save added. New dungeon intentionally resets items and bag, with a confirmation explaining the reset. Original standalone filename remains play.html in Git; the user download is uniquely named green-team-sack-v3.html to avoid old-download confusion.

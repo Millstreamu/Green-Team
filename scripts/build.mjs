@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 // Ship a double-clickable copy without a build dependency or local web server.
-const modules = ['config', 'world', 'input', 'render', 'main'];
+const modules = ['config', 'world', 'input', 'loot', 'item-view', 'sack-view', 'render', 'main'];
 let code = (await Promise.all(modules.map(name => readFile(new URL(`../src/${name}.js`, import.meta.url), 'utf8'))))
   .map(source => source.replace(/^import .*;\n/gm, '').replace(/^export /gm, '')).join('\n');
 const sprite = await readFile(new URL('../assets/goblin.png', import.meta.url));
