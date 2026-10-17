@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GENERATOR_PRESETS, GENERATOR_FIELDS, validateGenerator, generatorSettings, dungeonConfig } from '../src/generator-settings.js';
-import { generateDungeon, canStand, isFloor } from '../src/world.js';
+import { generateDungeon, canStand, isFloor, isWalkable } from '../src/world.js';
 import { createDungeonPreview, drawDungeonPreview } from '../src/dungeon-preview.js';
 import { reservedRoomTiles, propCells, placeProp } from '../src/prop-placement.js';
 import { createDungeonSession } from '../server/dungeon-session.js';
@@ -21,10 +21,29 @@ function checkLayout(p) {
   assert.equal(reached.size, world.tiles.reduce((a, b) => a + b, 0));
   for (let x = 0; x < world.width; x++) { assert.equal(isFloor(world, x, 0), false); assert.equal(isFloor(world, x, world.height - 1), false); }
   for (let y = 0; y < world.height; y++) { assert.equal(isFloor(world, 0, y), false); assert.equal(isFloor(world, world.width - 1, y), false); }
+  const walkQueue = [queue[0]], walkReached = new Set(walkQueue);
+  for (let i = 0; i < walkQueue.length; i++) {
+    const key = walkQueue[i], x = key % world.width, y = Math.floor(key / world.width);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (isWalkable(world, x + dx, y + dy)) {
+      const next = (y + dy) * world.width + x + dx;
+      if (!walkReached.has(next)) { walkReached.add(next); walkQueue.push(next); }
+    }
+  }
+  assert.equal(walkReached.size, world.tiles.reduce((n, floor, i) => n + Number(!!floor && !world.solidTiles[i]), 0));
+  for (const guard of p.guards ?? []) {
+    assert.ok(canStand(world, guard.x, guard.y));
+    for (const point of [...guard.patrol, ...(guard.roamRoute ?? [])]) assert.ok(canStand(world, point.x, point.y));
+  }
   for (const prop of [...objects, ...hidingSpots, ...cages]) {
     assert.equal(prop.x % 1, .5); assert.equal(prop.y % 1, .5);
     const room = world.rooms.find(r => prop.tileX >= r.x && prop.tileX < r.x + r.w && prop.tileY >= r.y && prop.tileY < r.y + r.h);
-    assert.ok(room); const reserved = reservedRoomTiles(world, room);
+    assert.ok(room);
+    if (objects.includes(prop)) {
+      assert.equal(canStand(world, prop.x, prop.y), false);
+      assert.equal(world.corridorTiles[prop.tileY * world.width + prop.tileX], 0);
+      if (prop.type === 'cupboard') { assert.equal(prop.tileY, room.y); assert.equal(isFloor(world, prop.tileX, prop.tileY - 1), false); assert.equal(prop.facing, 'south'); }
+    }
+    const reserved = reservedRoomTiles(world, room);
     for (const cell of propCells(prop)) {
       const key = cell.y * world.width + cell.x; assert.ok(!used.has(key)); used.add(key);
       assert.ok(!reserved.has(key)); assert.ok(isFloor(world, cell.x, cell.y));

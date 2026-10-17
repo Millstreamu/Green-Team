@@ -2,7 +2,7 @@ import { placeProp } from './prop-placement.js';
 import { canHide } from './hiding.js';
 import { findPath } from './navigation.js';
 import { SEARCH, SEARCH_LOOT } from './config.js';
-import { canStand } from './world.js';
+import { canStand, setSolidObjects } from './world.js';
 import { clearPath, reachable, LOOT_TYPES } from './loot.js';
 
 export const SEARCHABLE_TYPES = Object.freeze({
@@ -12,6 +12,7 @@ export const SEARCHABLE_TYPES = Object.freeze({
 });
 
 export function createSearchables(world) {
+  setSolidObjects(world);
   let state = (world.seed ^ 0x9e3779b9) >>> 0;
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const objects = [];
@@ -24,6 +25,7 @@ export function createSearchables(world) {
       if (point) objects.push({ id: `${world.seed}-search-${objects.length}`, type, ...point, contents: [], searched: false });
     }
   });
+  setSolidObjects(world, objects);
   const depths = searchRewardDepths(world, objects);
   objects.forEach((object, index) => {
     Object.assign(object, depths[index]);
@@ -38,7 +40,7 @@ export function createSearchables(world) {
 }
 
 export function searchRewardDepths(world, objects) {
-  const distances = objects.map(object => findPath(world, world.spawn, object).length);
+  const distances = objects.map(object => findPath(world, world.spawn, object.approach ?? object).length);
   const farthest = Math.max(1, ...distances);
   return distances.map(distance => ({ distance, depth: distance / farthest }));
 }
@@ -79,11 +81,12 @@ export function beginSearch(session, world, player, loot, object) {
 }
 
 function spillContents(world, object, loot) {
-  const offsets = [[-0.6, 0.5], [0.6, 0.5], [0, -0.65], [-0.65, -0.4], [0.65, -0.4], [0, 0]];
-  const points = offsets.map(([dx, dy]) => ({ x: object.x + dx, y: object.y + dy }))
-    .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, object, point));
+  const origin = object.approach ?? { x: object.x, y: object.y + 1 };
+  const offsets = [[0, 0], [-.35, 0], [.35, 0], [0, -.35], [0, .35]];
+  const points = offsets.map(([dx, dy]) => ({ x: origin.x + dx, y: origin.y + dy }))
+    .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, origin, point));
   object.contents.forEach((type, i) => {
-    const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? object;
+    const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? origin;
     loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
   });
 }

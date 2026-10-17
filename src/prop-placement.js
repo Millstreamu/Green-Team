@@ -3,7 +3,7 @@ import { isFloor, canStand } from './world.js';
 // Shared by furniture, hiding spots and future decor. Dimensions are floor tiles.
 export const PROP_RULES = Object.freeze({
   chest: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
-  cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
+  cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall', backWall: true }),
   crate: Object.freeze({ width: 1, height: 1, placement: 'corner' }),
   cage: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
   torch: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
@@ -23,6 +23,7 @@ export function reservedRoomTiles(world, room) {
     while (x !== room.cx) { x += Math.sign(room.cx - x); add(x, y); }
     while (y !== room.cy) { y += Math.sign(room.cy - y); add(x, y); }
   }
+  for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) if (world.corridorTiles?.[y * world.width + x]) add(x, y);
   add(room.cx, room.cy);
   return reserved;
 }
@@ -39,6 +40,7 @@ export function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[ki
     const south = cells.filter(p => p.y === y + height - 1).every(p => !isFloor(world, p.x, p.y + 1));
     const west = cells.filter(p => p.x === x).every(p => !isFloor(world, p.x - 1, p.y));
     const east = cells.filter(p => p.x === x + width - 1).every(p => !isFloor(world, p.x + 1, p.y));
+    if (rule.backWall && (!north || y !== room.y)) continue;
     if (placement !== 'free' && !north && !south && !west && !east) continue;
     const facing = north ? 'south' : south ? 'north' : west ? 'east' : 'west';
     const approach = north ? { x: x + width / 2, y: y + height + .5 } : south ? { x: x + width / 2, y: y - .5 } : west ? { x: x + width + .5, y: y + height / 2 } : { x: x - .5, y: y + height / 2 };
@@ -49,6 +51,24 @@ export function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[ki
       score: (placement === 'corner' && corner ? -100 : 0) + Math.abs(x - room.cx) + Math.abs(y - room.cy) });
   }
   points.sort((a, b) => a.score - b.score || a.y - b.y || a.x - b.x);
-  const point = points[0]; if (!point) return null;
+  // Reject even corner arrangements that would seal off a walkable floor cell.
+  const solid = ['chest', 'cupboard', 'crate'].includes(kind);
+  const point = points.find(p => !solid || keepsFloorConnected(world, [...occupied, p]));
+  if (!point) return null;
   delete point.score; return point;
+}
+
+function keepsFloorConnected(world, objects) {
+  const blocked = new Set(objects.flatMap(propCells).map(p => p.y * world.width + p.x));
+  const start = Math.floor(world.spawn.y) * world.width + Math.floor(world.spawn.x);
+  if (blocked.has(start)) return false;
+  const queue = [start], seen = new Set(queue);
+  for (let i = 0; i < queue.length; i++) {
+    const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
+      if (isFloor(world, nx, ny) && !blocked.has(next) && !seen.has(next)) { seen.add(next); queue.push(next); }
+    }
+  }
+  return seen.size === world.tiles.reduce((n, floor, i) => n + Number(!!floor && !blocked.has(i)), 0);
 }

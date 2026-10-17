@@ -79,11 +79,12 @@ export function addRoomLoops(world, config, random) {
           const entryGain = roomEntrances(world, a, added).length + roomEntrances(world, b, added).length - roomEntrances(world, a).length - roomEntrances(world, b).length;
           if (entryGain < 1) continue;
           const score = (oldDistance - direct) / newCells.length + entryGain * 0.1 + random() * 0.01;
-          if (!best || score > best.score) best = { from: i, to: j, path, newCells, oldDistance, score };
+          if (!best || score > best.score) best = { from: i, to: j, path, wide, newCells, oldDistance, score };
         }
       }
     }
     if (!best) break;
+    if (world.corridorTiles) for (const key of best.wide.keys()) world.corridorTiles[key] = 1;
     best.newCells.forEach(p => { tiles[p.y * width + p.x] = 1; });
     const newDistance = distancesFrom(world, rooms[best.from])[rooms[best.to].cy * width + rooms[best.to].cx];
     shortcuts.push({ from: best.from, to: best.to, oldDistance: best.oldDistance, newDistance, carved: best.newCells });

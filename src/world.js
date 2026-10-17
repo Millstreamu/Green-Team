@@ -6,12 +6,12 @@ export function generateDungeon(seed, config = CONFIG) {
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const integer = (min, max) => min + Math.floor(random() * (max - min + 1));
   const { width, height } = config;
-  const tiles = new Uint8Array(width * height);
+  const tiles = new Uint8Array(width * height), corridorTiles = new Uint8Array(width * height);
   const rooms = [];
   const carve = (x, y) => { if (x > 0 && y > 0 && x < width - 1 && y < height - 1) tiles[y * width + x] = 1; };
   const corridor = (x, y) => {
     const size = config.corridorWidth ?? 1, offset = Math.floor(size / 2);
-    for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) carve(x + dx - offset, y + dy - offset);
+    for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) { const cx = x + dx - offset, cy = y + dy - offset; carve(cx, cy); if (cx > 0 && cy > 0 && cx < width - 1 && cy < height - 1) corridorTiles[cy * width + cx] = 1; }
   };
   // Every accepted room connects to a previous one, so all floor is reachable.
   for (let attempt = 0; attempt < 600 && rooms.length < config.rooms; attempt++) {
@@ -42,17 +42,29 @@ export function generateDungeon(seed, config = CONFIG) {
     }
     rooms.push(room);
   }
-  return addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
+  return addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, corridorTiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
 }
 
 export function isFloor(world, x, y) {
   return x >= 0 && y >= 0 && x < world.width && y < world.height && world.tiles[y * world.width + x] === 1;
 }
 
+// Movement obstacles stay separate from floor art and guard sight.
+export function setSolidObjects(world, objects = []) {
+  world.solidTiles = new Uint8Array(world.tiles.length);
+  for (const object of objects) for (let dy = 0; dy < (object.height ?? 1); dy++) for (let dx = 0; dx < (object.width ?? 1); dx++) {
+    const x = (object.tileX ?? Math.floor(object.x)) + dx, y = (object.tileY ?? Math.floor(object.y)) + dy;
+    if (isFloor(world, x, y)) world.solidTiles[y * world.width + x] = 1;
+  }
+}
+export function isWalkable(world, x, y) {
+  return isFloor(world, x, y) && !world.solidTiles?.[y * world.width + x];
+}
+
 export function canStand(world, x, y, radius = CONFIG.radius) {
   for (let ty = Math.floor(y - radius); ty <= Math.floor(y + radius); ty++) {
     for (let tx = Math.floor(x - radius); tx <= Math.floor(x + radius); tx++) {
-      if (isFloor(world, tx, ty)) continue;
+      if (isWalkable(world, tx, ty)) continue;
       const dx = x - Math.max(tx, Math.min(x, tx + 1));
       const dy = y - Math.max(ty, Math.min(y, ty + 1));
       if (dx * dx + dy * dy < radius * radius) return false;

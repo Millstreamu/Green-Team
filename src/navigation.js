@@ -1,8 +1,8 @@
-import { isFloor, canStand } from './world.js';
+import { isWalkable, canStand } from './world.js';
 
 export function findPath(world, from, to) {
   const sx = Math.floor(from.x), sy = Math.floor(from.y), tx = Math.floor(to.x), ty = Math.floor(to.y);
-  if (!isFloor(world, sx, sy) || !isFloor(world, tx, ty)) return [];
+  if (!isWalkable(world, sx, sy) || !isWalkable(world, tx, ty)) return [];
   const start = sy * world.width + sx, goal = ty * world.width + tx;
   const previous = new Int32Array(world.tiles.length).fill(-1), queue = [start];
   previous[start] = start;
@@ -10,7 +10,7 @@ export function findPath(world, from, to) {
     const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
     for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
       const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
-      if (isFloor(world, nx, ny) && previous[next] === -1) { previous[next] = key; queue.push(next); }
+      if (isWalkable(world, nx, ny) && previous[next] === -1) { previous[next] = key; queue.push(next); }
     }
   }
   if (previous[goal] === -1) return [];

@@ -7,7 +7,7 @@ import { createMapPlanningView } from './loadout-view.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
 import { createLoot, selectTarget, LOOT_TYPES, bagItemAt } from './loot.js';
-import { generateDungeon } from './world.js';
+import { generateDungeon, setSolidObjects } from './world.js';
 import { selectInteraction, SEARCHABLE_TYPES } from './search.js';
 import { createSackView } from './sack-view.js';
 import { createResultsView } from './results-view.js';
@@ -131,7 +131,7 @@ function connect() {
     state = message;
     if (equipped) { sack.reset(); aimDirty = pointer.active && pointer.overGame; }
     if (changed) {
-      if (message.dungeon) { world = generateDungeon(message.dungeon.seed, message.dungeon.layout); world.job = message.dungeon.job; world.tuning = message.dungeon.tuning; }
+      if (message.dungeon) { world = generateDungeon(message.dungeon.seed, message.dungeon.layout); world.job = message.dungeon.job; world.tuning = message.dungeon.tuning; setSolidObjects(world, message.dungeon.objects); }
       else world = createLairWorld();
       $('#lair-panel').close(); $('#map-planning').close(); input.clear(); sack.reset(); dragStart = null;
       pointer.active = false; previous = 0;

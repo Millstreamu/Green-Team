@@ -19,7 +19,7 @@ test('100 generated maps start with hidden loot in reachable searchable objects,
     assert.ok(objects.length >= world.rooms.length);
     assert.equal(new Set(objects.map(o => o.id)).size, objects.length);
     for (const object of objects) {
-      assert.ok(canStand(world, object.x, object.y, 0.2)); assert.equal(object.searched, false);
+      assert.equal(canStand(world, object.x, object.y, 0.2), false); assert.ok(canStand(world, object.approach.x, object.approach.y)); assert.equal(object.searched, false);
       assert.ok(object.contents.every(type => LOOT_TYPES[type]));
     }
     assert.deepEqual(objects, createSearchables(world));
@@ -86,7 +86,7 @@ test('all container contents spill to accessible floor on 100 maps', () => {
   for (let seed = 0; seed < 100; seed++) {
     const { world, loot, objects } = setup(seed); const expected = objects.reduce((n, o) => n + o.contents.length, 0);
     for (const object of objects) {
-      const player = { x: object.x, y: object.y, state: 'active' }, session = createSearchSession();
+      const player = { ...object.approach, state: 'active' }, session = createSearchSession();
       assert.ok(beginSearch(session, world, player, loot, object));
       assert.equal(updateSearch(session, world, player, loot, true, 10).type, 'completed');
     }

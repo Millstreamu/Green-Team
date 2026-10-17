@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Torch lighting V47</title>
+<title>Green Team · Solid furniture V48</title>
 <style>
 [hidden]{display:none!important}
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
@@ -37,7 +37,7 @@
 <section><h2>Create a lair</h2><form id="create-lair-form"><label>New lair name<input id="create-lair-name" maxlength="32" required autocomplete="off" placeholder="Moss Hollow"></label><button id="create-lair">Create lair</button></form><p>You’ll get a join code to share with friends.</p></section></div></div><p id="home-message" role="status" aria-live="polite">Connecting to the server…</p>
 </main>
 <main id="game-shell">
-<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Torch lighting · V47</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><button id="regenerate">Return to lair</button></header>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Solid furniture · V48</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><button id="regenerate">Return to lair</button></header>
 <div id="lair-bar" hidden><span id="current-lair-name"></span> · Join code <code id="current-lair-code"></code><button id="leave-lair">Home screen</button></div>
 <div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div id="quick-label" hidden role="status"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
         <span id="heat-label" hidden></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Job</dt><dd id="job-label">At home</dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
@@ -291,11 +291,12 @@ function addRoomLoops(world, config, random) {
           const entryGain = roomEntrances(world, a, added).length + roomEntrances(world, b, added).length - roomEntrances(world, a).length - roomEntrances(world, b).length;
           if (entryGain < 1) continue;
           const score = (oldDistance - direct) / newCells.length + entryGain * 0.1 + random() * 0.01;
-          if (!best || score > best.score) best = { from: i, to: j, path, newCells, oldDistance, score };
+          if (!best || score > best.score) best = { from: i, to: j, path, wide, newCells, oldDistance, score };
         }
       }
     }
     if (!best) break;
+    if (world.corridorTiles) for (const key of best.wide.keys()) world.corridorTiles[key] = 1;
     best.newCells.forEach(p => { tiles[p.y * width + p.x] = 1; });
     const newDistance = distancesFrom(world, rooms[best.from])[rooms[best.to].cy * width + rooms[best.to].cx];
     shortcuts.push({ from: best.from, to: best.to, oldDistance: best.oldDistance, newDistance, carved: best.newCells });
@@ -310,12 +311,12 @@ function generateDungeon(seed, config = CONFIG) {
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const integer = (min, max) => min + Math.floor(random() * (max - min + 1));
   const { width, height } = config;
-  const tiles = new Uint8Array(width * height);
+  const tiles = new Uint8Array(width * height), corridorTiles = new Uint8Array(width * height);
   const rooms = [];
   const carve = (x, y) => { if (x > 0 && y > 0 && x < width - 1 && y < height - 1) tiles[y * width + x] = 1; };
   const corridor = (x, y) => {
     const size = config.corridorWidth ?? 1, offset = Math.floor(size / 2);
-    for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) carve(x + dx - offset, y + dy - offset);
+    for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) { const cx = x + dx - offset, cy = y + dy - offset; carve(cx, cy); if (cx > 0 && cy > 0 && cx < width - 1 && cy < height - 1) corridorTiles[cy * width + cx] = 1; }
   };
   // Every accepted room connects to a previous one, so all floor is reachable.
   for (let attempt = 0; attempt < 600 && rooms.length < config.rooms; attempt++) {
@@ -346,17 +347,29 @@ function generateDungeon(seed, config = CONFIG) {
     }
     rooms.push(room);
   }
-  return addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
+  return addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, corridorTiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
 }
 
 function isFloor(world, x, y) {
   return x >= 0 && y >= 0 && x < world.width && y < world.height && world.tiles[y * world.width + x] === 1;
 }
 
+// Movement obstacles stay separate from floor art and guard sight.
+function setSolidObjects(world, objects = []) {
+  world.solidTiles = new Uint8Array(world.tiles.length);
+  for (const object of objects) for (let dy = 0; dy < (object.height ?? 1); dy++) for (let dx = 0; dx < (object.width ?? 1); dx++) {
+    const x = (object.tileX ?? Math.floor(object.x)) + dx, y = (object.tileY ?? Math.floor(object.y)) + dy;
+    if (isFloor(world, x, y)) world.solidTiles[y * world.width + x] = 1;
+  }
+}
+function isWalkable(world, x, y) {
+  return isFloor(world, x, y) && !world.solidTiles?.[y * world.width + x];
+}
+
 function canStand(world, x, y, radius = CONFIG.radius) {
   for (let ty = Math.floor(y - radius); ty <= Math.floor(y + radius); ty++) {
     for (let tx = Math.floor(x - radius); tx <= Math.floor(x + radius); tx++) {
-      if (isFloor(world, tx, ty)) continue;
+      if (isWalkable(world, tx, ty)) continue;
       const dx = x - Math.max(tx, Math.min(x, tx + 1));
       const dy = y - Math.max(ty, Math.min(y, ty + 1));
       if (dx * dx + dy * dy < radius * radius) return false;
@@ -390,7 +403,7 @@ function moveActor(world, actor, dx, dy, radius = CONFIG.radius) {
 // Shared by furniture, hiding spots and future decor. Dimensions are floor tiles.
 const PROP_RULES = Object.freeze({
   chest: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
-  cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
+  cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall', backWall: true }),
   crate: Object.freeze({ width: 1, height: 1, placement: 'corner' }),
   cage: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
   torch: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
@@ -410,6 +423,7 @@ function reservedRoomTiles(world, room) {
     while (x !== room.cx) { x += Math.sign(room.cx - x); add(x, y); }
     while (y !== room.cy) { y += Math.sign(room.cy - y); add(x, y); }
   }
+  for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) if (world.corridorTiles?.[y * world.width + x]) add(x, y);
   add(room.cx, room.cy);
   return reserved;
 }
@@ -426,6 +440,7 @@ function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[kind]) {
     const south = cells.filter(p => p.y === y + height - 1).every(p => !isFloor(world, p.x, p.y + 1));
     const west = cells.filter(p => p.x === x).every(p => !isFloor(world, p.x - 1, p.y));
     const east = cells.filter(p => p.x === x + width - 1).every(p => !isFloor(world, p.x + 1, p.y));
+    if (rule.backWall && (!north || y !== room.y)) continue;
     if (placement !== 'free' && !north && !south && !west && !east) continue;
     const facing = north ? 'south' : south ? 'north' : west ? 'east' : 'west';
     const approach = north ? { x: x + width / 2, y: y + height + .5 } : south ? { x: x + width / 2, y: y - .5 } : west ? { x: x + width + .5, y: y + height / 2 } : { x: x - .5, y: y + height / 2 };
@@ -436,8 +451,26 @@ function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[kind]) {
       score: (placement === 'corner' && corner ? -100 : 0) + Math.abs(x - room.cx) + Math.abs(y - room.cy) });
   }
   points.sort((a, b) => a.score - b.score || a.y - b.y || a.x - b.x);
-  const point = points[0]; if (!point) return null;
+  // Reject even corner arrangements that would seal off a walkable floor cell.
+  const solid = ['chest', 'cupboard', 'crate'].includes(kind);
+  const point = points.find(p => !solid || keepsFloorConnected(world, [...occupied, p]));
+  if (!point) return null;
   delete point.score; return point;
+}
+
+function keepsFloorConnected(world, objects) {
+  const blocked = new Set(objects.flatMap(propCells).map(p => p.y * world.width + p.x));
+  const start = Math.floor(world.spawn.y) * world.width + Math.floor(world.spawn.x);
+  if (blocked.has(start)) return false;
+  const queue = [start], seen = new Set(queue);
+  for (let i = 0; i < queue.length; i++) {
+    const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
+      if (isFloor(world, nx, ny) && !blocked.has(next) && !seen.has(next)) { seen.add(next); queue.push(next); }
+    }
+  }
+  return seen.size === world.tiles.reduce((n, floor, i) => n + Number(!!floor && !blocked.has(i)), 0);
 }
 
 function createInput(target, inventoryOpen = () => false) {
@@ -896,6 +929,7 @@ const SEARCHABLE_TYPES = Object.freeze({
 });
 
 function createSearchables(world) {
+  setSolidObjects(world);
   let state = (world.seed ^ 0x9e3779b9) >>> 0;
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const objects = [];
@@ -908,6 +942,7 @@ function createSearchables(world) {
       if (point) objects.push({ id: `${world.seed}-search-${objects.length}`, type, ...point, contents: [], searched: false });
     }
   });
+  setSolidObjects(world, objects);
   const depths = searchRewardDepths(world, objects);
   objects.forEach((object, index) => {
     Object.assign(object, depths[index]);
@@ -922,7 +957,7 @@ function createSearchables(world) {
 }
 
 function searchRewardDepths(world, objects) {
-  const distances = objects.map(object => findPath(world, world.spawn, object).length);
+  const distances = objects.map(object => findPath(world, world.spawn, object.approach ?? object).length);
   const farthest = Math.max(1, ...distances);
   return distances.map(distance => ({ distance, depth: distance / farthest }));
 }
@@ -963,11 +998,12 @@ function beginSearch(session, world, player, loot, object) {
 }
 
 function spillContents(world, object, loot) {
-  const offsets = [[-0.6, 0.5], [0.6, 0.5], [0, -0.65], [-0.65, -0.4], [0.65, -0.4], [0, 0]];
-  const points = offsets.map(([dx, dy]) => ({ x: object.x + dx, y: object.y + dy }))
-    .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, object, point));
+  const origin = object.approach ?? { x: object.x, y: object.y + 1 };
+  const offsets = [[0, 0], [-.35, 0], [.35, 0], [0, -.35], [0, .35]];
+  const points = offsets.map(([dx, dy]) => ({ x: origin.x + dx, y: origin.y + dy }))
+    .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, origin, point));
   object.contents.forEach((type, i) => {
-    const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? object;
+    const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? origin;
     loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
   });
 }
@@ -990,7 +1026,7 @@ function updateSearch(session, world, player, loot, holdingE, dt) {
 
 function findPath(world, from, to) {
   const sx = Math.floor(from.x), sy = Math.floor(from.y), tx = Math.floor(to.x), ty = Math.floor(to.y);
-  if (!isFloor(world, sx, sy) || !isFloor(world, tx, ty)) return [];
+  if (!isWalkable(world, sx, sy) || !isWalkable(world, tx, ty)) return [];
   const start = sy * world.width + sx, goal = ty * world.width + tx;
   const previous = new Int32Array(world.tiles.length).fill(-1), queue = [start];
   previous[start] = start;
@@ -998,7 +1034,7 @@ function findPath(world, from, to) {
     const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
     for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
       const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
-      if (isFloor(world, nx, ny) && previous[next] === -1) { previous[next] = key; queue.push(next); }
+      if (isWalkable(world, nx, ny) && previous[next] === -1) { previous[next] = key; queue.push(next); }
     }
   }
   if (previous[goal] === -1) return [];
@@ -1924,7 +1960,14 @@ function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
   for (const object of objects) {
     const x = Math.round(object.x * t + ox), y = Math.round(object.y * t + oy);
     const definition = SEARCHABLE_TYPES[object.type];
-    const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
+    // Compact props use a 32px source canvas inside one displayed floor tile.
+    const scale = object.type === 'cupboard' ? 1 : t / 32;
+    const lift = object.type === 'cupboard' ? 0 : 4;
+    const rect = (dx, dy, w, h, color) => {
+      ctx.fillStyle = color;
+      const left = Math.round(dx * scale), top = Math.round((dy + lift) * scale);
+      ctx.fillRect(x + left, y + top, Math.round((dx + w) * scale) - left, Math.round((dy + lift + h) * scale) - top);
+    };
     ctx.save(); if (object.searched) ctx.globalAlpha = 0.5;
     rect(-11, -4, 22, 11, '#182124');
     if (object.type === 'chest') {
@@ -2426,7 +2469,7 @@ const launchRun = (selection) => {
   if (!bag) return false;
   world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = bag;
-  guards = createGuards(world); objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  objects = createSearchables(world); guards = createGuards(world); hidingSpots = createHidingSpots(world, objects); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);

@@ -557,3 +557,8 @@ User reported wall pieces not lining up in the single-player Human preview and s
 ## V47 — visual torch lighting
 
 User accepted warm torch pools/gentle flicker/darker corners as a first visual pass. Darkness does not affect guard vision or gameplay. Added decorative wall torches through existing placement rules, cached wall-clipped gradients and a moderate ambient shade in browser rendering. All dungeon architectures receive it; lair/HUD stay bright. No interactive torch, new loot/recipe or dynamic stealth rule introduced. Strength/art are experimental for user playtest; dedicated inside-corner art remains deferred after approved V46 correction.
+
+
+## V48 — solid grid furniture
+
+User requested solid searchables, clear hallways, cupboards always on the top/back walls, and chests/crates within a32×32 ground tile. Searchable footprints now block movement for players/guards. Entire carved corridor footprints plus doorway-to-centre routes are reserved; placement rejects disconnected walkable floor. Cupboards skip placement if no back-wall slot is available. Compact chest/crate bodies/open lids/shadows fit one floor tile; tall cupboards retain wall height. Source art tile32px still scales into the existing24px display cell. Search loot spills at the accessible approach. Existing guard sight and lighting remain based on floor walls; furniture vision occlusion was not requested.

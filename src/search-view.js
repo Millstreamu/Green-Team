@@ -7,7 +7,14 @@ export function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
   for (const object of objects) {
     const x = Math.round(object.x * t + ox), y = Math.round(object.y * t + oy);
     const definition = SEARCHABLE_TYPES[object.type];
-    const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
+    // Compact props use a 32px source canvas inside one displayed floor tile.
+    const scale = object.type === 'cupboard' ? 1 : t / 32;
+    const lift = object.type === 'cupboard' ? 0 : 4;
+    const rect = (dx, dy, w, h, color) => {
+      ctx.fillStyle = color;
+      const left = Math.round(dx * scale), top = Math.round((dy + lift) * scale);
+      ctx.fillRect(x + left, y + top, Math.round((dx + w) * scale) - left, Math.round((dy + lift + h) * scale) - top);
+    };
     ctx.save(); if (object.searched) ctx.globalAlpha = 0.5;
     rect(-11, -4, 22, 11, '#182124');
     if (object.type === 'chest') {
