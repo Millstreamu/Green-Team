@@ -344,3 +344,8 @@ User wants crafted outputs in own sack first when they fit; recorded correction,
 ## Persistent group-home progression direction accepted
 
 User selected a persistent home for each friend group and said run with it. Updated active G1/ownership notes and decisions: player progress/recipe knowledge travels, group stock/gold/facilities/decor stay with named server-saved home. Personal-XP recipe unlocks/shared-gold facilities supersede prototype shared-gold recipe unlock direction for future progression. Existing V24 behavior remains unchanged. Next specify one bounded personal-XP reward/unlock slice; recommend equal run-participant XP from team recovered haul (pending), then decide minimum identity/lair join flow needed for a test. Avoid building a broad account/permissions system prematurely. No runtime changes/tests.
+
+
+## Team-haul personal XP accepted
+
+User approved equal XP for all participating goblins based on team recovered loot, with no pickup-owner bonus. Updated active ownership/XP review and decisions; spectators/waiting arrivals excluded, left-behind participants still participated. Exact conversion, failure rewards and disconnected eligibility remain open, as do unlock thresholds. Next bounded playable proposal: personal XP display plus end-run earned XP, saved separately from group lair stock; defer a large unlock tree until pacing is tested. No runtime changes/tests, V24 remains approved baseline.

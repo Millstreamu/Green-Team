@@ -379,3 +379,8 @@ User corrected output priority: if the crafter's sack has room, crafted items go
 User chose persistent home per friend group and accepted running with the proposed personal/group split. Named group lairs save on the server across logout, independent of session organiser. Goblin XP/level, learned recipes and personal improvements travel between groups; shared gold/materials, stations and decorations stay with the group's lair. Players can belong to several homes and select/join the relevant one via invitation/link/code.
 
 Personal XP learning recipes and shared gold improving lair facilities are the agreed progression direction, replacing shared-gold recipe purchases as the eventual design. Exact rewards/levels/effects/station costs and account/access/gear portability rules remain open. V24 economy is unchanged until a defined progression slice is built. Proposed next check: equal personal XP to run participants based on team recovered haul, not ownership of each pickup. Not yet approved. Documentation only.
+
+
+## Equal personal XP from team haul approved — 17 October 2026
+
+User approved the proposal: all run participants earn the same personal XP based on the team's recovered loot, independent of who personally picked it up. This supports rescuing/helping rather than competing for loot ownership. Participants left behind remain participants; players waiting to join the next run do not receive XP for a run they did not enter. No exact XP conversion, failed-run reward, disconnected participant eligibility, level thresholds or recipe schedule set yet. Resolve reward once per run and credit each eligible profile once. Existing V24 remains unchanged; next bounded playable slice can show personal XP/results separately from group lair stock.
