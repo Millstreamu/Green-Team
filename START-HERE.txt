@@ -1,0 +1,16 @@
+GREEN TEAM V32 — MAC TEST
+
+Node is already installed if you ran V31. You do not need to install it again.
+
+1. In the old Terminal window, press Control+C to stop the old game.
+2. Unzip this download. The new folder is green-team-v32.
+3. In Terminal type cd followed by a space. Drag green-team-v32 into Terminal and press Return.
+4. Type npm ci and press Return. Wait for it to finish.
+5. Type npm start and press Return.
+6. Open http://localhost:8080 in two browser tabs. Refresh any old tabs.
+
+Keep Terminal open while playing. Control+C stops the server.
+
+TEST: board both goblins, explore the same dungeon, hold E to search, release E and press again to collect. Tab opens sack; click to rearrange, R rotates, E drops held loot for a friend. Everyone gathers at the secret tunnel and presses E to leave together.
+
+No guards or trap deployment in this network version yet. XP rewards are not enabled. The solo play.html is still separate. Server stock is temporary and resets when the server restarts.

@@ -3,7 +3,7 @@ import { bagItemAt, fits, itemCells, LOOT_TYPES, SACK } from './loot.js';
 import { drawItem } from './item-view.js';
 import { createSackPanel, toggleSackPanel, revealSackPanel, stepSackPanel } from './sack-panel.js';
 
-export function createSackView(canvas, ghost) {
+export function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
   const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
   let visibility = createSackPanel(), currentTarget = null, holding = false;
@@ -35,7 +35,7 @@ export function createSackView(canvas, ghost) {
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · select gear, E equip';
+    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : equipmentEnabled ? 'Click loot to lift · select gear, E equip' : 'Click items to move · E packs nearby loot';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {

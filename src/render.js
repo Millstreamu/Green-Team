@@ -93,13 +93,14 @@ export async function createRenderer(canvas, mapCanvas) {
       const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
       const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
       rect(sx - 7, sy - 2, 14, 4, '#182222');
-      ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+      ctx.save(); ctx.translate(sx, sy - hop);
+      if (player.ghost) { ctx.globalAlpha = .35; ctx.filter = 'grayscale(1)'; } ctx.scale(player.facing / GOBLIN_ART.faces, 1);
       if (player.state === 'down') ctx.rotate(Math.PI / 2);
       else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
       const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
       ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
       ctx.restore();
-      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.name, sx, sy - sh - 8); }
+      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.name, sx, sy - sh - 8); }
     }
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);

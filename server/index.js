@@ -7,15 +7,14 @@ import { WebSocketServer } from 'ws';
 import { createLairSession } from './lair-session.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-export function createGameServer() {
-  const session = createLairSession();
+export function createGameServer({ session = createLairSession() } = {}) {
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url, 'http://localhost').pathname;
       const relative = path === '/' ? 'index.html' : path.slice(1);
       if (!(relative === 'index.html' || relative.startsWith('src/') || relative === 'assets/goblin.png') || relative.includes('..')) { res.writeHead(404).end(); return; }
       let data = await readFile(resolve(root, relative));
-      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Two-player lair test · V31'));
+      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Shared dungeon test · V32'));
       res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
     } catch { res.writeHead(404).end(); }
   });

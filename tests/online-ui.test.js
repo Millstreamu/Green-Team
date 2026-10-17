@@ -24,6 +24,7 @@ test('online entry reuses inventory commands and renders shared goblins without 
   const element = id => { if (!elements.has(id)) elements.set(id, new Surface(id)); return elements.get(id); };
   const doc = new Surface(), win = new Surface(), frames = [], intervals = [];
   doc.querySelector = selector => element(selector.slice(1));
+  doc.createElement = tag => new Surface(tag);
   globalThis.HTMLElement = Surface; globalThis.document = doc; globalThis.window = win;
   globalThis.Image = class { async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
@@ -76,4 +77,56 @@ test('online entry reuses inventory commands and renders shared goblins without 
   frames.shift()();
   assert.match(element('destination-label').textContent, /Hard/);
   assert.equal(stored.get('green-team-test-token'), player.token);
+  assert.equal(session.action(player, { type: 'take', item: 'snare' }), true);
+  for (const p of [player, other]) { p.x = 9; p.y = 2.5; session.action(p, { type: 'board' }); }
+  for (let i = 0; i < 61; i++) session.tick(.05);
+  sync(); frames.shift()(16);
+  assert.equal(element('sack-tab').hidden, false);
+  assert.match(element('rooms').textContent, /rooms/);
+  const dungeon = session.snapshot(player).dungeon, chest = dungeon.objects[0];
+  player.x = chest.x; player.y = chest.y + .8; sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450, clientY: 300 - .8 * 24 * 2 });
+  key('KeyE'); assert.equal(sent.at(-1).type, 'search'); assert.equal(sent.at(-1).id, chest.id);
+  assert.equal(session.action(player, sent.at(-1)), true);
+  for (let i = 0; i < 80; i++) {
+    intervals[0](); session.action(player, sent.at(-1)); session.tick(.05);
+  }
+  sync(); frames.shift()(32);
+  assert.equal(session.snapshot(other).dungeon.objects[0].searched, true, JSON.stringify({seed:dungeon.seed, input: player.input, pos: {x:player.x,y:player.y}, chest, search:player.search, last:sent.at(-1)}));
+  win.send('keyup', { code: 'KeyE', target: element('game') });
+  assert.equal(sent.at(-1).type, 'cancel-search'); session.action(player, sent.at(-1));
+  key('Tab'); frames.shift()(48);
+  assert.equal(element('sack-panel').dataset.open, 'true');
+  // A delayed moving snapshot must not immediately close the manually opened sack.
+  player.moving = true; sync(); frames.shift()(64);
+  assert.equal(element('sack-panel').dataset.open, 'true');
+  player.moving = false;
+  doc.send('pointerdown', { target: element('sack-grid'), clientX: 728, clientY: 398 });
+  assert.equal(sent.at(-1).type, 'lift');
+  const id = player.bag[0].id;
+  assert.equal(session.action(player, sent.at(-1)), true); sync();
+  assert.equal(player.loot.held.id, id);
+  key('KeyR'); assert.equal(sent.at(-1).type, 'rotate'); session.action(player, sent.at(-1)); sync();
+  doc.send('pointerdown', { target: element('sack-grid'), clientX: 840, clientY: 510 });
+  assert.equal(sent.at(-1).type, 'place'); assert.equal(session.action(player, sent.at(-1)), true); sync();
+  assert.equal(player.bag[0].x, 2); assert.equal(player.bag[0].y, 2);
+  doc.send('pointerdown', { target: element('sack-grid'), clientX: 840, clientY: 510 });
+  session.action(player, sent.at(-1)); sync();
+  key('KeyE'); assert.equal(sent.at(-1).type, 'drop'); session.action(player, sent.at(-1)); sync();
+  const dropped = session.snapshot(player).dungeon.ground.find(item => item.id === id);
+  player.x = dropped.x; player.y = dropped.y; sync();
+  key('Tab'); frames.shift()(80);
+  key('KeyE'); assert.equal(sent.at(-1).type, 'pickup'); assert.equal(sent.at(-1).id, id);
+  session.action(player, sent.at(-1)); sync();
+  assert.equal(player.bag[0].id, id);
+  Object.assign(player, dungeon.entrance); Object.assign(other, dungeon.entrance); sync();
+  key('KeyE'); assert.equal(sent.at(-1).type, 'extract');
+  assert.equal(session.action(player, sent.at(-1)), true); sync();
+  assert.equal(element('run-results').open, true);
+  assert.match(element('haul-total').textContent, /team sack squares/);
+  element('next-run').send('click');
+  assert.equal(sent.at(-2).type, 'dismiss-result'); session.action(player, sent.at(-2)); sync();
+  assert.equal(element('run-results').open, false);
+  assert.equal(element('sack-tab').hidden, true);
+
 });

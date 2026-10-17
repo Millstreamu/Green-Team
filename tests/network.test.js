@@ -123,7 +123,70 @@ test('map edits are authoritative and preserve already boarded goblins; disconne
   s.action(b, { type: 'board' });
   for (let i = 0; i < 61; i++) s.tick(.05);
   assert.equal(s.snapshot(a).launched.job.difficultyId, 'hard');
-  assert.equal(s.action(a, { type: 'reset-test' }), true);
+  assert.equal(s.action(a, { type: 'extract' }), true);
   assert.equal(s.snapshot(b).launched, null);
   assert.equal(s.snapshot(b).cart.aboard.length, 0);
+});
+
+test('two socket clients share a dungeon search, race for its loot, and bank it once on extraction', async t => {
+  const session = createLairSession(), actorA = session.connect(), actorB = session.connect();
+  session.disconnect(actorA); session.disconnect(actorB);
+  for (const p of [actorA, actorB]) { p.x = 9; p.y = 2.5; }
+  const { server, wss } = createGameServer({ session });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const origin = `http://127.0.0.1:${server.address().port}`, clients = [];
+  t.after(async () => { for (const c of clients) c.ws.terminate(); wss.close(); await new Promise(resolve => server.close(resolve)); });
+  async function until(fn) {
+    for (let i = 0; i < 200; i++) { const value = fn(); if (value) return value; await new Promise(resolve => setTimeout(resolve, 10)); }
+    assert.fail('Network dungeon state did not arrive');
+  }
+  async function client(actor) {
+    const ws = new WebSocket(origin.replace('http:', 'ws:') + '/session', { origin });
+    const c = { ws, messages: [], state: null }; clients.push(c);
+    ws.on('message', bytes => { const m = JSON.parse(bytes); c.messages.push(m); if (m.type === 'state') c.state = m; });
+    await once(ws, 'open'); ws.send(JSON.stringify({ type: 'hello', token: actor.token }));
+    await until(() => c.state); return c;
+  }
+  const a = await client(actorA), b = await client(actorB);
+  const send = (c, m) => c.ws.send(JSON.stringify(m));
+  send(a, { type: 'board' }); send(b, { type: 'board' });
+  await until(() => session.snapshot(actorA).cart.aboard.length === 2);
+  for (let i = 0; i < 31; i++) session.tick(.1);
+  await until(() => a.state.dungeon && b.state.dungeon);
+  assert.equal(a.state.dungeon.seed, b.state.dungeon.seed);
+  assert.deepEqual(a.state.dungeon.objects, b.state.dungeon.objects);
+  assert.ok(a.state.dungeon.objects.every(o => !Object.hasOwn(o, 'contents')));
+  // Select a deterministic searchable from this real generated map, with a test-fixture
+  // position change on the server only. No browser protocol permits this teleport.
+  const target = a.state.dungeon.objects[0];
+  for (const p of [actorA, actorB]) { p.x = target.x; p.y = target.y + .8; }
+  send(a, { type: 'search', id: target.id }); send(b, { type: 'search', id: target.id });
+  await until(() => a.state.dungeon.objects[0].searcherId || b.state.dungeon.objects[0].searcherId);
+  assert.ok([...a.messages, ...b.messages].some(m => m.type === 'rejected'));
+  const owner = actorA.search.active ? actorA : actorB;
+  // Use server steps to avoid making this automated transport test wait several seconds.
+  for (let i = 0; i < 80; i++) { session.action(owner, { type: 'move', x: 0, y: 0, searchHeld: true }); session.tick(.05); }
+  await until(() => a.state.dungeon.objects[0].searched && b.state.dungeon.objects[0].searched);
+  // This container can be empty. Drop the actual packed starting snare through the
+  // same network pipeline when no search loot was generated, so the race is always checked.
+  let item = a.state.dungeon.ground[0];
+  if (!item) {
+    actorA.bag.push({ id: 'network-fixture-snare', type: 'snare', rotation: 0, x: 0, y: 0 });
+    send(a, { type: 'lift', source: 'bag', id: 'network-fixture-snare' }); send(a, { type: 'drop' });
+    item = await until(() => a.state.dungeon.ground[0]);
+  }
+  actorA.x = item.x; actorA.y = item.y; actorB.x = item.x; actorB.y = item.y;
+  send(a, { type: 'pickup', id: item.id }); send(b, { type: 'pickup', id: item.id });
+  await until(() => !a.state.dungeon.ground.some(i => i.id === item.id) && !b.state.dungeon.ground.some(i => i.id === item.id));
+  assert.equal(a.state.bag.filter(i => i.id === item.id).length + b.state.bag.filter(i => i.id === item.id).length, 1);
+  const entrance = a.state.dungeon.entrance;
+  Object.assign(actorA, entrance); Object.assign(actorB, entrance);
+  send(a, { type: 'extract' }); send(b, { type: 'extract' });
+  await until(() => a.state.result && b.state.result);
+  assert.equal(a.state.result.runId, b.state.result.runId);
+  assert.equal(a.state.dungeon, null); assert.equal(b.state.dungeon, null);
+  const counts = { ...a.state.camp.counts };
+  send(a, { type: 'extract' });
+  await until(() => a.messages.at(-1)?.type === 'state');
+  assert.deepEqual(session.snapshot(actorA).camp.counts, counts);
 });

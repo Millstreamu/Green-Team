@@ -2,11 +2,11 @@
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
-A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. Server-based multiplayer is the chosen direction; hosting setup, online implementation and player limits remain future work.
+A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Public hosting, persistent accounts/group homes and player limits remain future work.
 
-## Two-player lair test · V31
+## Shared dungeon test · V32
 
-The first real server test is available separately from the solo game. It reuses the goblin art, renderer, movement/collision, inventory grids, crafting and map dialog. A Node server owns movement, shared stock, each goblin’s separate sack, destination and departure clock. No client supplies stock, elapsed time or its own coordinates.
+The user has playtested and approved V31 two-tab movement, shared stock and all-board/cancelled departure. V32 continues into one server-owned dungeon with shared furniture/search progress, floor loot, individual sacks, and a team tunnel return. Existing renderer, search/loot rules, sack grids and results dialog are reused. Guards, hiding, trap use, revive/cages and XP rewards remain outside this network slice; the standalone solo game still contains those earlier solo systems.
 
 With Node.js 22 or newer installed, open a terminal in this repository and run:
 
@@ -15,13 +15,17 @@ npm ci
 npm start
 ```
 
-Open **http://localhost:8080** in two browser tabs. Each tab gets a separate temporary test goblin. WASD moves; Tab opens shared stash; E uses nearby stations, boards or hops out. Take the starting snare in both tabs: only one succeeds. Return it, or craft another at the workbench using the starting materials. Set the destination at the upper-left map table. Everyone boards the cart; after three seconds both see the same departure/job/seed. E hops out and cancels. The **Return team to lair** button repeats the test after departure without restarting the server.
+Open **http://localhost:8080** in two tabs. Walk both goblins to the minecart and board with E. After the three-second countdown, both enter the same generated map. Move away from the entrance, hold E beside a container and stay still. One goblin searches it at a time; both see the pixel progress bar. Release/move/disconnect cancels the search and frees it. Contents spill once, including empty searches. Release E and press again to pack highlighted loose loot. The first successful collector gets an item; a full sack leaves it on the ground.
 
-This milestone ends at shared departure; dungeon movement, guards, loot, capture/rescue and in-run reconnect are still solo/design work. Opening `play.html` continues to run the solo game. There is no downloadable HTML that can run a server by itself.
+Tab opens/closes the same sliding sack; WASD selects while manually open. Click floor/sack items to lift, R rotates, click sack squares to place, E or clicking the floor drops. Drop items for a teammate to collect. Packed snares/smoke can be moved/shared but cannot be deployed in this slice. All connected participating goblins return to the secret tunnel together and press E to finish. Held cursor items must be packed or dropped first. Valuables sell once into shared gold; materials and unused gear return once to shared stock. Everyone sees the team haul in the reused result dialog and closes it to continue at home. Network XP is explicitly disabled pending its own reward transaction slice.
 
-This test is **local only**, listening on 127.0.0.1. No hosting bill or public play link is created. Server memory holds one temporary group; restarting it resets all test stock and profiles. It never reads or writes solo browser saves. No accounts, SQLite persistence, XP awards or production access control yet. Session tokens stored per tab allow reconnecting to the same home goblin/bag while the server stays open; duplicating an open tab gets a fresh identity. Offline lair goblins keep their bags server-side and stop participating in readiness. Membership changes cancel an active countdown; board/hop out again to restart it. These are bounded home-test rules, not implementation of the agreed dungeon 60-second ghost policy. New arrivals after departure wait; return-to-lair resets the test for everyone.
+Late arrivals wait in the lair until the next run. A detected dungeon disconnect leaves a grey translucent ghost for60seconds, not an extra goblin needed at the tunnel. Reconnecting in time restores that same goblin/sack. Timeout spills bag/held item once and returns the player to waiting; teammates can recover those floor items. If survivors leave before reconnect, the ghost's sack is lost rather than banked. If every participant is offline, the run stays open for the remaining grace, then fails when nobody can return. Floor loot is lost when a run closes. No guard targeting/rescue special states exist in this version. Repeated disconnect abuse policy and durable recovery remain future work.
 
-`server/lair-session.js` holds authoritative home rules, `server/index.js` serves only the game files and WebSocket endpoint, and `src/online-main.js` connects the existing screens through commands instead of mutating shared state. Deployment later needs HTTPS/WSS, authenticated group membership, durable per-player/lair saves, heartbeat/grace rules and a server-controlled dungeon. Do not expose this development server publicly.
+This test listens only on **127.0.0.1** and keeps one temporary home in server memory. Restarting resets test stock/profiles; solo localStorage is untouched. Per-tab session tokens reconnect to the same test identity while the server remains running. Duplicating an open tab gets a separate identity. There are no accounts, SQLite saves, public hosting or production access controls. Opening play.html remains the standalone solo game, not multiplayer.
+
+For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v32 to distinguish it from older copies.
+
+`server/lair-session.js` owns home/run membership and routing; `server/dungeon-session.js` owns the active world, search reservations and loot transactions. The browser regenerates the deterministic layout from the server-selected seed; all movement/collision, search duration and item ownership are still checked by the server. Snapshots conceal container contents and other players’ bags/profiles. Each active scene shares player poses and searchable/ground updates. Public deployment still needs HTTPS/WSS, authenticated group membership, SQLite persistence, transport heartbeat handling and the later shared guard/damage state machine.
 
 ## Play
 
@@ -31,7 +35,7 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Return to lair** during a run abandons carried loot/traps after confirmation; stock already at home is safe. The small map shows your position. Lair stock carries between runs and saves locally in this browser when browser storage is available. The footer reports whether saving works. Active dungeon runs are not saved; reloading returns home with the supplies already spent when that run started.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, spendable personal XP for recipes and passives in the standalone solo game. The separate V31 server test covers the shared lair only.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, spendable personal XP for recipes and passives in the standalone solo game. The separate V32 server test also covers the shared dungeon, searching and loot, without guards yet.
 
 ## Searching
 
@@ -87,7 +91,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V30 map table and minecart. Confirm a destination, board, hop out before three seconds and verify your sack stays packed. Reboard to depart. Online play remains future work.
+Next: playtest V32 with two tabs in one dungeon. Confirm shared movement/search progress, one-time loot ownership, full-sack reshuffling/drop sharing and all-together tunnel return. Then network the guards and later revive/cages. Public hosting, persistent accounts/groups/SQLite and authoritative XP rewards remain pending.
 
 
 ## V12: single-use snare

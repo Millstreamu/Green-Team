@@ -1,3 +1,4 @@
+import { createDungeonSession } from './dungeon-session.js';
 import { randomUUID, randomInt } from 'node:crypto';
 import { createCamp, createLairWorld, lairTarget, takeStashItem, returnStashItem, craftForSack, moveStashStack } from '../src/lair.js';
 import { createProfile, buyPersonalUpgrade } from '../src/profile.js';
@@ -8,7 +9,12 @@ import { movePlayer } from '../src/world.js';
 export function createLairSession() {
   const world = createLairWorld(), camp = createCamp(), players = new Map();
   const cart = createDeparture([], camp.destination);
-  let launched = null;
+  let launched = null, dungeon = null;
+  function returnHome() {
+    dungeon = null; launched = null; cart.launched = false; cart.aboard.clear(); cart.countdown = null;
+    for (const q of players.values()) { q.location = 'home'; q.waiting = false; q.inRun = false; Object.assign(q, world.spawn); q.input = { x: 0, y: 0 }; q.moving = false; }
+    membership();
+  }
   function membership() {
     const ids = [...players.values()].filter(p => p.connected && !p.waiting).map(p => p.id);
     if (ids.join() === cart.participants.join()) return;
@@ -21,25 +27,29 @@ export function createLairSession() {
       let p = players.get(token);
       if (!p) {
         token = randomUUID();
-        p = { token, id: randomUUID(), name: `Goblin ${players.size + 1}`, connected: false, waiting: !!launched,
+        p = { token, id: randomUUID(), name: `Goblin ${players.size + 1}`, connected: false, waiting: !!launched, location: 'home',
           ...world.spawn, facing: 1, phase: 0, moving: false, input: { x: 0, y: 0 }, inputAge: 0,
           bag: [], profile: createProfile() };
         p.profile.id = p.id; players.set(token, p);
       }
       if (p.connected) return null;
-      p.connected = true; p.input = { x: 0, y: 0 }; membership(); return p;
+      p.connected = true; p.disconnectedFor = 0; p.input = { x: 0, y: 0 }; if (!dungeon) membership(); return p;
     },
-    disconnect(p) { p.connected = false; p.input = { x: 0, y: 0 }; p.moving = false; membership(); },
+    disconnect(p) { p.connected = false; p.input = { x: 0, y: 0 }; p.moving = false; if (dungeon && p.inRun) dungeon.disconnect(p); if (!dungeon) membership(); },
     action(p, message) {
       if (!p?.connected || !message || typeof message !== 'object' || typeof message.type !== 'string') return false;
+      if (message.type === 'dismiss-result') { p.result = null; return true; }
+      if (p.result) return false;
       if (message.type === 'move') {
         if (!Number.isFinite(message.x) || !Number.isFinite(message.y) || Math.abs(message.x) > 1 || Math.abs(message.y) > 1) return false;
-        p.input = { x: message.x, y: message.y }; p.inputAge = 0; return true;
+        if (p.waiting) return false;
+        p.input = { x: message.x, y: message.y }; p.inputAge = 0;
+        p.searchHeld = message.searchHeld === true; return true;
       }
-      if (message.type === 'reset-test' && launched) {
-        launched = null; cart.launched = false; cart.aboard.clear(); cart.countdown = null;
-        for (const q of players.values()) { q.waiting = false; Object.assign(q, world.spawn); q.input = { x: 0, y: 0 }; }
-        membership(); return true;
+      if (dungeon) {
+        const result = dungeon.action(p, message);
+        if (result && typeof result === 'object') { returnHome(); return true; }
+        return result;
       }
       if (launched || p.waiting) return false;
       const station = lairTarget(world, p), aboard = cart.aboard.has(p.id);
@@ -73,20 +83,29 @@ export function createLairSession() {
       return false;
     },
     tick(dt) {
-      dt = Math.max(0, Math.min(.1, dt));
-      if (launched) return;
+      if (!Number.isFinite(dt) || dt <= 0) return;
+      const step = Math.min(.1, dt);
+      if (dungeon) {
+        if (dungeon.tick(dt)) returnHome();
+        for (const p of players.values()) if (p.waiting && p.location === 'home') Object.assign(p, world.spawn);
+        return;
+      }
       for (const p of players.values()) if (p.connected && !p.waiting) {
         p.inputAge += dt;
-        if (!cart.aboard.has(p.id)) movePlayer(world, p, p.inputAge > .4 ? { x: 0, y: 0 } : p.input, dt);
+        if (!cart.aboard.has(p.id)) movePlayer(world, p, p.inputAge > .4 ? { x: 0, y: 0 } : p.input, step);
         else p.moving = false;
       }
       const job = tickDeparture(cart, dt);
-      if (job) launched = { id: randomUUID(), seed: randomInt(0, 2 ** 32), job, participants: [...cart.participants] };
+      if (job) {
+        launched = { id: randomUUID(), seed: randomInt(0, 2 ** 32), job, participants: [...cart.participants] };
+        dungeon = createDungeonSession(launched, [...players.values()].filter(p => launched.participants.includes(p.id)), camp);
+      }
     },
     snapshot(p) {
-      return { type: 'state', selfId: p.id, name: p.name, bag: p.bag, profile: p.profile,
+      return { type: 'state', selfId: p.id, name: p.name, bag: p.bag, profile: p.profile, location: p.location, held: p.loot?.held ?? null, result: p.result ?? null, notice: p.notice ?? null,
+        dungeon: p.location === 'dungeon' ? dungeon?.snapshot() : null,
         camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination },
-        players: [...players.values()].filter(q => q.connected).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, waiting: q.waiting })),
+        players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, waiting: q.waiting, ghost: !q.connected, ghostSeconds: !q.connected ? Math.max(0, Math.ceil(60 - q.disconnectedFor)) : null })),
         cart: { selection: cart.selection, participants: cart.participants, aboard: [...cart.aboard], countdown: cart.countdown }, launched };
     }
   };

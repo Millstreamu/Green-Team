@@ -7,7 +7,7 @@ export function createResultsView(dialog) {
     open(result) {
       const down = result.outcome === 'down';
       const xp = result.personalXp ?? { earned: 0, total: 0 };
-      document.querySelector('#result-xp').textContent = `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
+      document.querySelector('#result-xp').textContent = result.networkXpPending ? 'Network XP rewards are not enabled in this test.' : `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
       document.querySelector('#result-job').textContent = result.job ? `${result.job.jobName} · ${result.job.difficultyName}` : '';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
       document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
@@ -17,7 +17,7 @@ export function createResultsView(dialog) {
       renderItemList(list, shown);
       document.querySelector('#empty-haul').hidden = shown.length > 0;
       document.querySelector('#empty-haul').textContent = down ? 'You were carrying no loot. You can return on the next run.' : 'You slipped out empty-handed. There is more to steal next time.';
-      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots} / 9 sack squares · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots}${result.team ? ' team sack squares' : ' / 9 sack squares'} · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
       dialog.showModal();
       document.querySelector('#next-run').focus();
     },

@@ -24,11 +24,11 @@ export function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
       if (object.searched) { rect(-7, -11, 14, 7, '#1b2423'); rect(-11, -19, 21, 3, definition.color); }
     }
     ctx.restore();
-    if (activeTarget?.id === object.id) {
+    if (activeTarget?.id === object.id || object.searcherId) {
       const top = object.type === 'cupboard' ? 28 : 16;
       ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
-      if (session.active?.id === object.id) {
-        const progress = Math.max(0, Math.min(1, session.elapsed / (session.duration || definition.duration)));
+      if (object.searcherId || session.active?.id === object.id) {
+        const progress = Math.max(0, Math.min(1, object.searcherId ? object.elapsed / object.duration : session.elapsed / (session.duration || definition.duration)));
         drawPixelProgress(ctx, x, y - top - 11, progress);
       } else {
         ctx.fillStyle = '#d1f69b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';

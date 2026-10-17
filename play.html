@@ -1576,7 +1576,7 @@ function stepSackPanel(panel, { moving = false, targetId = null, holding = false
 }
 
 
-function createSackView(canvas, ghost) {
+function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) {
   const ctx = canvas.getContext('2d'), ghostCtx = ghost.getContext('2d');
   const panel = document.querySelector('#sack-panel'), tab = document.querySelector('#sack-tab');
   let visibility = createSackPanel(), currentTarget = null, holding = false;
@@ -1608,7 +1608,7 @@ function createSackView(canvas, ghost) {
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · select gear, E equip';
+    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : equipmentEnabled ? 'Click loot to lift · select gear, E equip' : 'Click items to move · E packs nearby loot';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
@@ -1644,7 +1644,7 @@ function createResultsView(dialog) {
     open(result) {
       const down = result.outcome === 'down';
       const xp = result.personalXp ?? { earned: 0, total: 0 };
-      document.querySelector('#result-xp').textContent = `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
+      document.querySelector('#result-xp').textContent = result.networkXpPending ? 'Network XP rewards are not enabled in this test.' : `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
       document.querySelector('#result-job').textContent = result.job ? `${result.job.jobName} · ${result.job.difficultyName}` : '';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
       document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
@@ -1654,7 +1654,7 @@ function createResultsView(dialog) {
       renderItemList(list, shown);
       document.querySelector('#empty-haul').hidden = shown.length > 0;
       document.querySelector('#empty-haul').textContent = down ? 'You were carrying no loot. You can return on the next run.' : 'You slipped out empty-handed. There is more to steal next time.';
-      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots} / 9 sack squares · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots}${result.team ? ' team sack squares' : ' / 9 sack squares'} · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
       dialog.showModal();
       document.querySelector('#next-run').focus();
     },
@@ -1768,11 +1768,11 @@ function drawSearchables(ctx, objects, activeTarget, session, ox, oy) {
       if (object.searched) { rect(-7, -11, 14, 7, '#1b2423'); rect(-11, -19, 21, 3, definition.color); }
     }
     ctx.restore();
-    if (activeTarget?.id === object.id) {
+    if (activeTarget?.id === object.id || object.searcherId) {
       const top = object.type === 'cupboard' ? 28 : 16;
       ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
-      if (session.active?.id === object.id) {
-        const progress = Math.max(0, Math.min(1, session.elapsed / (session.duration || definition.duration)));
+      if (object.searcherId || session.active?.id === object.id) {
+        const progress = Math.max(0, Math.min(1, object.searcherId ? object.elapsed / object.duration : session.elapsed / (session.duration || definition.duration)));
         drawPixelProgress(ctx, x, y - top - 11, progress);
       } else {
         ctx.fillStyle = '#d1f69b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
@@ -1933,13 +1933,14 @@ async function createRenderer(canvas, mapCanvas) {
       const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
       const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
       rect(sx - 7, sy - 2, 14, 4, '#182222');
-      ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+      ctx.save(); ctx.translate(sx, sy - hop);
+      if (player.ghost) { ctx.globalAlpha = .35; ctx.filter = 'grayscale(1)'; } ctx.scale(player.facing / GOBLIN_ART.faces, 1);
       if (player.state === 'down') ctx.rotate(Math.PI / 2);
       else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
       const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
       ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
       ctx.restore();
-      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.name, sx, sy - sh - 8); }
+      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.name, sx, sy - sh - 8); }
     }
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
