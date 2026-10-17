@@ -3,11 +3,11 @@ import { createPressure, updatePressure } from './pressure.js';
 import { pressureLabel } from './pressure-view.js';
 import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
 import { seesPlayer } from './guard.js';
-import { selectJob } from './jobs.js';
+import { selectJob, createDeparture, setDestination, toggleCartSeat, tickDeparture } from './jobs.js';
 import { useSmoke, updateSmoke } from './smoke.js';
 import { loadCamp, saveCamp, createLairWorld, lairTarget, departWithSack, bankEscape } from './lair.js';
 import { createLairView } from './lair-view.js';
-import { createLoadoutView } from './loadout-view.js';
+import { createMapPlanningView } from './loadout-view.js';
 import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps, moveTrapAim } from './traps.js';
 import { generateDungeon, movePlayer } from './world.js';
 import { createInput } from './input.js';
@@ -42,7 +42,7 @@ try {
   document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
   throw error;
 }
-let pressure;
+let pressure, cart, cartOutside = null;
 let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
 let hidingSpots = [], hideTarget = null;
 let objects = [], searchSession = createSearchSession(), searchTarget = null;
@@ -59,16 +59,16 @@ const updateTarget = () => {
 };
 const enterLair = () => {
   results.close();
-  world = createLairWorld(); pressure = createPressure(world);
+  world = createLairWorld(); pressure = createPressure(world); cart = createDeparture(['goblin'], camp.destination); cartOutside = null;
   player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   guards = []; objects = []; hidingSpots = []; hideTarget = null; loot = createLoot(); loot.bag = camp.preparedBag; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now()); run.phase = 'lair'; run.entrance = { ...world.stations.find(station => station.kind === 'tunnel') };
   input.clear(); sack.reset(); dragStart = null; previous = 0;
   pointer.active = false; pointer.overGame = false;
-  document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = 'At home';
+  document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = `${cart.selection.jobName} · ${cart.selection.difficultyName}`;
   document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
   persistCamp(); persistProfile(); canvas.focus(); updateTarget();
-  tell('Welcome home. WASD to walk. E at the stash, workbench, campfire or departure minecart.');
+  tell('Welcome home. WASD to walk. E at the stash, workbench, campfire, map table or departure minecart.');
 };
 const reset = () => {
   if (run?.phase === 'exploring' && !window.confirm('Abandon this run? Carried loot and traps will be lost. Your lair stash is safe.')) return;
@@ -76,8 +76,8 @@ const reset = () => {
 };
 const closeLairPanel = () => { run.phase = 'lair'; input.clear(); canvas.focus(); };
 const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, () => loot, persistCamp, closeLairPanel, persistProfile);
-const loadout = createLoadoutView(document.querySelector('#run-setup'), (selection) => {
-  if (run.phase !== 'setup') return false;
+const launchRun = (selection) => {
+  if (!world.lair || run.phase !== 'lair') return false;
   const job = selection && selectJob(selection.jobId, selection.difficultyId);
   if (!job) return false;
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];
@@ -95,12 +95,30 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), (selecti
   document.querySelector('#regenerate').hidden = false; document.querySelector('#sack-tab').hidden = false;
   tell(`${job.jobName} · ${job.difficultyName}. Search furniture, avoid guards, then escape through the tunnel.`);
   return true;
-}, () => loot.bag, closeLairPanel);
+};
+const planning = createMapPlanningView(document.querySelector('#map-planning'), selection => {
+  if (run.phase !== 'planning' || !setDestination(cart, selection.jobId, selection.difficultyId)) return false;
+  camp.destination = { jobId: selection.jobId, difficultyId: selection.difficultyId }; persistCamp();
+  closeLairPanel(); tell(`Destination set: ${selection.jobName} · ${selection.difficultyName}. Board the minecart when ready.`); return true;
+}, () => cart.selection, () => loot.bag, closeLairPanel);
+const boardCart = station => {
+  const aboard = toggleCartSeat(cart, player.id);
+  if (aboard === null) return;
+  input.clear(); player.moving = false; player.phase = 0;
+  if (aboard) {
+    cartOutside = { x: player.x, y: player.y }; player.x = station.x; player.y = station.y - .15;
+    tell('Aboard. E to hop out and cancel departure.');
+  } else {
+    if (cartOutside) Object.assign(player, cartOutside); cartOutside = null;
+    tell('Hopped out. Departure cancelled; your sack is still packed.');
+  }
+};
 const interactLair = () => {
   const station = lairTarget(world, player);
-  if (!station) { tell('Walk close to the stash, workbench, campfire or departure minecart, then press E.'); return; }
+  if (!station) { tell('Walk close to the stash, workbench, campfire, map table or departure minecart, then press E.'); return; }
   input.clear(); player.moving = false;
-  if (station.kind === 'tunnel') { run.phase = 'setup'; loadout.open(); }
+  if (station.kind === 'tunnel') boardCart(station);
+  else if (station.kind === 'planning') { run.phase = 'planning'; planning.open(); }
   else { run.phase = 'lair-panel'; lairView.open(station.kind); }
 };
 const showRunResult = (result, message) => {
@@ -167,6 +185,7 @@ window.addEventListener('keyup', e => {
 window.addEventListener('keydown', e => {
   if (!world || e.target.closest?.('input,textarea,select,button')) return;
   if (run.phase === 'lair') {
+    if (cart.aboard.has(player.id)) { if (e.code === 'Tab' || e.code === 'Space') e.preventDefault(); if (e.code === 'KeyE' && !e.repeat) { e.preventDefault(); boardCart(world.stations.find(s => s.kind === 'tunnel')); } return; }
     if (e.code === 'Tab') { e.preventDefault(); input.clear(); player.moving = false; run.phase = 'lair-panel'; lairView.open('stash'); }
     else if (e.code === 'KeyE' && !e.repeat) { e.preventDefault(); interactLair(); }
     return;
@@ -239,7 +258,11 @@ document.querySelector('#sack-tab').addEventListener('click', () => {
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
-  if (run.phase === 'lair') movePlayer(world, player, input.read(), dt);
+  if (run.phase === 'lair') {
+    movePlayer(world, player, cart.aboard.has(player.id) ? { x: 0, y: 0 } : input.read(), dt);
+    const departure = tickDeparture(cart, dt);
+    if (departure) launchRun(departure);
+  }
   if (run.phase === 'exploring') {
     updateSmoke(clouds, dt);
     const direction = input.read();
@@ -276,6 +299,9 @@ const frame = time => {
   updateTarget();
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId && !player.hiding }, dt);
   render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement, clouds, hidingSpots, hideTarget, pressure); sack.paint(loot, pointer);
+  if (world.lair) document.querySelector('#job-label').textContent = `${cart.selection.jobName} · ${cart.selection.difficultyName}`;
+  const destinationLabel = document.querySelector('#destination-label'); destinationLabel.hidden = !world.lair;
+  if (world.lair) destinationLabel.textContent = `Planned: ${cart.selection.jobName} · ${cart.selection.difficultyName}`;
   const xpText = `Your goblin · ${profile.xp} XP available`;
   if (document.querySelector('#xp-label').textContent !== xpText) document.querySelector('#xp-label').textContent = xpText;
   const heatLabel = document.querySelector('#heat-label');
@@ -288,10 +314,10 @@ const frame = time => {
   let targetText;
   if (world.lair && run.phase === 'lair') {
     const station = lairTarget(world, player);
-    targetText = station ? `${station.name} · E to ${station.kind === 'tunnel' ? 'prepare a run' : 'open'}` : 'Lair · WASD walk · E at stations · Tab stash';
+    targetText = cart.aboard.has(player.id) ? `Aboard ${cart.aboard.size}/${cart.participants.length} · leaving in ${Math.ceil(cart.countdown ?? 0)}s · ${cart.selection.jobName} · ${cart.selection.difficultyName} · E to hop out` : station ? `${station.name} · E to ${station.kind === 'tunnel' ? 'board' : 'open'}` : 'Lair · WASD walk · E at stations · Tab stash';
   }
   else if (run.phase === 'lair-panel') targetText = 'Lair station · Esc to return';
-  else if (run.phase === 'setup') targetText = 'Choose your gear, then start the run';
+  else if (run.phase === 'planning') targetText = 'Map table · choose destination and difficulty';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (player.hiding) targetText = 'Hidden in barrel · E to exit · guards still active';
   else if (player.enteringHide) targetText = 'Hiding… hold E and stay still';

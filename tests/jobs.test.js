@@ -1,3 +1,5 @@
+import { createDeparture, setDestination, toggleCartSeat, tickDeparture } from '../src/jobs.js';
+import { loadCamp, saveCamp } from '../src/lair.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { selectJob } from '../src/jobs.js';
@@ -62,4 +64,39 @@ test('Hard sale price stays with found loot through packing, results and one-tim
   assert.equal(result.job.difficultyName, 'Hard'); assert.notEqual(result.job, world.job);
   assert.ok(bankEscape(camp, result, loot)); assert.equal(result.soldGold, expected); assert.equal(camp.counts.gold, expected);
   assert.equal(bankEscape(camp, result, loot), false); assert.equal(camp.counts.gold, expected);
+});
+
+test('cart waits for every participating goblin, ignores waiting arrivals and departs once after three seconds', () => {
+  const cart = createDeparture(['one', 'two']);
+  assert.equal(toggleCartSeat(cart, 'waiting-player'), null);
+  assert.equal(toggleCartSeat(cart, 'one'), true); assert.equal(cart.countdown, null);
+  assert.equal(tickDeparture(cart, 20), null);
+  assert.equal(toggleCartSeat(cart, 'two'), true); assert.equal(cart.countdown, 3);
+  assert.equal(tickDeparture(cart, 2.99), null);
+  const selected = tickDeparture(cart, .01); assert.equal(selected.difficultyId, 'normal');
+  assert.equal(tickDeparture(cart, 5), null); assert.equal(toggleCartSeat(cart, 'one'), null);
+});
+test('hopping out cancels the countdown and reboarding starts a full fresh countdown', () => {
+  const cart = createDeparture(['one', 'two']); toggleCartSeat(cart, 'one'); toggleCartSeat(cart, 'two');
+  tickDeparture(cart, 2); assert.equal(toggleCartSeat(cart, 'one'), false);
+  assert.equal(cart.countdown, null); assert.equal(tickDeparture(cart, 10), null);
+  toggleCartSeat(cart, 'one'); assert.equal(cart.countdown, 3); assert.equal(tickDeparture(cart, 2.9), null);
+  assert.ok(tickDeparture(cart, .1)); assert.equal(createDeparture([]).countdown, null);
+});
+test('changing the plan preserves readiness and countdown, with the latest selection frozen at departure', () => {
+  const cart = createDeparture(['one']); toggleCartSeat(cart, 'one'); tickDeparture(cart, 1);
+  assert.ok(setDestination(cart, 'manor', 'hard'));
+  assert.equal(cart.aboard.has('one'), true); assert.equal(cart.countdown, 2);
+  assert.equal(setDestination(cart, 'missing', 'normal'), false); assert.equal(cart.selection.difficultyId, 'hard');
+  const snapshot = tickDeparture(cart, 2); assert.equal(snapshot.difficultyId, 'hard'); assert.ok(Object.isFrozen(snapshot));
+  assert.equal(setDestination(cart, 'manor', 'normal'), false); assert.equal(snapshot.difficultyId, 'hard');
+});
+test('the confirmed destination saves with the lair while a new cart never restores old readiness', () => {
+  const camp = createCamp(); camp.destination = { jobId: 'manor', difficultyId: 'hard' };
+  let raw; const storage = { getItem: () => raw, setItem: (key, value) => { raw = value; } };
+  saveCamp(camp, storage); const restored = loadCamp(storage);
+  assert.deepEqual(restored.counts, camp.counts); assert.deepEqual(restored.destination, camp.destination);
+  const cart = createDeparture(['one'], restored.destination); assert.equal(cart.selection.difficultyId, 'hard');
+  assert.equal(cart.aboard.size, 0); assert.equal(cart.countdown, null);
+  assert.equal(createDeparture(['one'], { jobId: 'bad' }).selection.difficultyId, 'normal');
 });

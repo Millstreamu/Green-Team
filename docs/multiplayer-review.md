@@ -32,7 +32,7 @@ Confirmed cart interaction: E boards/marks ready; E again hops out/unreadies. Wh
 
 Remaining preparation follow-up:
 
-- Where the current gear-packing screen fits between stash preparation and cart readiness. The map station should not silently spend supplies or start the dungeon.
+- Implemented locally in V30: stash/workbench packing first, separate map confirmation, then board the cart. Planning never starts the dungeon or spends gear; the final departure moves the prepared bag once. Online coordination remains future work.
 
 One job profile/seed must be frozen for the departed run and shared by everyone. Subsequent edits at the planning station cannot alter a live dungeon. New arrivals still wait for the next run. Server implementation remains deferred.
 
@@ -218,3 +218,10 @@ Profile schema2 separates available XP, lifetime earned XP and owned purchases. 
 ## V29 passive upgrade station
 
 User requested personal passives at a little lair campfire instead of the workbench. Implemented campfire station and a compact mode of the existing lair dialog: personal XP/passives only, same purchase/save rules. Recipe buying/crafting stay at the workbench. Neither station grants knowledge or passives to other goblins. Future server purchase commands must validate station/action and acting personal profile; no new multiplayer behavior or save change introduced.
+
+
+## V30 map station and cart implemented locally
+
+User approved the next slice using the already-agreed map/boarding rules. Upper-left map table confirms/saves the selected job/difficulty without starting; separate cart E toggles aboard, starts three seconds once all eligible participants are aboard, and E hop-out cancels. Editing selection preserves readiness/timer. The final departure uses the latest confirmed profile and generates one seed; later planning cannot mutate that run. Shared stock is not deducted twice and cancelled planning/boarding leaves prepared gear intact.
+
+The coordinator supports an explicit participant list and excludes unlisted waiting arrivals. Current UI supplies one local goblin; no networking or simulated extra players added. Future server must own participant membership, proximity-valid boarding, clock, selection updates and one atomic launch. Menus in another browser must not pause that server countdown. Persist selected destination, not readiness/timers. The local confirmed destination saves in camp4; legacy saves default to Normal. Existing disconnected/late-arrival policies still require network integration, not new assumptions in this local slice.

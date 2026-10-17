@@ -20,7 +20,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'heat-label', 'xp-label', 'result-xp', 'sack-panel', 'sack-tab', 'run-setup', 'loadout-total', 'start-run', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'lair-sack-grid', 'lair-sack-used', 'lair-sack-selection', 'stash-move', 'debug-pack-snare', 'debug-pack-smoke', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'personal-xp', 'buy-smoke', 'buy-quick-search', 'passive-search-state', 'passives', 'campfire-xp', 'stash-section', 'sack-section', 'lair-eyebrow', 'recipe-snare-state', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'heat-label', 'xp-label', 'destination-label', 'result-xp', 'sack-panel', 'sack-tab', 'map-planning', 'planning-sack', 'confirm-job', 'close-map', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'lair-sack-grid', 'lair-sack-used', 'lair-sack-selection', 'stash-move', 'debug-pack-snare', 'debug-pack-smoke', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'personal-xp', 'buy-smoke', 'buy-quick-search', 'passive-search-state', 'passives', 'campfire-xp', 'stash-section', 'sack-section', 'lair-eyebrow', 'recipe-snare-state', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
   elements.get('job-choice').value = 'manor'; elements.get('difficulty-choice').value = 'normal';
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
@@ -36,8 +36,9 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   globalThis.Image = class { async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
   globalThis.requestAnimationFrame = callback => frames.push(callback);
+  let generatedRuns = 0;
   let dungeonSeed = 978983017; // Generated entrance chest contains ruby, without production overrides.
-  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues(array) { array[0] = dungeonSeed; return array; } } });
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { getRandomValues(array) { generatedRuns++; array[0] = dungeonSeed; return array; } } });
   let clock = 0;
   const realNow = performance.now;
   performance.now = () => clock;
@@ -48,7 +49,8 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   const release = code => win.send('keyup', { code, target: elements.get('game') });
   const tap = code => { key(code); tick(); release(code); tick(); };
   const walk = (code, count) => { key(code); for (let i = 0; i < count; i++) tick(); release(code); tick(); };
-  const prepareRun = () => { walk('KeyW', 80); tap('KeyE'); assert.equal(elements.get('run-setup').open, true); };
+  const waitForDeparture = () => { for (let i = 0; i < 200; i++) tick(); assert.match(elements.get('target-label').textContent, /Secret tunnel/); };
+  const prepareRun = () => { walk('KeyW', 80); tap('KeyE'); waitForDeparture(); };
   const prepared = () => JSON.parse(saved.get('green-team-camp-v1')).preparedBag;
   const takeStock = type => {
     const index = JSON.parse(saved.get('green-team-camp-v1')).slots.indexOf(type);
@@ -88,20 +90,30 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(elements.get('craft-snare').disabled, true);
   elements.get('craft-snare').send('click'); tick(); assert.equal(campCounts().snare, 1);
   elements.get('close-lair').send('click'); tick();
-  walk('KeyA', 56); walk('KeyW', 32); tap('KeyE');
-  assert.equal(elements.get('run-setup').open, true);
-  elements.get('cancel-loadout').send('click'); tick();
-  assert.equal(elements.get('run-setup').open, false);
-  tap('KeyE'); assert.equal(elements.get('run-setup').open, true);
-  assert.equal(elements.get('sack-used').textContent, '1 / 9');
-  assert.match(elements.get('loadout-total').textContent, /Packed sack: 1 \/ 9/);
+  // Plan at the separate upper-left map table; confirmation never departs.
+  walk('KeyA', 112); walk('KeyW', 32); tap('KeyE');
+  assert.equal(elements.get('map-planning').open, true);
+  assert.match(elements.get('planning-sack').textContent, /Packed sack: 1 \/ 9/);
   const stockBeforeDeparture = campCounts().snare;
   elements.get('job-choice').value = 'missing'; elements.get('job-choice').send('change');
-  assert.equal(elements.get('start-run').disabled, true);
-  elements.get('start-run').send('click'); tick(); assert.equal(elements.get('run-setup').open, true);
+  assert.equal(elements.get('confirm-job').disabled, true);
+  elements.get('confirm-job').send('click'); tick(); assert.equal(elements.get('map-planning').open, true);
   elements.get('job-choice').value = 'manor'; elements.get('difficulty-choice').value = 'normal'; elements.get('job-choice').send('change');
-  elements.get('start-run').send('click'); tick();
-  assert.equal(elements.get('run-setup').open, false);
+  elements.get('confirm-job').send('click'); tick();
+  assert.equal(elements.get('map-planning').open, false); assert.equal(elements.get('seed').textContent, 'Home');
+  assert.equal(generatedRuns, 0); assert.equal(prepared().length, 1);
+  tap('KeyE'); elements.get('difficulty-choice').value = 'hard'; elements.get('difficulty-choice').send('change');
+  elements.get('close-map').send('click'); tick();
+  assert.equal(JSON.parse(saved.get('green-team-camp-v1')).destination.difficultyId, 'normal');
+  // Board, cancel, wait past the old deadline, then board again and depart once.
+  walk('KeyD', 56); tap('KeyE');
+  assert.match(elements.get('target-label').textContent, /Aboard.*leaving in 3s/);
+  key('KeyD'); for (let i = 0; i < 30; i++) tick(); release('KeyD');
+  tap('KeyE'); assert.equal(prepared().length, 1);
+  for (let i = 0; i < 220; i++) tick(); assert.equal(elements.get('seed').textContent, 'Home');
+  assert.equal(campCounts().snare, stockBeforeDeparture);
+  assert.equal(generatedRuns, 0);
+  tap('KeyE'); waitForDeparture(); assert.equal(generatedRuns, 1);
   assert.equal(campCounts().snare, stockBeforeDeparture); assert.equal(prepared().length, 0);
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
@@ -206,7 +218,6 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   elements.get('lair-panel').send('cancel'); tick();
   walk('KeyW', 28);
   prepareRun();
-  elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('sack-used').textContent, '1 / 9');
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
@@ -246,7 +257,6 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   elements.get('next-run').send('click'); tick();
   assert.match(elements.get('target-label').textContent, /Lair/);
   packAtHome('snare'); prepareRun();
-  elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);
   assert.equal(elements.get('health-label').textContent, 'Health ●●●');
   tap('Tab'); tap('KeyE');
@@ -262,17 +272,13 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(prepared().length, 9); assert.deepEqual(campCounts(), realStock);
   elements.get('debug-pack-snare').send('click'); assert.equal(prepared().length, 9);
   elements.get('lair-panel').send('keydown', { code: 'Tab' }); tick(); prepareRun();
-  assert.match(elements.get('loadout-total').textContent, /9 \/ 9.*0 free/);
-  elements.get('start-run').send('click'); tick(); assert.equal(elements.get('sack-used').textContent, '9 / 9');
-  elements.get('regenerate').send('click'); tick(); prepareRun();
-  dungeonSeed = 42;
-  elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('sack-used').textContent, '9 / 9');
+  elements.get('regenerate').send('click'); tick(); dungeonSeed = 42; prepareRun();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   walk('KeyD', 14); key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
   assert.match(elements.get('status').textContent, /Nothing worth taking/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   elements.get('regenerate').send('click'); tick(); packAtHome('smoke'); prepareRun();
-  elements.get('start-run').send('click'); tick();
   assert.equal(campCounts().smoke, 0); assert.equal(elements.get('sack-used').textContent, '1 / 9');
   tap('Tab'); tap('KeyE');
   assert.match(elements.get('quick-label').textContent, /Smoke bomb × 1.*Space/);
@@ -280,17 +286,21 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.match(elements.get('status').textContent, /Smoke deployed/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('quick-label').textContent, /Smoke bomb × 0/);
-  elements.get('regenerate').send('click'); tick(); prepareRun();
+  elements.get('regenerate').send('click'); tick();
+  walk('KeyA', 56); walk('KeyW', 80); tap('KeyE');
   elements.get('difficulty-choice').value = 'hard'; elements.get('difficulty-choice').send('change');
   assert.match(elements.get('job-preview').textContent, /Hard.*2 extra guards/);
-  elements.get('start-run').send('click'); tick();
+  elements.get('confirm-job').send('click'); tick();
+  assert.equal(elements.get('seed').textContent, 'Home');
+  walk('KeyD', 56); tap('KeyE'); waitForDeparture();
   assert.equal(elements.get('job-label').textContent, 'Human Manor · Hard');
   tap('KeyE');
   assert.equal(elements.get('result-job').textContent, 'Human Manor · Hard');
   // Reach a real generated hiding barrel using the same movement/event loop.
-  elements.get('next-run').send('click'); tick(); prepareRun();
-  elements.get('difficulty-choice').value = 'normal';
-  elements.get('start-run').send('click'); tick();
+  elements.get('next-run').send('click'); tick();
+  walk('KeyA', 56); walk('KeyW', 80); tap('KeyE');
+  elements.get('difficulty-choice').value = 'normal'; elements.get('difficulty-choice').send('change');
+  elements.get('confirm-job').send('click'); tick(); walk('KeyD', 56); tap('KeyE'); waitForDeparture();
   const { createHidingSpots } = await import('../src/hiding.js');
   const { createSearchables } = await import('../src/search.js');
   const hideWorld = generateDungeon(42), barrel = createHidingSpots(hideWorld, createSearchables(hideWorld))[0];

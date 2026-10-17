@@ -19,6 +19,8 @@ export const SEARCH_LOOT = Object.freeze({ nearEmptyChance: 0.7, farEmptyChance:
 // Temporary XP pacing for the personal-progression playtest.
 export const PROGRESSION = Object.freeze({ xpPerGold: 1, recipeCosts: Object.freeze({ snare: 0, smoke: 50 }), quickSearchCost: 30, quickSearchBonus: 0.1 });
 
+export const DEPARTURE = Object.freeze({ countdown: 3 });
+
 export const HEAT = Object.freeze({ riseSeconds: 30, coolDelay: 4, coolSeconds: 20, maxSpeedRatio: 1.08, alertsPerGuard: 3, arrivalWarning: 2, doorRoomInterval: 3 });
 
 export const HIDING = Object.freeze({ enterTime: 0.5, reach: 1.6, roomInterval: 2, pullReach: 0.8 });

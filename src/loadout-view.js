@@ -1,10 +1,10 @@
 import { selectJob, jobSummary } from './jobs.js';
 import { itemCells } from './loot.js';
 
-// Departure only chooses a job; supplies were already packed at home.
-export function createLoadoutView(dialog, onStart, getBag = () => [], onCancel = () => {}) {
+// The map station confirms a destination; boarding/departure happens elsewhere.
+export function createMapPlanningView(dialog, onConfirm, getCurrent, getBag = () => [], onCancel = () => {}) {
   const jobChoice = document.querySelector('#job-choice'), difficulty = document.querySelector('#difficulty-choice');
-  const summary = document.querySelector('#loadout-total'), start = document.querySelector('#start-run');
+  const summary = document.querySelector('#planning-sack'), start = document.querySelector('#confirm-job');
   const refresh = () => {
     const job = selectJob(jobChoice.value, difficulty.value), bag = getBag();
     start.disabled = !job;
@@ -14,12 +14,12 @@ export function createLoadoutView(dialog, onStart, getBag = () => [], onCancel =
   };
   const cancel = () => { dialog.close(); onCancel(); };
   dialog.addEventListener('cancel', event => { event.preventDefault(); cancel(); });
-  document.querySelector('#cancel-loadout').addEventListener('click', cancel);
+  document.querySelector('#close-map').addEventListener('click', cancel);
   jobChoice.addEventListener('change', refresh); difficulty.addEventListener('change', refresh);
   start.addEventListener('click', () => {
     const job = selectJob(jobChoice.value, difficulty.value);
-    if (!job || onStart(job) === false) { refresh(); return; }
+    if (!job || onConfirm(job) === false) { refresh(); return; }
     dialog.close();
   });
-  return { open() { refresh(); dialog.showModal(); difficulty.focus(); } };
+  return { open() { const selected = getCurrent(); jobChoice.value = selected.jobId; difficulty.value = selected.difficultyId; refresh(); dialog.showModal(); difficulty.focus(); } };
 }

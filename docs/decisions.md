@@ -417,3 +417,12 @@ Implemented profile schema2 wallet/earned-XP/purchases. Existing schema1 profile
 ## Campfire for personal passive upgrades — 17 October 2026
 
 User requested moving personal passives to a little campfire. Added lower-lair campfire station with existing E/highlight behavior and reused dialog/cards in passive-only mode. Recipe learning/crafting stay at workbench. Quick fingers purchase is accepted only from campfire mode; recipes/crafting only from workbench mode. No costs, effects, ownership or save changes. No new UI system or networking added.
+
+
+## Future level/token progression riff — recorded, not implemented
+
+User suggested XP-driven levels granting spendable tokens, with multi-token costs, minimum levels and prior-unlock gates. Proposed response was to keep the current XP shop as a working prototype and design a small set of useful upgrades before choosing level curves/token prices. Record this as a likely future direction, not an accepted numerical progression schedule or a skill-tree implementation. No progression behavior changed in the subsequent map/cart slice.
+
+## Separate map planning and cart departure built — 17 October 2026
+
+User approved implementing the previously agreed lair flow: map table selects job/difficulty; E boards/marks ready at a separate minecart; E again hops out; all participating goblins aboard starts three seconds; hop-out cancels; selection edits preserve readiness and departure uses latest plan. Implemented V30 with one playable goblin and an explicit participant coordinator for future server use. No seed/world/stock consumption until final launch; prepared bag moves once. Latest confirmed selection persists across visits/runs/reloads; unconfirmed drafts cancel, readiness never persists. Destination is visible in the home HUD. Online multiplayer remains deferred.

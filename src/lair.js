@@ -1,3 +1,4 @@
+import { selectJob } from './jobs.js';
 import { PROGRESSION } from './config.js';
 import { knowsRecipe } from './profile.js';
 import { LOOT_TYPES, itemSaleValue, findSpace, fits } from './loot.js';
@@ -23,7 +24,7 @@ export function syncStashSlots(camp) {
   }
 }
 export function createCamp() {
-  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [], preparedBag: [], nextItemId: 1 };
+  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [], preparedBag: [], nextItemId: 1, destination: { jobId: 'manor', difficultyId: 'normal' } };
   syncStashSlots(camp); return camp;
 }
 export function moveStashStack(camp, type, target) {
@@ -117,19 +118,21 @@ export function loadCamp(storage) {
       }
       camp.preparedBag = bag; camp.nextItemId = saved.nextItemId;
     }
+    const destination = saved.destination && selectJob(saved.destination.jobId, saved.destination.difficultyId);
+    if (destination) camp.destination = { jobId: destination.jobId, difficultyId: destination.difficultyId };
     camp.slots = Array.isArray(saved.slots) ? saved.slots : [];
     syncStashSlots(camp); return camp;
   } catch { return createCamp(); }
 }
 export function saveCamp(camp, storage) {
-  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 4, counts: camp.counts, slots: camp.slots, preparedBag: camp.preparedBag, nextItemId: camp.nextItemId })); return !!storage; }
+  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 4, counts: camp.counts, slots: camp.slots, preparedBag: camp.preparedBag, nextItemId: camp.nextItemId, destination: camp.destination })); return !!storage; }
   catch { return false; }
 }
 export function createLairWorld() {
   const width = 18, height = 14, tiles = new Uint8Array(width * height);
   for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) tiles[y * width + x] = 1;
   return { seed: 0, width, height, tiles, rooms: [{ x: 1, y: 1, w: 16, h: 12, cx: 9, cy: 7 }], shortcuts: [], spawn: { x: 9, y: 9.5 }, lair: true,
-    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'campfire', name: 'Campfire', x: 9, y: 11.5 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
+    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'campfire', name: 'Campfire', x: 9, y: 11.5 }, { kind: 'planning', name: 'Map planning', x: 5, y: 2.5 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
 }
 export function lairTarget(world, player) {
   return world.stations.filter(station => Math.hypot(station.x - player.x, station.y - player.y) <= 1.6 && clearPath(world, player, station))
