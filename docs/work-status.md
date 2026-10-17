@@ -304,3 +304,8 @@ Next user playtests heat pacing, three-alert reinforcements, door readability an
 User says V24 works very well. Continue team-rule review before capture/rescue implementation. New agreed disconnect behavior: detected connection loss makes goblin grey/translucent and untargetable by guards for 60 seconds; players cannot interact. Reconnect resumes same goblin/sack immediately, normal visibility and no bonus safety. Timeout spills sack once and removes goblin from the run. Updated active C2 rule/decisions; vulnerable-grace proposal superseded.
 
 Next ask whether disconnected goblins are excluded from the departure counter during grace (recommend yes, pending). Special downed/carried/caged/hidden states, no connected standing players, run-end settlement and repeat-disconnect timers remain open. Documentation only; no tests rerun or new playable version, V24 remains approved baseline.
+
+
+## Disconnect departure exception confirmed
+
+User approved excluding disconnected ghost goblins from departure checks during the 60-second grace period. Updated active review and decisions. Next settle what happens to a ghost and its sack if connected survivors finish the run before it reconnects; recommend returning it to the lair without its dungeon sack, pending acceptance. No runtime changes/tests; V24 stays current.

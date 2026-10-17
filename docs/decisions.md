@@ -335,3 +335,8 @@ Future server must own one heat/alert/spawn state per run and replicate it rathe
 User chose a grey, see-through disconnected goblin for 60 seconds. Guards ignore it and other players cannot interact with it, replacing the proposal that it remain vulnerable. Reconnecting restores control and ordinary visibility immediately; being spotted at that moment is fair game, with no extra reconnect protection. User accepted the prior proposed timeout outcome: sack spills and goblin is removed from that run. Preserve identity/actual sack contents; never duplicate gear or spill twice. Later arrival waits for the next run under the existing arrival rule.
 
 Next pending question: exclude disconnected goblins from the group exit counter during grace? Recommended yes, not yet accepted. Downed/carried/caged/hidden disconnects, all-connected-player departure/failure, run ending during grace and repeat-disconnect handling remain to decide before implementation. No networking or runtime change; V24 stays current. User also approved V24 heat/reinforcement playtest.
+
+
+## Disconnected goblins excluded from departure — 17 October 2026
+
+User confirmed: a disconnected goblin does not count towards the group leaving check during its 60-second ghost grace period. Connected standing survivors may leave without waiting for it. Reconnecting during an ongoing run restores normal standing-player participation. Run ending during grace and handling retained sack/return destination remain pending; do not assume a ghost receives extraction rewards automatically. Documentation only, V24 unchanged.
