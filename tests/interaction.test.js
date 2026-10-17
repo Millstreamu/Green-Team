@@ -12,7 +12,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
       for (const callback of this.listeners[type] ?? []) callback(event);
     }
     getBoundingClientRect() { return this.id === 'sack-grid' ? { left: 700, top: 370, right: 868, bottom: 538, width: 168, height: 168 } : { left: 0, top: 0, right: 900, bottom: 600, width: 900, height: 600 }; }
-    getContext() { return new Proxy({}, { get: (obj, key) => obj[key] ?? (() => {}) }); }
+    getContext() { return new Proxy({}, { get: (obj, key) => obj[key] ?? (key === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}) }); }
     closest() { return null; }
     focus() { this.focused = true; }
     append(...children) { (this.children ??= []).push(...children); }

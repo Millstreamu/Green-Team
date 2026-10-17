@@ -6,6 +6,7 @@ export const PROP_RULES = Object.freeze({
   cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
   crate: Object.freeze({ width: 1, height: 1, placement: 'corner' }),
   cage: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
+  torch: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
   hiding: Object.freeze({ width: 1, height: 1, placement: 'wall' })
 });
 export function propCells(prop) {

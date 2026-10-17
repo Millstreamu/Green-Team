@@ -552,3 +552,8 @@ User supplied a five-tile Proplet32×32 PNG/JSON pair. Accepted mapping: top-rig
 ## V46 — correct wall joins from screenshot
 
 User reported wall pieces not lining up in the single-player Human preview and supplied screenshot seed2828433373. Fixed shared art selection/composition rather than changing supplied tiles or dungeon geometry: thin bottom rims retain side support underneath; inside joins use square faces; outer corners retain the agreed tile reuse/mirroring. New shared layers apply to solo and online, with updated standalone preview.
+
+
+## V47 — visual torch lighting
+
+User accepted warm torch pools/gentle flicker/darker corners as a first visual pass. Darkness does not affect guard vision or gameplay. Added decorative wall torches through existing placement rules, cached wall-clipped gradients and a moderate ambient shade in browser rendering. All dungeon architectures receive it; lair/HUD stay bright. No interactive torch, new loot/recipe or dynamic stealth rule introduced. Strength/art are experimental for user playtest; dedicated inside-corner art remains deferred after approved V46 correction.

@@ -64,15 +64,16 @@ test('asset loader reads the supplied manifest/image once and rejects broken exp
 
 
 test('the real renderer uses supplied art only for Human runs, loads once, and retains playable fallback on failure', async t => {
-  const old = { Image: globalThis.Image, fetch: globalThis.fetch, ResizeObserver: globalThis.ResizeObserver, warn: console.warn };
+  const old = { Image: globalThis.Image, fetch: globalThis.fetch, ResizeObserver: globalThis.ResizeObserver, warn: console.warn, document: globalThis.document };
   t.after(() => Object.assign(globalThis, { Image: old.Image, fetch: old.fetch, ResizeObserver: old.ResizeObserver }));
-  t.after(() => { console.warn = old.warn; });
+  t.after(() => { console.warn = old.warn; globalThis.document = old.document; });
   const calls = [], warnings = []; let loads = 0, fail = false;
   globalThis.Image = class { naturalWidth = 128; naturalHeight = 64; async decode() {} };
   globalThis.fetch = async () => { loads++; return { ok: !fail, json: async () => metadata }; };
   globalThis.ResizeObserver = class { constructor(fn) { this.fn = fn; } observe() { this.fn(); } };
   console.warn = (...args) => warnings.push(args);
-  const ctx = () => new Proxy({}, { get: (object, key) => object[key] ?? (key === 'drawImage' ? (...args) => calls.push(args) : () => {}) });
+  const ctx = () => new Proxy({}, { get: (object, key) => object[key] ?? (key === 'drawImage' ? (...args) => calls.push(args) : key === 'createRadialGradient' ? () => ({addColorStop() {}}) : () => {}) });
+  globalThis.document = { createElement: () => ({ getContext: ctx }) };
   const canvas = { getContext: ctx, getBoundingClientRect: () => ({ width: 800, height: 600 }) }, map = { getContext: ctx };
   const render = await createRenderer(canvas, map), world = generateDungeon(42);
   const p = { ...world.spawn, facing: -1, moving: false, phase: 0, state: 'active' };

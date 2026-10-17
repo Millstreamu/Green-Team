@@ -1,3 +1,4 @@
+import { createLightingRenderer, drawTorches } from './lighting.js';
 import { loadHumanTerrain, drawTerrainTile } from './terrain-art.js';
 import { drawCages, drawRescues } from './rescue-view.js';
 import { drawReinforcementDoors } from './pressure-view.js';
@@ -26,6 +27,7 @@ export async function createRenderer(canvas, mapCanvas) {
   const humanTerrain = await loadHumanTerrain().catch(error => { console.warn('Human tiles unavailable; using temporary art.', error.message); return null; });
   const ctx = canvas.getContext('2d');
   const map = mapCanvas.getContext('2d');
+  const lighting = createLightingRenderer();
   let width = 0, height = 0;
   const resize = () => {
     const rect = canvas.getBoundingClientRect();
@@ -36,6 +38,8 @@ export async function createRenderer(canvas, mapCanvas) {
   return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null, pressure = null, teammates = [], rescueTarget = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
+    const seconds = performance.now() / 1000;
+    const torches = lighting.scene(world, [...objects, ...hidingSpots, ...(run.cages ?? []), ...(pressure?.doors ?? []).map(d => d.spawn)]);
     const terrainArt = !world.lair && world.job?.jobId === 'manor' ? humanTerrain : null;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
     const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
@@ -55,6 +59,7 @@ export async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
+    if (torches) drawTorches(ctx, torches, ox, oy, seconds);
     drawCages(ctx, run.cages ?? [], ox, oy);
     drawReinforcementDoors(ctx, pressure, ox, oy);
     for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy, clouds);
@@ -111,6 +116,7 @@ export async function createRenderer(canvas, mapCanvas) {
       if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state !== 'active' && actor.state ? `${actor.name} · ${actor.state.toUpperCase()}` : actor.name, sx, sy - sh - 8); }
     }
     drawCages(ctx, run.cages ?? [], ox, oy, true);
+    lighting.draw(ctx, width, height, torches, ox, oy, seconds);
     drawRescues(ctx, [...teammates, player], run.cages ?? [], run.rescues ?? [], rescueTarget, ox, oy);
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
