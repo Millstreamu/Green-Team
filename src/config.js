@@ -14,4 +14,4 @@ export const GUARD_PATTERNS = Object.freeze({ count: 3, roamerEnabled: true, roa
 export const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, triggerRadius: 0.32, clearMargin: 0.15, armDelay: 0.25 });
 
 // Search rewards are rolled once per container when the dungeon is generated.
-export const SEARCH_LOOT = Object.freeze({ emptyChance: 0.6, twoItemChance: 0.15, materialChance: 0.45 });
+export const SEARCH_LOOT = Object.freeze({ nearEmptyChance: 0.7, farEmptyChance: 0.5, twoItemChance: 0.15, nearMaterialChance: 0.75, farMaterialChance: 0.2, nearRareChance: 0.1, farRareChance: 0.8 });

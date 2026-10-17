@@ -127,3 +127,40 @@ test('reward generation produces sparse loot, occasional materials and no entran
   assert.ok(materials / items > .35 && materials / items < .55);
   assert.ok(entranceEmpty > 0 && entranceEmpty < 200);
 });
+
+test('reward depth follows corridor distance rather than straight-line proximity', async () => {
+  const { searchRewardDepths, searchRewardProfile } = await import('../src/search.js');
+  const width = 9, height = 7, tiles = new Uint8Array(width * height);
+  const floor = (x, y) => { tiles[y * width + x] = 1; };
+  for (let x = 1; x <= 7; x++) { floor(x, 1); floor(x, 5); }
+  for (let y = 1; y <= 5; y++) floor(7, y);
+  for (let y = 3; y <= 5; y++) floor(1, y);
+  const world = { width, height, tiles, spawn: { x: 1.5, y: 1.5 } };
+  const [detour, direct] = searchRewardDepths(world, [{ x: 1.5, y: 3.5 }, { x: 6.5, y: 1.5 }]);
+  assert.ok(detour.distance > direct.distance * 3); assert.equal(detour.depth, 1);
+  const deep = searchRewardProfile(detour.depth), near = searchRewardProfile(direct.depth);
+  assert.ok(deep.emptyChance < near.emptyChance);
+  assert.ok(deep.materialChance < near.materialChance);
+  assert.ok(deep.rareChance > near.rareChance);
+  assert.deepEqual(searchRewardProfile(-1), searchRewardProfile(0));
+  assert.deepEqual(searchRewardProfile(2), searchRewardProfile(1));
+});
+test('near containers favour materials and deep ones favour rarer valuables across generated maps', () => {
+  const near = { containers: 0, empty: 0, materials: 0, items: 0, rare: 0 }, far = { ...near };
+  for (let i = 0; i < 300; i++) {
+    const world = generateDungeon(Math.imul(i + 1, 2654435761) >>> 0);
+    for (const object of createSearchables(world)) {
+      const bucket = object.depth <= .25 ? near : object.depth >= .75 ? far : null;
+      if (!bucket) continue;
+      bucket.containers++; bucket.empty += Number(object.contents.length === 0);
+      for (const type of object.contents) {
+        bucket.items++; bucket.materials += Number(!!LOOT_TYPES[type].material);
+        bucket.rare += Number(SEARCHABLE_TYPES[object.type].rarePool.includes(type));
+      }
+    }
+  }
+  assert.ok(near.materials / near.items > far.materials / far.items + .25);
+  assert.ok(far.rare / (far.items - far.materials) > near.rare / (near.items - near.materials) + .25);
+  assert.ok(near.empty / near.containers > far.empty / far.containers + .08);
+  assert.ok(near.empty > 0 && far.empty > 0);
+});

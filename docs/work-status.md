@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: V17 local roaming guard, awaiting playtest
+## Current task: V18 depth-weighted rewards, awaiting playtest
 
 The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
@@ -170,3 +170,10 @@ User approved sparse loot, then approved one additional multi-room patrol alongs
 Guard.js adds a roamer patrol branch within the existing state machine: follow cached adjacent points with followPath, pause three seconds at stop centres, face the next leg. Original local routines and assignments retained. Suspicion, attacks, trail search, return-home and snares are shared. Returning home resets route index and pause. Guard-view.js uses purple clothing / ROAMER label, sidebar explains it. Main idle hint updated. No sparse loot, lair economy or keyboard UX changes.
 
 Verification: all 68 tests pass. New guard-roamer.test.js checks 200 bounded deterministic routes, tile adjacency and closure, entrance avoidance and quiet rooms; actual guards complete two cycles with every stop paused on ten maps; snare interruption, lost-sight search, return-home and restart; blocked entrance-only layout fallback without map mutation. Existing integration and guard suites pass; assignment test now distinguishes the original three from the extra roamer. Build and bundled syntax pass. No rendered browser QA; user should compare added pressure with useful quiet areas/snares. Current download green-team-roaming-guard-v17.html; canonical play.html, same feature branch and draft PR #2.
+
+
+## V18 handoff
+
+User approved V17 then proposed more/better valuables far from entrance, more materials nearby. Search.js now creates positions first, computes shortest walking distance using existing findPath, stores distance/depth relative to the farthest container, then rolls seeded contents. searchRewardDepths/searchRewardProfile are pure exported helpers. SEARCH_LOOT holds near/far empty (.7/.5), material (.75/.2) and rare (.1/.8) probabilities. Usually one item, occasional two unchanged. Existing valuables split into common/rare furniture pools; rarity is provisional, not a sale-value system. Empty searches remain everywhere. No entrance freebies restored.
+
+Verified: all 70 automated tests pass. New tests reproduce a physically close object behind a long corridor detour, clamp/check profiles, and compare nearby/deep empty/material/rare frequencies across 300 maps. Existing 200-map sparse generation tests still pass. Integration uses naturally ruby-bearing seed978983017 with updated path fixture and seed42 for an empty search; production has no special test-seed overrides. Standalone build and bundled syntax pass. No rendered browser QA; user should judge whether longer trips feel worthwhile and near materials remain useful. Download green-team-deeper-loot-v18.html; canonical play.html. Same branch/draft PR #2; guards, crafting, lair and keyboard controls retained.

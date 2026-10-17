@@ -123,3 +123,14 @@ Adds one purple guard while retaining the two blue lookouts and brown single-roo
 The same sight, suspicion, chase, attack, invisible trail, return-home and snare rules apply. After an unsuccessful search, it returns home and restarts its routine. A chase/return may pass outside normal patrol territory; unpatrolled rooms are not invulnerable zones. `guard-routes.js` builds routes; `guard.js` uses them within the existing patrol state. No extra loot, alarm, UI or multiplayer system added.
 
 Tune `roamerEnabled`, `roamRooms` (3), `roamMaxLength` (55 outbound path points) and `roamPause` (3 seconds) in GUARD_PATTERNS. Those are provisional balance settings. Verified: 68 tests, including 200 generated routes, actual repeated movement/pauses, snare interruption, investigation/return and blocked-layout fallback. Standalone build and bundled syntax pass; rendered browser difficulty/feel await playtest. Download green-team-roaming-guard-v17.html.
+
+
+## V18: rewards improve farther along the route
+
+User requested better loot farther from the entrance, with more trap materials nearby. Search reward depth uses the shortest walkable path from the entrance to each container, scaled against the farthest container in that generated map. Long corridor detours count; straight-line distance does not. Existing pathfinding supplies those distances once at map creation.
+
+Provisional probabilities blend smoothly: near/far empty chance 70%/50%; near/far material share of found items 75%/20%; near/far rare share among valuables 10%/80%. Nonempty containers still usually have one item, with a 15% chance of two. Common pools favour coins, scrolls or horns depending on furniture; rare pools favour rubies/candlesticks in chests, candlesticks/horns in cupboards and swords/horns in crates. “Better” currently means rarer valuables and more successful finds; selling/prices are not implemented. All areas can still be empty, and materials can still appear far away. No guaranteed entrance rewards.
+
+Values live in SEARCH_LOOT in config.js; each container stores distance/depth metadata for future tuning. Rewards stay fixed for a given seed and cannot be rerolled by cancelling. No guard, crafting, stash or control changes.
+
+Verified: 70 automated tests, including a winding-corridor case and near/far material/rarity/empty comparisons over 300 maps. Existing sparse-loot checks and gameplay loop pass. Standalone build and bundled syntax pass; browser balance review pending. Download green-team-deeper-loot-v18.html.

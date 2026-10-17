@@ -1,11 +1,12 @@
+import { findPath } from './navigation.js';
 import { SEARCH, SEARCH_LOOT } from './config.js';
 import { canStand } from './world.js';
 import { clearPath, reachable } from './loot.js';
 
 export const SEARCHABLE_TYPES = Object.freeze({
-  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['ruby', 'coin', 'candlestick', 'horn'] },
-  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'candlestick', 'horn', 'coin'] },
-  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['sword', 'scroll', 'horn', 'coin'] }
+  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['coin', 'horn'], rarePool: ['ruby', 'candlestick'] },
+  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'coin'], rarePool: ['candlestick', 'horn'] },
+  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['scroll', 'coin'], rarePool: ['sword', 'horn'] }
 });
 
 export function createSearchables(world) {
@@ -14,13 +15,7 @@ export function createSearchables(world) {
   const objects = [];
   const add = (type, x, y) => {
     if (!canStand(world, x, y, 0.2) || objects.some(o => Math.hypot(o.x - x, o.y - y) < 0.8)) return;
-    const definition = SEARCHABLE_TYPES[type];
-    const count = random() < SEARCH_LOOT.emptyChance ? 0 : random() < SEARCH_LOOT.twoItemChance ? 2 : 1;
-    const contents = Array.from({ length: count }, () => {
-      const pool = random() < SEARCH_LOOT.materialChance ? ['scrap', 'cloth'] : definition.pool;
-      return pool[Math.floor(random() * pool.length)];
-    });
-    objects.push({ id: `${world.seed}-search-${objects.length}`, type, x, y, contents, searched: false });
+    objects.push({ id: `${world.seed}-search-${objects.length}`, type, x, y, contents: [], searched: false });
   };
   const first = world.rooms[0];
   add('chest', world.spawn.x + 1.5, world.spawn.y);
@@ -28,7 +23,28 @@ export function createSearchables(world) {
   add('crate', first.x + first.w - 1.5, first.y + first.h - 1.5);
   const types = Object.keys(SEARCHABLE_TYPES);
   world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], i % 2 ? room.x + room.w - 1.5 : room.x + 1.5, room.cy + 0.5));
+  const depths = searchRewardDepths(world, objects);
+  objects.forEach((object, index) => {
+    Object.assign(object, depths[index]);
+    const profile = searchRewardProfile(object.depth), definition = SEARCHABLE_TYPES[object.type];
+    const count = random() < profile.emptyChance ? 0 : random() < SEARCH_LOOT.twoItemChance ? 2 : 1;
+    object.contents = Array.from({ length: count }, () => {
+      const pool = random() < profile.materialChance ? ['scrap', 'cloth'] : random() < profile.rareChance ? definition.rarePool : definition.pool;
+      return pool[Math.floor(random() * pool.length)];
+    });
+  });
   return objects;
+}
+
+export function searchRewardDepths(world, objects) {
+  const distances = objects.map(object => findPath(world, world.spawn, object).length);
+  const farthest = Math.max(1, ...distances);
+  return distances.map(distance => ({ distance, depth: distance / farthest }));
+}
+export function searchRewardProfile(depth) {
+  const t = Math.max(0, Math.min(1, depth));
+  const blend = (near, far) => near + (far - near) * t;
+  return { emptyChance: blend(SEARCH_LOOT.nearEmptyChance, SEARCH_LOOT.farEmptyChance), materialChance: blend(SEARCH_LOOT.nearMaterialChance, SEARCH_LOOT.farMaterialChance), rareChance: blend(SEARCH_LOOT.nearRareChance, SEARCH_LOOT.farRareChance) };
 }
 
 export function canSearch(world, player, object) {
