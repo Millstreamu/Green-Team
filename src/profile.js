@@ -59,3 +59,6 @@ export function buyPersonalUpgrade(profile, id) {
   profile.purchases ??= []; profile.purchases.push(id); return true;
 }
 export function personalSearchRate(profile) { return ownsUpgrade(profile, 'quickSearch') ? 1 + PROGRESSION.quickSearchBonus : 1; }
+
+// Display-only level; spending available XP never reduces lifetime progress.
+export function profileLevel(profile) { return 1 + Math.floor((profile.earnedXp ?? 0) / PROGRESSION.levelXp); }

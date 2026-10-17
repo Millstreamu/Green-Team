@@ -19,7 +19,8 @@ function controls() {
   const locked = busy || !access || !state || state.saveFailed;
   for (const node of document.querySelectorAll('button')) node.disabled = locked;
   for (const node of document.querySelectorAll('[data-edit]')) node.disabled = locked || state.runActive;
-  $('#end-run').disabled = locked || !state?.runActive;
+  $('#end-run').disabled = locked || !(state?.selectedRunActive ?? state?.runActive);
+  if (state?.lairs && !state.selectedLairId) { $('#set-stock').disabled = true; $('#reset-lair').disabled = true; }
   $('#set-xp').disabled ||= !selectedGoblin(); $('#reset-goblin').disabled ||= !selectedGoblin();
   $('#restore-backup').disabled ||= !state?.backups.some(b => b.id === $('#admin-backup').value && b.valid);
 }
@@ -29,6 +30,12 @@ function details() {
 }
 function paint(next) {
   state = next;
+  $('#admin-lair-section').hidden = !state.lairs;
+  if (state.lairs) {
+    options($('#admin-lair'), state.lairs.map(l => [l.id, l.name]));
+    $('#admin-lair').value = state.selectedLairId ?? '';
+    $('#admin-lair-code').textContent = state.lairs.find(l => l.id === state.selectedLairId)?.code ?? 'No lairs yet';
+  }
   $('#run-state').textContent = state.saveFailed ? 'Saving failed · game paused. Check Terminal and restart after fixing disk access.' : state.runActive ? 'Run active · back up now, or end the run before editing.' : 'At the lair · edits are available.';
   $('#stock-summary').textContent = Object.entries(state.camp.counts).filter(([type]) => !LOOT_TYPES[type].sellValue).map(([type, count]) => `${LOOT_TYPES[type].name}: ${count}`).join(' · ');
   options($('#admin-goblin'), state.players.map(p => [p.id, p.name]));
@@ -36,9 +43,9 @@ function paint(next) {
   details(); controls();
 }
 async function request(command) {
-  const response = await fetch('/admin/api', { method: command ? 'POST' : 'GET', cache: 'no-store', credentials: 'omit',
+  const response = await fetch(`/admin/api${!command && $('#admin-lair').value ? '?lair=' + encodeURIComponent($('#admin-lair').value) : ''}`, { method: command ? 'POST' : 'GET', cache: 'no-store', credentials: 'omit',
     headers: { 'x-green-team-admin': key, ...(command ? { 'Content-Type': 'application/json' } : {}) },
-    ...(command ? { body: JSON.stringify(command) } : {}) });
+    ...(command ? { body: JSON.stringify({ ...command, ...(state?.selectedLairId ? { lairId: state.selectedLairId } : {}) }) } : {}) });
   const data = await response.json();
   if (!response.ok) { if (response.status === 403) access = false; throw Error(data.error ?? 'Admin request failed.'); }
   return data;
@@ -57,16 +64,17 @@ async function run(command, confirmation) {
 }
 options($('#admin-item'), Object.entries(LOOT_TYPES).filter(([, def]) => !def.sellValue).map(([id, def]) => [id, def.name]));
 $('#admin-item').value = 'gold';
+$('#admin-lair').addEventListener('change', refresh);
 $('#admin-item').addEventListener('change', () => { $('#stock-amount').value = state?.camp.counts[$('#admin-item').value] ?? 0; });
 $('#admin-goblin').addEventListener('change', () => { details(); $('#xp-amount').value = selectedGoblin()?.xp ?? 0; controls(); });
 $('#admin-backup').addEventListener('change', controls);
 $('#stock-form').addEventListener('submit', event => { event.preventDefault(); run({ type: 'set-stock', item: $('#admin-item').value, amount: Number($('#stock-amount').value) }); });
 $('#xp-form').addEventListener('submit', event => { event.preventDefault(); run({ type: 'set-xp', id: selectedGoblin()?.id, amount: Number($('#xp-amount').value) }); });
 $('#make-backup').addEventListener('click', () => run({ type: 'backup' }));
-$('#restore-backup').addEventListener('click', () => run({ type: 'restore', backupId: $('#admin-backup').value }, 'Restore this backup? Saved stock, sacks and progress will return to that point. Goblins created later keep their identities but reset to zero progress. A backup of the current home is made first.'));
-$('#reset-lair').addEventListener('click', () => run({ type: 'reset-lair' }, 'Reset shared gold, stock and destination to starter values? Personal sacks and progress stay. A backup is made first.'));
-$('#reset-goblin').addEventListener('click', () => run({ type: 'reset-goblin', id: selectedGoblin()?.id }, `Reset ${selectedGoblin()?.name ?? 'this goblin'}? Its sack, XP and unlocks will be cleared. Its identity stays. A backup is made first.`));
-$('#reset-all').addEventListener('click', () => run({ type: 'reset-all' }, 'Reset the lair and ALL goblin sacks, XP and unlocks? Goblin identities stay. A backup is made first.'));
+$('#restore-backup').addEventListener('click', () => run({ type: 'restore', backupId: $('#admin-backup').value }, 'Restore this SERVER backup? ALL lairs, sacks and personal progress return to that point. Newer lairs reset to starter stock. Goblins created later keep their identities but reset to zero progress. A backup of the current home is made first.'));
+$('#reset-lair').addEventListener('click', () => run({ type: 'reset-lair' }, 'Reset the SELECTED lair’s gold, stock and destination to starter values? Personal sacks and progress stay. A backup is made first.'));
+$('#reset-goblin').addEventListener('click', () => run({ type: 'reset-goblin', id: selectedGoblin()?.id }, `Reset ${selectedGoblin()?.name ?? 'this goblin'}? Its sacks in ALL lairs, XP and unlocks will be cleared. Its identity stays. A backup is made first.`));
+$('#reset-all').addEventListener('click', () => run({ type: 'reset-all' }, 'Reset ALL lairs and ALL goblin sacks, XP and unlocks? Goblin identities stay. A backup is made first.'));
 $('#end-run').addEventListener('click', () => run({ type: 'end-run' }, 'End this run and return everyone home? All carried loot and supplies are lost. No gold or XP is awarded. Waiting goblins keep their home sacks. A backup is made first.'));
 controls();
 if (!access) status('Open the private admin link printed in Terminal after npm start.', true);

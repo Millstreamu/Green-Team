@@ -182,7 +182,7 @@ test('browser admin wires edits, backup/restore, confirmations, run locks and ac
   element('make-backup').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
   const checkpoint = element('admin-backup').value;
   const before = commands.length; element('reset-goblin').send('click');
-  assert.equal(commands.length, before); assert.match(prompts.at(-1), /sack, XP and unlocks/);
+  assert.equal(commands.length, before); assert.match(prompts.at(-1), /XP and unlocks/);
   confirm = true; element('reset-goblin').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(a.profile.xp, 0); assert.equal(b.profile.xp, 0);
   element('admin-backup').value = checkpoint; element('restore-backup').send('click'); await new Promise(resolve => setTimeout(resolve, 0));

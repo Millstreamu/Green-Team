@@ -1,3 +1,4 @@
+import { createHomeView } from './home-view.js';
 import { createOnlineIdentity } from './online-identity.js';
 import { createCamp, createLairWorld, lairTarget } from './lair.js';
 import { createProfile } from './profile.js';
@@ -15,6 +16,7 @@ import { pressureLabel } from './pressure-view.js';
 import { atTunnel } from './run.js';
 
 const $ = selector => document.querySelector(selector);
+$('#game-shell').hidden = true; $('#home-screen').hidden = false;
 let identityStorage, identityTabStorage;
 try { identityStorage = window.localStorage; } catch {}
 try { identityTabStorage = sessionStorage; } catch {}
@@ -25,13 +27,16 @@ function showIdentities(name) {
   const entries = identity.list(), signature = JSON.stringify(entries);
   if (signature !== identityChoices) {
     identityChoices = signature;
-    const choices = entries.map(p => {
-      const option = document.createElement('option'); option.value = p.token; option.textContent = p.name; return option;
-    });
-    const add = document.createElement('option'); add.value = ''; add.textContent = 'New goblin';
-    $('#goblin-choice').replaceChildren(...choices, add);
+    for (const selector of ['#goblin-choice', '#home-goblin-choice']) {
+      const choices = entries.map(p => {
+        const option = document.createElement('option'); option.value = p.token; option.textContent = p.name; return option;
+      });
+      const add = document.createElement('option'); add.value = ''; add.textContent = 'New goblin';
+      $(selector).replaceChildren(...choices, add);
+    }
   }
   $('#goblin-choice').value = identityToken ?? '';
+  $('#home-goblin-choice').value = identityToken ?? '';
 }
 let world = createLairWorld(), state = null, connected = false, socket, previous = 0, dragStart = null, aimDirty = false;
 let shownResult = null, shownNotice = null;
@@ -40,13 +45,14 @@ const pointer = { x: 0, y: 0, active: false, overGame: false };
 const sack = createSackView($('#sack-grid'), $('#held-ghost'));
 const results = createResultsView($('#run-results'));
 const render = await createRenderer($('#game'), $('#map'));
-const modal = () => $('#lair-panel').open || $('#map-planning').open || $('#run-results').open;
+const modal = () => state?.screen === 'home' || $('#lair-panel').open || $('#map-planning').open || $('#run-results').open;
 const input = createInput(window, () => modal() || !world.lair && sack.isNavigating());
-const tell = text => { $('#status').textContent = text; };
+const tell = text => { $('#status').textContent = text; if (!state || state.screen === 'home') $('#home-message').textContent = text; };
 const send = message => { if (socket?.readyState === WebSocket.OPEN && connected) socket.send(JSON.stringify(message)); };
+const home = createHomeView(send);
 const clear = () => {
   input.clear(); dragStart = null;
-  send({ type: 'move', x: 0, y: 0, searchHeld: false }); $('#game').focus();
+  if (state && state.screen !== 'home') { send({ type: 'move', x: 0, y: 0, searchHeld: false }); $('#game').focus(); }
 };
 const stopSearch = () => send({ type: 'cancel-search' });
 const self = () => state?.players.find(p => p.id === state.selfId);
@@ -78,13 +84,16 @@ $('#xp-label').textContent = 'Test goblin · 0 XP';
 $('#next-run').addEventListener('click', () => { send({ type: 'dismiss-result' }); results.close(); clear(); });
 $('#sack-tab').addEventListener('click', () => { if (activeDungeon() && !self().hiding) { clear(); stopSearch(); send({ type: 'cancel-placement' }); sack.toggle(); } });
 $('#online-identity').hidden = false;
-$('#goblin-choice').addEventListener('change', () => {
-  if (!connected || state?.location !== 'home' || state?.launched) return;
+function chooseIdentity(event) {
+  if (!connected || state?.screen !== 'home' && (state?.location !== 'home' || state?.launched)) return;
   clear(); $('#lair-panel').close(); $('#map-planning').close();
-  identity.select($('#goblin-choice').value); connected = false;
+  identity.select(event.target.value); connected = false;
   const old = socket; socket = null; old.close(); state = null; identityToken = null;
   tell('Connecting to the selected goblin…'); connect();
-});
+}
+$('#goblin-choice').addEventListener('change', chooseIdentity);
+$('#home-goblin-choice').addEventListener('change', chooseIdentity);
+$('#leave-lair').addEventListener('click', () => { clear(); send({ type: 'leave-lair' }); });
 function connect() {
   socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/session`);
   const connection = socket;
@@ -99,11 +108,23 @@ function connect() {
       connected = true; identityToken = message.token; identity.remember(message.token, 'Goblin');
       tell('Connected. WASD to walk; Tab opens your inventory.'); return;
     }
-    if (message.type === 'save-error') { connected = false; $('#save-status').textContent = 'SAVE FAILED · GAME PAUSED'; tell('Saving failed. Game paused. Check the server Terminal before restarting.'); return; }
+    if (message.type === 'save-error') { connected = false; if (state?.screen === 'home') home.show(state, false); $('#save-status').textContent = 'SAVE FAILED · GAME PAUSED'; tell('Saving failed. Game paused. Check the server Terminal before restarting.'); return; }
     if (message.type === 'rejected') {
-      tell('That action could not finish. Check sack space, distance, or whether another goblin got there first.'); return;
+      tell(message.message || 'That action could not finish. Check sack space, distance, or whether another goblin got there first.'); return;
     }
     if (message.type !== 'state') return;
+    if (message.screen === 'home') {
+      const entering = state?.screen !== 'home';
+      state = message; home.show(message, connected); showIdentities(message.name);
+      $('#lair-panel').close(); $('#map-planning').close(); results.close(); input.clear(); sack.reset();
+      if (entering) home.message('Join a friend’s lair with its name and code, or create your own.');
+      return;
+    }
+    home.hide();
+    $('#lair-bar').hidden = !message.lair;
+    $('#current-lair-name').textContent = message.lair?.name ?? '';
+    $('#current-lair-code').textContent = message.lair?.code ?? '';
+    $('#leave-lair').disabled = message.location === 'dungeon';
     const equipped = message.placement?.itemId && message.placement.itemId !== state?.placement?.itemId || message.quickType && message.quickType !== state?.quickType;
     const oldRun = state?.dungeon?.id;
     const changed = oldRun !== message.dungeon?.id || state?.location !== message.location;
@@ -137,6 +158,7 @@ function connect() {
   socket.addEventListener('close', event => {
     if (connection !== socket) return;
     connected = false; input.clear(); dragStart = null; $('#lair-panel').close(); $('#map-planning').close();
+    if (state?.screen === 'home') home.show(state, false);
     if (event.reason === 'Save failed') { $('#save-status').textContent = 'SAVE FAILED · GAME PAUSED'; tell('Saving failed. Game paused. Check the server Terminal before restarting.'); return; }
     tell('Disconnected. Controls paused; reconnecting…');
     if (event.reason === 'Session already open') identity.select(null);
@@ -243,7 +265,7 @@ document.addEventListener('pointerup', event => {
   else if (event.target === $('#game')) send({ type: 'drop' });
 });
 setInterval(() => {
-  if (!connected || !state || state.result || self()?.waiting) return;
+  if (!connected || !state || state.screen === 'home' || state.result || self()?.waiting) return;
   const paused = document.hidden || modal() || self()?.state === 'down' || self()?.hiding || !world.lair && sack.isNavigating();
   if (!paused && aimDirty && state.placement?.itemId && pointer.active && pointer.overGame) {
     aimDirty = false;

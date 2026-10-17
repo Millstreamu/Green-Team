@@ -44,6 +44,20 @@ export function createLairSession({ store = null } = {}) {
     // A membership change requires a fresh boarding action to begin a countdown.
   }
   const api = {
+    exportState: durableState,
+    hasIdentity(token) { return players.has(token); },
+    bindIdentity(identity) {
+      const p = players.get(identity.token);
+      if (p) { p.profile = identity.profile; p.name = identity.name; }
+    },
+    connectIdentity(identity) {
+      if (!players.has(identity.token)) {
+        const p = actor({ token: identity.token, id: identity.id, name: identity.name, profile: identity.profile, bag: [], interrupted: false });
+        p.waiting = !!launched; players.set(identity.token, p);
+      }
+      api.bindIdentity(identity);
+      return api.connect(identity.token);
+    },
     adminState() { return structuredClone(durableState()); },
     adminInfo() {
       return { runActive: !!dungeon, saved: !!store, saveFailed: !!saveFailure, camp: structuredClone({ counts: camp.counts, destination: camp.destination }),

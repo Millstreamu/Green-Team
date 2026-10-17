@@ -44,17 +44,22 @@ test('CLI survives hard termination: home sack restored, launched sack spent dur
     await once(ws, 'open'); ws.send(JSON.stringify({ type: 'hello', token })); await until(() => state);
     return { ws, until, state: () => state, token: key, send: m => ws.send(JSON.stringify(m)) };
   }
-  const a = await client(await start()); a.send({ type: 'take', item: 'snare' }); await a.until(() => a.state().bag.length === 1);
+  const a = await client(await start());
+  assert.equal(a.state().screen, 'home'); a.send({ type: 'create-lair', name: 'Process Lair' }); await a.until(() => a.state().lair);
+  const joinCommand = { type: 'join-lair', name: a.state().lair.name, code: a.state().lair.code };
+  a.send({ type: 'take', item: 'snare' }); await a.until(() => a.state().bag.length === 1);
   const id = a.state().selfId; await kill();
   const b = await client(await start(), a.token);
-  assert.equal(b.state().selfId, id); assert.equal(b.state().bag[0].type, 'snare');
+  assert.equal(b.state().selfId, id); assert.equal(b.state().screen, 'home');
+  b.send(joinCommand); await b.until(() => b.state().lair); assert.equal(b.state().bag[0].type, 'snare');
   const moving = setInterval(() => b.send({ type: 'move', x: 0, y: -1 }), 50);
   try { await b.until(() => b.state().players.find(p => p.id === id).y < 3.6); }
   finally { clearInterval(moving); }
   b.send({ type: 'move', x: 0, y: 0 }); b.send({ type: 'board' }); await b.until(() => b.state().dungeon);
   await kill();
   const c = await client(await start(), a.token);
-  assert.equal(c.state().selfId, id); assert.deepEqual(c.state().bag, []);
+  assert.equal(c.state().selfId, id); assert.equal(c.state().screen, 'home');
+  c.send(joinCommand); await c.until(() => c.state().lair); assert.deepEqual(c.state().bag, []);
   assert.equal(c.state().camp.counts.snare, 0); assert.equal(c.state().dungeon, null);
   assert.match(c.state().notice.text, /lost/);
   assert.equal(new Set(adminKeys).size, 3); // Private admin key rotates on every real restart.

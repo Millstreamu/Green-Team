@@ -43,12 +43,12 @@ export function createAdminHttp(controller, token = randomBytes(32).toString('he
       }
       if (!authorized(req)) { json(res, 403, { error: 'Use the private admin link printed in Terminal. It changes each restart.' }); return true; }
       try {
-        if (req.method === 'GET') json(res, 200, controller.summary());
+        if (req.method === 'GET') json(res, 200, controller.summary(new URL(req.url, 'http://localhost').searchParams.get('lair')));
         else if (req.method === 'POST') {
           if (req.headers.origin !== origin) throw new AdminError('Open the admin page on this server.', 403);
           const command = await readCommand(req);
           const result = controller.command(command);
-          json(res, 200, { ...result, state: controller.summary() });
+          json(res, 200, { ...result, state: controller.summary(command.lairId) });
         } else json(res, 405, { error: 'Method not allowed.' });
       } catch (error) {
         if (!(error instanceof AdminError)) console.error('Admin action failed:', error.message);

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { createCamp, syncStashSlots } from '../src/lair.js';
 import { createProfile } from '../src/profile.js';
 import { LOOT_TYPES } from '../src/loot.js';
-import { restoreSave } from './save-store.js';
+import { validateSave } from './save-store.js';
 
 export class AdminError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
@@ -17,12 +17,12 @@ export function createBackupStore(directory) {
     if (!lstatSync(path).isFile()) throw new AdminError('That backup is not a regular file.');
     const value = JSON.parse(readFileSync(path, 'utf8'));
     if (value?.format !== 1 || typeof value.createdAt !== 'string' || typeof value.label !== 'string') throw new AdminError('This backup format is not supported.');
-    restoreSave(value.state);
+    validateSave(value.state);
     return value;
   }
   return {
     create(state, label) {
-      restoreSave(state);
+      validateSave(state);
       mkdirSync(directory, { recursive: true, mode: 0o700 });
       const id = `${Date.now()}-${randomUUID()}.json`;
       const fd = openSync(join(directory, id), 'wx', 0o600);
@@ -87,7 +87,7 @@ export function createAdminController(session, backups) {
       if (kind === 'set-xp') { goblin.profile.xp = amount(command.amount); goblin.profile.earnedXp = Math.max(goblin.profile.earnedXp, goblin.profile.xp); }
       next.camp.nextItemId = Math.max(next.camp.nextItemId, state.camp.nextItemId);
       for (const p of next.players) p.interrupted = false;
-      restoreSave(next); // Validate the plan before making a backup or changing live state.
+      validateSave(next); // Validate the plan before making a backup or changing live state.
       const labels = { restore: 'restoring backup', 'reset-all': 'resetting all progress', 'reset-lair': 'resetting lair', 'reset-goblin': 'resetting goblin', 'set-stock': 'changing stock', 'set-xp': 'changing XP' };
       const backup = backups.create(state, `Before ${labels[kind]}`);
       session.adminReplace(next);

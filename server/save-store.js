@@ -47,6 +47,28 @@ export function restoreSave(saved) {
   return { camp, players };
 }
 
+export function validateSave(saved) {
+  if (saved === null || saved.version === 1) return restoreSave(saved);
+  requireSave(saved.version === 2 && Array.isArray(saved.profiles) && Array.isArray(saved.lairs));
+  const blank = createCamp();
+  restoreSave({ version: 1, camp: blank, players: saved.profiles.map(p => ({ ...p, bag: [], interrupted: false })) });
+  const identities = new Map(saved.profiles.map(p => [p.token, p]));
+  const ids = new Set(), names = new Set();
+  for (const lair of saved.lairs) {
+    requireSave(validId(lair?.id) && !ids.has(lair.id) && typeof lair.name === 'string'
+      && lair.name === lair.name.trim() && lair.name.length >= 1 && lair.name.length <= 32
+      && !/\p{C}/u.test(lair.name) && !names.has(lair.name.toLowerCase())
+      && typeof lair.code === 'string' && /^[A-Z2-9]{6}$/.test(lair.code));
+    ids.add(lair.id); names.add(lair.name.toLowerCase());
+    restoreSave(lair.state);
+    for (const actor of lair.state.players) {
+      const p = identities.get(actor.token);
+      requireSave(p && p.id === actor.id && p.name === actor.name && JSON.stringify(p.profile) === JSON.stringify(actor.profile));
+    }
+  }
+  return saved;
+}
+
 export function openSaveStore(filename) {
   if (filename !== ':memory:') mkdirSync(dirname(filename), { recursive: true, mode: 0o700 });
   const db = new DatabaseSync(filename);
@@ -60,7 +82,7 @@ export function openSaveStore(filename) {
     const write = db.prepare('INSERT INTO home_save(id,state) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET state=excluded.state');
     let last = read.get()?.state ?? null;
     // Check before any game action can replace an unreadable or unsupported save.
-    if (last !== null) restoreSave(JSON.parse(last));
+    if (last !== null) { const saved = JSON.parse(last); requireSave(saved !== null); validateSave(saved); }
     return {
       load() { return last === null ? null : JSON.parse(last); },
       save(state) {

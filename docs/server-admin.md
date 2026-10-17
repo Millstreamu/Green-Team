@@ -1,4 +1,7 @@
-# Server admin — V38
+# Server admin — V39
+
+V39 adds a **Selected lair** dropdown with its join code. Shared stock/reset-lair and End run affect that lair. Personal XP is global, Reset goblin clears its sacks in every lair, and Reset all affects every group. Backups/restore cover the entire server. All runs must end before editing/restoring; End run only ends the selected lair's run. Migrated saves appear as Original Lair, with their code here. See [lair-entry.md](lair-entry.md) for current scopes and migration.
+
 
 ## Open it
 
@@ -13,13 +16,13 @@ For a first test, make a backup, set one goblin to80XP, buy a recipe/passive in 
 | Make backup now | Saves the shared home and all personal saves on the server. Available during runs too, but does not save the live dungeon. |
 | Save quantity | Sets shared gold, a material or crafted gear to a whole nonnegative quantity. Does not award XP. |
 | Save XP | Sets only the selected goblin's available XP. Keeps owned upgrades and lifetime XP at least as high as the new balance. |
-| Reset lair | Restores starter stock, zero gold, default map and stash layout. Keeps all personal bags and progression. |
-| Reset this goblin | Clears that goblin's sack, XP and purchases. Keeps its identity and everyone else's progress/stock. |
-| Reset all progress | Restores starter shared stock and clears every personal bag, XP and purchase. Keeps identities and backups. |
+| Reset lair | Restores the selected lair’s starter stock, zero gold, default map and stash layout. Keeps all personal bags and progression. |
+| Reset this goblin | Clears that goblin's sacks in every lair, global XP and purchases. Keeps its identity and everyone else's progress/stock. |
+| Reset all progress | Restores starter shared stock in ALL lairs and clears every personal bag, XP and purchase. Keeps identities and backups. |
 | Restore selected backup | Restores the saved home, bags and profiles from that point. Goblins created later keep their identities but reset bags/progression. |
 | End run | Forces the current run to end, loses its carried loot/supplies and awards no gold/XP. Everyone returns home; waiting goblins keep their home sacks. |
 
-Every edit, reset, restore and forced run ending writes a backup first. If backup fails, nothing changes. Resets, restores and forced run ending ask for confirmation in the browser. Normal gameplay keeps running while the admin page is open. Editing/resetting/restoring is blocked while a dungeon is active; end that run first. Making a backup during a run captures the durable home projection, with participating bags already spent; it cannot restore cages, floor loot or live runs.
+Every edit, reset, restore and forced run ending backs up all lairs and global profiles first. If backup fails, nothing changes. Resets, restores and forced run ending ask for confirmation in the browser. Normal gameplay keeps running while the admin page is open. Editing/resetting/restoring is blocked while any dungeon is active; end that run first. Making a backup during a run captures the durable home projection, with participating bags already spent; it cannot restore cages, floor loot or live runs.
 
 Resetting doesn't create new goblin identities, so existing tabs can reconnect normally. Restore updates the same live actor objects, including offline goblins, without duplicating stock or disconnecting everyone. Item numbering never rewinds into existing IDs. When no run is active, an edit also cancels boarding and returns goblins to their normal home spawn. Values save before success is reported; a failed commit pauses the game and blocks further admin changes until disk access is fixed and the server restarted.
 
@@ -35,4 +38,6 @@ If startup cannot read a damaged save: stop the server, retain a copy of the dam
 
 The admin endpoint requires a random per-start capability from Terminal, loopback connection and a local host name. Browser commands also require the same origin and a custom private header; ordinary game WebSocket commands have no admin access. The secret stays in the private link/header, never game state or normal page links. API responses list names/IDs/balances, not other players' reconnect keys or full backup contents. Bad inputs/paths, unsupported backups, cross-origin requests and missing/wrong keys cannot mutate state.
 
-This is local operator tooling for the current one-home server, not a hosted administrator account/role system. Backups are home/profile snapshots rather than resumable dungeon saves or downloadable public exports. A later public server needs its own authenticated admin deployment design.
+This is local operator tooling for the named-lair server, not a hosted administrator account/role system. Backups are home/profile snapshots rather than resumable dungeon saves or downloadable public exports. A later public server needs its own authenticated admin deployment design.
+
+Save edits/restores apply coherent new home snapshots: connected goblins stay in their selected group, return to its home spawn and cancel boarding. Stock/progression outside the requested reset scope stay unchanged. End run uses the selected engine directly and leaves other groups’ ongoing runs intact.

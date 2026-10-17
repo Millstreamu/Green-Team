@@ -78,7 +78,7 @@ test('home reconnect preserves own bag and excludes offline goblins from readine
 });
 
 test('two real WebSocket clients share stock and see server movement; static routes are limited', async t => {
-  const { server, wss } = createGameServer();
+  const { server, wss } = createGameServer({ session: createLairSession() });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const address = `http://127.0.0.1:${server.address().port}`;
   const clients = [];

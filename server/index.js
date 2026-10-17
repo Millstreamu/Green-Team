@@ -4,13 +4,14 @@ import { fileURLToPath } from 'node:url';
 import { resolve, extname, dirname } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { WebSocketServer } from 'ws';
-import { createLairSession } from './lair-session.js';
 import { openSaveStore } from './save-store.js';
-import { createAdminController, createBackupStore } from './admin.js';
+import { createBackupStore } from './admin.js';
 import { createAdminHttp } from './admin-http.js';
+import { createHubSession } from './hub-session.js';
+import { createHubAdminController } from './hub-admin.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-export function createGameServer({ session = createLairSession(), admin = null } = {}) {
+export function createGameServer({ session = createHubSession(), admin = null } = {}) {
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url, 'http://localhost').pathname;
@@ -18,7 +19,7 @@ export function createGameServer({ session = createLairSession(), admin = null }
       const relative = path === '/' ? 'index.html' : path.slice(1);
       if (!(relative === 'index.html' || relative.startsWith('src/') || relative === 'assets/goblin.png') || relative.includes('..')) { res.writeHead(404).end(); return; }
       let data = await readFile(resolve(root, relative));
-      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Server admin tools · V38'));
+      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Choose your lair · V39'));
       res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
     } catch { res.writeHead(404).end(); }
   });
@@ -53,7 +54,7 @@ export function createGameServer({ session = createLairSession(), admin = null }
           p = session.connect(m.token);
           if (!p) { ws.close(1008, 'Session already open'); return; }
           clearTimeout(timeout); ws.send(JSON.stringify({ type: 'welcome', token: p.token }));
-        } else if (!session.action(p, m)) ws.send(JSON.stringify({ type: 'rejected', message: 'That action is no longer available. Shared state refreshed.' }));
+        } else if (!session.action(p, m)) ws.send(JSON.stringify({ type: 'rejected', message: session.rejection?.(p) || 'That action is no longer available. Shared state refreshed.' }));
         if (p) ws.send(JSON.stringify(session.snapshot(p)));
       } catch (error) { pauseForSaveError(error); }
     });
@@ -80,8 +81,9 @@ export function createGameServer({ session = createLairSession(), admin = null }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const filename = resolve(process.env.GREEN_TEAM_SAVE_FILE || resolve(root, 'data/home.sqlite'));
   const store = openSaveStore(filename);
-  const session = createLairSession({ store });
-  const admin = createAdminHttp(createAdminController(session, createBackupStore(resolve(dirname(filename), 'backups'))));
+  const backups = createBackupStore(resolve(dirname(filename), 'backups'));
+  const session = createHubSession({ store, beforeMigration: state => backups.create(state, 'Before named-lair migration') });
+  const admin = createAdminHttp(createHubAdminController(session, backups));
   const { server, wss } = createGameServer({ session, admin });
   let stopping = false;
   function stop() {

@@ -17,7 +17,7 @@ export const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, trig
 export const SEARCH_LOOT = Object.freeze({ nearEmptyChance: 0.7, farEmptyChance: 0.5, twoItemChance: 0.15, nearMaterialChance: 0.75, farMaterialChance: 0.2, nearRareChance: 0.1, farRareChance: 0.8 });
 
 // Temporary XP pacing for the personal-progression playtest.
-export const PROGRESSION = Object.freeze({ xpPerGold: 1, recipeCosts: Object.freeze({ snare: 0, smoke: 50 }), quickSearchCost: 30, quickSearchBonus: 0.1 });
+export const PROGRESSION = Object.freeze({ xpPerGold: 1, levelXp: 100, recipeCosts: Object.freeze({ snare: 0, smoke: 50 }), quickSearchCost: 30, quickSearchBonus: 0.1 });
 
 export const DEPARTURE = Object.freeze({ countdown: 3 });
 

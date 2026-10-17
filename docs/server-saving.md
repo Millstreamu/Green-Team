@@ -1,4 +1,4 @@
-# Server saving — V38
+# Server saving — V39
 
 Run `npm ci`, then `npm start` as before. Node 22.13+ includes the SQLite database used here; no database download is needed. Existing Node24 works.
 
@@ -8,7 +8,7 @@ Run `npm ci`, then `npm start` as before. Node 22.13+ includes the SQLite databa
 - Each goblin’s identity, prepared home sack, existing XP, recipes and passive purchases.
 - Offline goblins’ home sacks, even when other players keep playing.
 
-Everyone returns to the lair with full health after a server restart, with no boarding countdown. Dungeon layouts, floor loot, carried loot/supplies, cages and live timers are not resumed. A launched run durably removes its sacks from the saved home immediately; restarting cannot restore used supplies. Interrupted participants receive a notice. Waiting arrivals keep their home sacks. Successful extraction commits banked gold/materials/unused real gear and cleared participant sacks in the same save. Repeated restarts cannot repeat the haul.
+Everyone returns to the home screen after a restart, then joins a lair at full health with no boarding countdown. Dungeon layouts, floor loot, carried loot/supplies, cages and live timers are not resumed. A launched run durably removes its sacks from the saved home immediately; restarting cannot restore used supplies. Interrupted participants receive a notice. Waiting arrivals keep their home sacks. Successful extraction commits banked gold/materials/unused real gear and cleared participant sacks in the same save. Repeated restarts cannot repeat the haul.
 
 Debug supplies retain their no-credit tag across restart. Personal XP from the actual banked team valuables is now stored with shared gold and all participant profiles in one commit. Every departure participant earns equally, including offline/expired and left-behind goblins; waiting arrivals are excluded. Failed/interrupted runs earn none. One existing rule calculates rewards (1XP per valuable gold); materials/equipment/debug items earn none. The client cannot submit its own XP or ownership.
 
@@ -30,7 +30,7 @@ One SQLite row contains the versioned home snapshot, committed as one atomic sta
 
 Loading checks schema/version, counts, profiles, unique identities/item IDs, item footprints and bags. Unreadable or unsupported saves stop startup rather than silently resetting. Do not delete that file to make an error disappear; retain a copy and restore a known backup while the server is stopped. On write failure the session blocks further changes, the server pauses simulation, and players see a saving error. Fix disk space/access, then restart from the last successful save.
 
-There are no public accounts, named group selection, cross-device identity recovery, scheduled backups, or public hosting yet. This is one durable friend-group home on the existing local server.
+Named lair selection by name/code is implemented. Public accounts, cross-device identity recovery, scheduled backups and public hosting remain future work. Multiple groups share this server but have separate lair economies and runs.
 
 ## Verification
 
@@ -45,3 +45,9 @@ Personal purchases already use server profile balances/station checks and save i
 ## V38 admin backups and recovery
 
 The private browser admin tool adds manual backups plus an automatic before-change backup for each reset, stock/XP edit, restore and forced run ending. These are versioned validated JSON snapshots under data/backups, flushed before changes can commit. Restore uses the same atomic SQLite checkpoint and keeps current goblin identities. Backup failure prevents the action. Database commit failure keeps the backup and pauses the session. The normal game cannot call admin actions. See [server-admin.md](server-admin.md) for reset scopes, private-link access and damaged-save recovery. V36/V37 schema remains compatible; keep the entire data directory during updates. Backups exclude live dungeon state just like the durable home save. They are not a scheduled or off-machine backup service.
+
+## V39 canonical profiles and multiple lairs
+
+The same database row now holds payload version2: canonical global personal profiles and named lairs with six-character codes and separate version1 durable home states. Membership bags stay lair-specific; profile references are bound to the canonical identity, including offline departed participants who later earn XP. A single server checkpoint commits all lairs and global profiles together. The original per-lair domain engine still owns gameplay; a hub routes each connection exclusively to its joined lair. Nonmembers cannot route actions by supplying another lair ID.
+
+V36–V38 payloads are backed up before CLI migration, then preserved as Original Lair. Its code is in admin. Old single-home backup restore maps into Original Lair, retaining its current code when it exists. V39 backups cover the entire server. Newer identities/lairs survive restoration with reset progression/stock as described in lair-entry.md. Do not open the new payload with older game versions. Browser identity keys remain unchanged. Prepared sacks and active runs retain all existing spend/loss/reward/reconnect rules, now within their own lair. Fresh launch and ordinary home reload lead to the home screen; live in-run reconnect still resumes its actor within grace.

@@ -54,8 +54,16 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   Surface.prototype.send.call(socket, 'open');
   assert.equal(sent[0].type, 'hello');
   receive({ type: 'welcome', token: player.token });
+  receive({ type: 'state', screen: 'home', selfId: player.id, name: player.name, profile: player.profile,
+    level: 1, players: [], recentLairs: [], location: 'menu' });
+  assert.equal(element('home-screen').hidden, false); assert.equal(element('game-shell').hidden, true);
+  assert.equal(element('home-level').textContent, 'Level 1');
+  element('create-lair-name').value = 'UI Lair'; element('create-lair-form').send('submit');
+  assert.equal(sent.at(-1).type, 'create-lair'); assert.equal(sent.at(-1).name, 'UI Lair');
+  const countAtHome = sent.length; intervals[0](); assert.equal(sent.length, countAtHome);
   const sync = () => receive(session.snapshot(player));
   sync(); frames.shift()();
+  assert.equal(element('home-screen').hidden, true); assert.equal(element('game-shell').hidden, false);
   assert.equal(element('online-identity').hidden, false);
   receive({ ...session.snapshot(player), saving: 'saved' });
   assert.match(element('save-status').textContent, /LAIR SAVED ON SERVER/);
