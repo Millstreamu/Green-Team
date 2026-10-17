@@ -10,8 +10,8 @@ export function createResultsView(dialog) {
       document.querySelector('#result-xp').textContent = result.networkXpPending ? 'Network XP rewards are not enabled in this test.' : `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
       document.querySelector('#result-job').textContent = result.job ? `${result.job.jobName} · ${result.job.difficultyName}` : '';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
-      document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
-      document.querySelector('#results-description').textContent = down ? 'Nobody was left to recover you. Your carried loot and supplies were lost.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;
+      document.querySelector('#results-title').textContent = result.leftBehind ? 'Your team escaped. You were left behind.' : down ? 'You went down.' : 'You made it out.';
+      document.querySelector('#results-description').textContent = result.leftBehind ? 'Your sack spilled when you went down. Anything teammates carried out is safe in the lair.' : down ? 'Nobody was left standing to recover the team. This run is over.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;
       list.setAttribute('aria-label', down ? 'Items lost in the dungeon' : 'Loot brought back');
       const shown = down ? result.lostItems : result.items;
       renderItemList(list, shown);

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createLairSession } from '../server/lair-session.js';
 
-test('online entry reuses inventory commands and renders shared goblins without touching solo saves', async t => {
+test('online entry connects shared loot, equipment, hiding and downed results without touching solo saves', async t => {
   class Surface {
     constructor(id = '') { this.id = id; this.listeners = {}; this.style = {}; this.dataset = {}; this.width = 0; this.height = 0; this.textContent = ''; }
     addEventListener(type, callback) { (this.listeners[type] ??= []).push(callback); }
@@ -54,7 +54,7 @@ test('online entry reuses inventory commands and renders shared goblins without 
   assert.match(element('target-label').textContent, /Tab/);
   const key = code => win.send('keydown', { code, target: element('game') });
   key('Tab'); assert.equal(element('lair-panel').open, true);
-  assert.equal(element('debug-pack-snare').hidden, true);
+  assert.equal(element('debug-pack-snare').hidden, false);
   const stock = session.snapshot(player).camp.counts.snare;
   const slot = session.snapshot(player).camp.slots.indexOf('snare');
   element('stash-grid').send('pointerdown', { clientX: (slot % 6 + .5) * 150, clientY: (Math.floor(slot / 6) + .5) * 100 });
@@ -102,16 +102,19 @@ test('online entry reuses inventory commands and renders shared goblins without 
   assert.equal(element('sack-panel').dataset.open, 'true');
   player.moving = false;
   doc.send('pointerdown', { target: element('sack-grid'), clientX: 728, clientY: 398 });
-  assert.equal(sent.at(-1).type, 'lift');
+  doc.send('pointerup', { target: element('sack-grid'), clientX: 744, clientY: 398 });
+  const lift = sent.findLast(m => m.type === 'lift');
   const id = player.bag[0].id;
-  assert.equal(session.action(player, sent.at(-1)), true); sync();
+  assert.ok(lift);
+  assert.equal(session.action(player, lift), true); sync();
   assert.equal(player.loot.held.id, id);
   key('KeyR'); assert.equal(sent.at(-1).type, 'rotate'); session.action(player, sent.at(-1)); sync();
   doc.send('pointerdown', { target: element('sack-grid'), clientX: 840, clientY: 510 });
   assert.equal(sent.at(-1).type, 'place'); assert.equal(session.action(player, sent.at(-1)), true); sync();
   assert.equal(player.bag[0].x, 2); assert.equal(player.bag[0].y, 2);
   doc.send('pointerdown', { target: element('sack-grid'), clientX: 840, clientY: 510 });
-  session.action(player, sent.at(-1)); sync();
+  doc.send('pointerup', { target: element('sack-grid'), clientX: 825, clientY: 510 });
+  session.action(player, sent.findLast(m => m.type === 'lift')); sync();
   key('KeyE'); assert.equal(sent.at(-1).type, 'drop'); session.action(player, sent.at(-1)); sync();
   const dropped = session.snapshot(player).dungeon.ground.find(item => item.id === id);
   player.x = dropped.x; player.y = dropped.y; sync();
@@ -128,5 +131,47 @@ test('online entry reuses inventory commands and renders shared goblins without 
   assert.equal(sent.at(-2).type, 'dismiss-result'); session.action(player, sent.at(-2)); sync();
   assert.equal(element('run-results').open, false);
   assert.equal(element('sack-tab').hidden, true);
+  session.action(other, { type: 'dismiss-result' });
+  let consumed = sent.length;
+  const flush = () => { for (const message of sent.slice(consumed)) session.action(player, message); consumed = sent.length; };
+  key('Tab'); element('debug-pack-snare').send('click'); flush(); sync();
+  element('debug-pack-smoke').send('click'); flush(); sync();
+  assert.deepEqual(player.bag.map(i => i.type), ['snare', 'smoke']);
+  element('lair-panel').send('keydown', { code: 'Tab' }); flush();
+  for (const p of [player, other]) { p.x = 9; p.y = 2.5; session.action(p, { type: 'board' }); }
+  for (let i = 0; i < 61; i++) session.tick(.05);
+  sync(); frames.shift()(96);
+  assert.ok(session.snapshot(player).dungeon.guards.length >= 4);
+  assert.match(element('health-label').textContent, /Health 3/);
+  assert.match(element('heat-label').textContent, /Heat/);
+  key('Tab'); flush(); frames.shift()(112); key('KeyE');
+  assert.equal(sent.at(-1).type, 'equip'); flush(); sync(); frames.shift()(128);
+  assert.ok(player.placement.itemId); assert.equal(element('sack-panel').dataset.open, 'false');
+  win.send('keyup', { code: 'KeyE', target: element('game') }); flush(); intervals[0](); flush(); session.tick(.05);
+  const beforeAim = { x: player.x, y: player.y };
+  key('KeyW'); intervals[0](); flush(); session.tick(.1); sync();
+  assert.deepEqual({ x: player.x, y: player.y }, beforeAim);
+  win.send('keyup', { code: 'KeyW', target: element('game') });
+  key('Escape'); flush(); sync(); assert.equal(player.placement.itemId, null);
+  key('Tab'); flush(); frames.shift()(144); key('KeyD'); key('KeyE'); flush(); sync();
+  assert.equal(player.quickType, 'smoke'); key('Space'); flush(); sync(); frames.shift()(160);
+  assert.equal(session.snapshot(other).dungeon.clouds.length, 1);
+  assert.ok(!player.bag.some(i => i.type === 'smoke'));
+  const spot = session.snapshot(player).dungeon.hidingSpots[0];
+  player.x = spot.x + .7; player.y = spot.y; sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450 - .7 * 24 * 2, clientY: 300 });
+  key('KeyE'); assert.equal(sent.at(-1).type, 'hide'); flush();
+  for (let i = 0; i < 10; i++) { intervals[0](); flush(); session.tick(.05); }
+  sync(); frames.shift()(176); assert.ok(player.hiding);
+  assert.match(element('target-label').textContent, /Hidden/);
+  const beforeTab = sent.length; key('Tab'); assert.equal(sent.length, beforeTab);
+  key('KeyE'); flush(); sync(); assert.equal(player.hiding, null);
+  player.state = 'down'; player.health = 0; session.tick(.05); sync(); frames.shift()(192);
+  assert.match(element('health-label').textContent, /DOWN/);
+  const beforeDownAction = sent.length; key('KeyE'); assert.equal(sent.length, beforeDownAction);
+  Object.assign(other, session.snapshot(other).dungeon.entrance);
+  assert.equal(session.action(other, { type: 'extract' }), true); sync();
+  assert.match(element('results-title').textContent, /left behind/);
+
 
 });

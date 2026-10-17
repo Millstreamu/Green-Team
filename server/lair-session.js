@@ -1,3 +1,4 @@
+import { createVitality } from '../src/guard.js';
 import { createDungeonSession } from './dungeon-session.js';
 import { randomUUID, randomInt } from 'node:crypto';
 import { createCamp, createLairWorld, lairTarget, takeStashItem, returnStashItem, craftForSack, moveStashStack } from '../src/lair.js';
@@ -12,7 +13,7 @@ export function createLairSession() {
   let launched = null, dungeon = null;
   function returnHome() {
     dungeon = null; launched = null; cart.launched = false; cart.aboard.clear(); cart.countdown = null;
-    for (const q of players.values()) { q.location = 'home'; q.waiting = false; q.inRun = false; Object.assign(q, world.spawn); q.input = { x: 0, y: 0 }; q.moving = false; }
+    for (const q of players.values()) { q.location = 'home'; q.waiting = false; q.inRun = false; Object.assign(q, world.spawn, createVitality()); q.hiding = null; q.enteringHide = null; q.input = { x: 0, y: 0 }; q.moving = false; }
     membership();
   }
   function membership() {
@@ -28,7 +29,7 @@ export function createLairSession() {
       if (!p) {
         token = randomUUID();
         p = { token, id: randomUUID(), name: `Goblin ${players.size + 1}`, connected: false, waiting: !!launched, location: 'home',
-          ...world.spawn, facing: 1, phase: 0, moving: false, input: { x: 0, y: 0 }, inputAge: 0,
+          ...world.spawn, ...createVitality(), facing: 1, phase: 0, moving: false, input: { x: 0, y: 0 }, inputAge: 0,
           bag: [], profile: createProfile() };
         p.profile.id = p.id; players.set(token, p);
       }
@@ -64,10 +65,11 @@ export function createLairSession() {
       const loot = { bag: p.bag, held: null };
       // Same domain rules as solo mode, with each player's bag kept separately.
       // Stash access via Tab is already allowed anywhere in the lair.
-      if (['take', 'craft', 'stack'].includes(message.type) && typeof message.item !== 'string') return false;
+      if (['take', 'craft', 'stack', 'debug-pack'].includes(message.type) && typeof message.item !== 'string') return false;
       if (message.type === 'return' && typeof message.id !== 'string') return false;
       if (message.type === 'buy' && typeof message.upgrade !== 'string') return false;
       if (message.type === 'destination' && (typeof message.job !== 'string' || typeof message.difficulty !== 'string')) return false;
+      if (message.type === 'debug-pack') return !!takeStashItem(camp, loot, message.item, true);
       if (message.type === 'take') return !!takeStashItem(camp, loot, message.item);
       if (message.type === 'return') return returnStashItem(camp, loot, message.id);
       if (message.type === 'stack') return moveStashStack(camp, message.item, message.slot);
@@ -103,9 +105,11 @@ export function createLairSession() {
     },
     snapshot(p) {
       return { type: 'state', selfId: p.id, name: p.name, bag: p.bag, profile: p.profile, location: p.location, held: p.loot?.held ?? null, result: p.result ?? null, notice: p.notice ?? null,
+        placement: p.placement ?? null, quickType: p.quickType ?? null,
         dungeon: p.location === 'dungeon' ? dungeon?.snapshot() : null,
         camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination },
-        players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, waiting: q.waiting, ghost: !q.connected, ghostSeconds: !q.connected ? Math.max(0, Math.ceil(60 - q.disconnectedFor)) : null })),
+        players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, state: q.state, health: q.health, maxHealth: q.maxHealth, invulnerable: q.invulnerable,
+          hiding: q.hiding ? { spot: { id: q.hiding.spot.id } } : null, enteringHide: q.enteringHide ? { spot: { id: q.enteringHide.spot.id }, elapsed: q.enteringHide.elapsed } : null, waiting: q.waiting, ghost: !q.connected, ghostSeconds: !q.connected ? Math.max(0, Math.ceil(60 - q.disconnectedFor)) : null })),
         cart: { selection: cart.selection, participants: cart.participants, aboard: [...cart.aboard], countdown: cart.countdown }, launched };
     }
   };

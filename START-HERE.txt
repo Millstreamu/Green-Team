@@ -1,10 +1,10 @@
-GREEN TEAM V32 — MAC TEST
+GREEN TEAM V33 — MAC TEST
 
 Node is already installed if you ran V31. You do not need to install it again.
 
 1. In the old Terminal window, press Control+C to stop the old game.
-2. Unzip this download. The new folder is green-team-v32.
-3. In Terminal type cd followed by a space. Drag green-team-v32 into Terminal and press Return.
+2. Unzip this download. The new folder is green-team-v33.
+3. In Terminal type cd followed by a space. Drag green-team-v33 into Terminal and press Return.
 4. Type npm ci and press Return. Wait for it to finish.
 5. Type npm start and press Return.
 6. Open http://localhost:8080 in two browser tabs. Refresh any old tabs.
@@ -13,4 +13,8 @@ Keep Terminal open while playing. Control+C stops the server.
 
 TEST: board both goblins, explore the same dungeon, hold E to search, release E and press again to collect. Tab opens sack; click to rearrange, R rotates, E drops held loot for a friend. Everyone gathers at the secret tunnel and presses E to leave together.
 
-No guards or trap deployment in this network version yet. XP rewards are not enabled. The solo play.html is still separate. Server stock is temporary and resets when the server restarts.
+GEAR: Tab opens the sack. WASD or clicking selects gear; E equips. For snares, WASD aims without walking, release E then hold E for one second to place. Esc cancels. Step clear to arm. For smoke, equip then press Space. At home, free test gear is in the collapsed Debug supplies section of the stash/workbench.
+
+DANGER: guards can chase either goblin. Three hits down you and spill your sack. Hold E half a second beside a hiding barrel; E exits. One goblin per barrel. Every three guard alerts bring another guard.
+
+Revival/cages are next: downed goblins currently wait for survivors to finish; only standing goblins must gather at the tunnel. XP rewards are not enabled. The solo play.html is still separate. Server stock is temporary and resets when the server restarts.

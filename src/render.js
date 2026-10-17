@@ -100,7 +100,7 @@ export async function createRenderer(canvas, mapCanvas) {
       const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
       ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
       ctx.restore();
-      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.name, sx, sy - sh - 8); }
+      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state === 'down' ? `${actor.name} · DOWN` : actor.name, sx, sy - sh - 8); }
     }
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);

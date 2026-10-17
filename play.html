@@ -1019,7 +1019,7 @@ function clearGuardTrail(guard) {
 }
 
 function recordGuardTrail(world, guard, player, dt) {
-  if (player.hiding) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
+  if (player.hiding || player.unavailable) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
   if (guard.trailLeft <= 0) return;
   const previous = guard.trailSource;
   // Trace only continuous valid movement, never a teleport or an off-map target.
@@ -1078,7 +1078,7 @@ function updateRoamingRoutine(world, guard, dt) {
 }
 
 function seesPlayer(world, guard, player, alerted = false, clouds = []) {
-  if (player.hiding) return false;
+  if (player.hiding || player.unavailable || player.ghost || player.state === 'down') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (alerted || distance < 1.2) return true;
@@ -1142,14 +1142,7 @@ function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
     guard.windup = Math.max(0, guard.windup - dt);
     if (!guard.windup) {
       guard.swing = COMBAT.swingTime; guard.cooldown = COMBAT.cooldown;
-      if (guardStrikeHits(world, guard, player) && hurtPlayer(player)) {
-        events.hit = true;
-        const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
-        const speed = COMBAT.knockbackDistance / Math.max(.001, COMBAT.knockbackTime);
-        player.knockbackX = (distance ? dx / distance : Math.cos(guard.angle)) * speed;
-        player.knockbackY = (distance ? dy / distance : Math.sin(guard.angle)) * speed;
-        player.knockbackLeft = COMBAT.knockbackTime;
-      }
+      events.hit = strikePlayer(world, guard, player);
     }
     return events;
   }
@@ -1192,7 +1185,7 @@ function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
 }
 
 function guardStrikeHits(world, guard, player) {
-  if (player.hiding) return false;
+  if (player.hiding || player.unavailable || player.ghost || player.state === 'down') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   const angle = guard.attackAngle ?? guard.angle;
   return distance <= COMBAT.attackReach && clearPath(world, guard, player)
@@ -1201,6 +1194,16 @@ function guardStrikeHits(world, guard, player) {
 
 function heatedChaseSpeed(heat = 0) {
   return COMBAT.chaseSpeed + (CONFIG.speed * HEAT.maxSpeedRatio - COMBAT.chaseSpeed) * Math.max(0, Math.min(1, heat));
+}
+
+// Shared directional hit/knockback for solo and team swings.
+function strikePlayer(world, guard, player) {
+  if (!guardStrikeHits(world, guard, player) || !hurtPlayer(player)) return false;
+  const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
+  const speed = COMBAT.knockbackDistance / Math.max(.001, COMBAT.knockbackTime);
+  player.knockbackX = (distance ? dx / distance : Math.cos(guard.angle)) * speed;
+  player.knockbackY = (distance ? dy / distance : Math.sin(guard.angle)) * speed;
+  player.knockbackLeft = COMBAT.knockbackTime; return true;
 }
 
 
@@ -1431,7 +1434,7 @@ function createLairSackGrid(canvas, getLoot, onReturn) {
 }
 
 
-function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onProfileChange = () => {}, commands = null) {
+function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onProfileChange = () => {}, commands = null, { debugSupplies = false } = {}) {
   const title = document.querySelector('#lair-title'), description = document.querySelector('#lair-description');
   const status = document.querySelector('#craft-status'), recipePanel = document.querySelector('#recipes');
   const grid = createStashGrid(document.querySelector('#stash-grid'), camp, onChange, type => {
@@ -1448,7 +1451,8 @@ function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onPro
   });
   document.querySelector('#stash-move').addEventListener('click', () => { grid.beginMove(); document.querySelector('#stash-grid').focus(); });
   for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).addEventListener('click', () => {
-    if (mode === 'campfire' || commands) return;
+    if (mode === 'campfire') return;
+    if (commands) { if (debugSupplies) commands({ type: 'debug-pack', item: type }); return; }
     if (!takeStashItem(camp, getLoot(), type, true)) { status.textContent = 'Your sack is full.'; return; }
     onChange(); refresh(); status.textContent = 'Free debug supply packed. It never adds real stock.';
   });
@@ -1499,7 +1503,7 @@ function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onPro
     mode = kind; dialog.dataset.mode = kind; title.textContent = kind === 'campfire' ? 'Campfire · personal upgrades' : kind === 'craft' ? 'Workbench & recipes' : 'Central lair stash';
     document.querySelector('#lair-eyebrow').textContent = kind === 'campfire' ? 'FOR YOUR GOBLIN' : 'LAIR PREPARATION';
     description.textContent = kind === 'campfire' ? 'Spend personal XP on permanent passive upgrades for your goblin.' : kind === 'craft' ? 'Spend personal XP on recipes. Crafting uses shared materials.' : 'E or click takes one item. In your sack, E or click returns one. R moves a whole stash stack.';
-    for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).hidden = !!commands;
+    for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).hidden = !!commands && !debugSupplies;
     status.textContent = ''; grid.reset(); sackGrid.reset(); refresh(); dialog.showModal();
     (kind === 'campfire' ? !document.querySelector('#buy-quick-search').disabled ? document.querySelector('#buy-quick-search') : document.querySelector('#close-lair') : kind === 'craft' ? ['#buy-smoke', '#craft-smoke', '#craft-snare'].map(selector => document.querySelector(selector)).find(button => !button.disabled) ?? document.querySelector('#close-lair') : document.querySelector('#stash-grid')).focus();
   } };
@@ -1647,8 +1651,8 @@ function createResultsView(dialog) {
       document.querySelector('#result-xp').textContent = result.networkXpPending ? 'Network XP rewards are not enabled in this test.' : `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
       document.querySelector('#result-job').textContent = result.job ? `${result.job.jobName} · ${result.job.difficultyName}` : '';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
-      document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
-      document.querySelector('#results-description').textContent = down ? 'Nobody was left to recover you. Your carried loot and supplies were lost.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;
+      document.querySelector('#results-title').textContent = result.leftBehind ? 'Your team escaped. You were left behind.' : down ? 'You went down.' : 'You made it out.';
+      document.querySelector('#results-description').textContent = result.leftBehind ? 'Your sack spilled when you went down. Anything teammates carried out is safe in the lair.' : down ? 'Nobody was left standing to recover the team. This run is over.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;
       list.setAttribute('aria-label', down ? 'Items lost in the dungeon' : 'Loot brought back');
       const shown = down ? result.lostItems : result.items;
       renderItemList(list, shown);
@@ -1940,7 +1944,7 @@ async function createRenderer(canvas, mapCanvas) {
       const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
       ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
       ctx.restore();
-      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.name, sx, sy - sh - 8); }
+      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state === 'down' ? `${actor.name} · DOWN` : actor.name, sx, sy - sh - 8); }
     }
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);

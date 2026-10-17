@@ -86,7 +86,7 @@ function clearGuardTrail(guard) {
 }
 
 function recordGuardTrail(world, guard, player, dt) {
-  if (player.hiding) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
+  if (player.hiding || player.unavailable) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
   if (guard.trailLeft <= 0) return;
   const previous = guard.trailSource;
   // Trace only continuous valid movement, never a teleport or an off-map target.
@@ -145,7 +145,7 @@ function updateRoamingRoutine(world, guard, dt) {
 }
 
 export function seesPlayer(world, guard, player, alerted = false, clouds = []) {
-  if (player.hiding) return false;
+  if (player.hiding || player.unavailable || player.ghost || player.state === 'down') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (alerted || distance < 1.2) return true;
@@ -209,14 +209,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
     guard.windup = Math.max(0, guard.windup - dt);
     if (!guard.windup) {
       guard.swing = COMBAT.swingTime; guard.cooldown = COMBAT.cooldown;
-      if (guardStrikeHits(world, guard, player) && hurtPlayer(player)) {
-        events.hit = true;
-        const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
-        const speed = COMBAT.knockbackDistance / Math.max(.001, COMBAT.knockbackTime);
-        player.knockbackX = (distance ? dx / distance : Math.cos(guard.angle)) * speed;
-        player.knockbackY = (distance ? dy / distance : Math.sin(guard.angle)) * speed;
-        player.knockbackLeft = COMBAT.knockbackTime;
-      }
+      events.hit = strikePlayer(world, guard, player);
     }
     return events;
   }
@@ -259,7 +252,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
 }
 
 export function guardStrikeHits(world, guard, player) {
-  if (player.hiding) return false;
+  if (player.hiding || player.unavailable || player.ghost || player.state === 'down') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   const angle = guard.attackAngle ?? guard.angle;
   return distance <= COMBAT.attackReach && clearPath(world, guard, player)
@@ -268,4 +261,14 @@ export function guardStrikeHits(world, guard, player) {
 
 export function heatedChaseSpeed(heat = 0) {
   return COMBAT.chaseSpeed + (CONFIG.speed * HEAT.maxSpeedRatio - COMBAT.chaseSpeed) * Math.max(0, Math.min(1, heat));
+}
+
+// Shared directional hit/knockback for solo and team swings.
+export function strikePlayer(world, guard, player) {
+  if (!guardStrikeHits(world, guard, player) || !hurtPlayer(player)) return false;
+  const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
+  const speed = COMBAT.knockbackDistance / Math.max(.001, COMBAT.knockbackTime);
+  player.knockbackX = (distance ? dx / distance : Math.cos(guard.angle)) * speed;
+  player.knockbackY = (distance ? dy / distance : Math.sin(guard.angle)) * speed;
+  player.knockbackLeft = COMBAT.knockbackTime; return true;
 }
