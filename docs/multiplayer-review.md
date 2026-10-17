@@ -66,11 +66,13 @@ Implementation notes: transfer bag contents to ground exactly once per down even
 | ID | Question | Recommended starting rule | Alternative |
 |---|---|---|---|
 | C1 | How many friends is the first supported party? | Four, with counts/difficulty tuned for that target. | Another explicit limit; do not assume unlimited. |
-| C2 | What if someone's connection drops? | Keep their goblin briefly in the world, vulnerable; allow reconnection to that same goblin. | Remove them immediately and define where their stuff goes. |
+| C2 | What if someone's connection drops? | **Agreed:** grey/translucent goblin for 60 seconds; guards ignore it and players cannot interact. Reconnect restores the same goblin immediately. Timeout spills its sack and removes it from this run. | Supersedes the vulnerable-disconnected-goblin proposal. |
 | C3 | What if the session host leaves? | Transfer organiser controls to another player; do not erase the lair or restart the world. | Pause launch/await a designated owner. |
 | C4 | Can a player deliberately leave or abandon? | Leaving affects their goblin/gear; one player's button cannot silently abandon the whole team's run. | Team-abandon action with an explicit group rule. |
 
-After choosing C2, specify timeout, retained sack identity and whether teammates can rescue/move the disconnected goblin. Repeated reconnects must not duplicate starting gear or escape rewards.
+C2 agreed details: when the game detects disconnection, start a 60-second grace timer and show that goblin grey and see-through. Guards cannot see/target/hit the disconnected goblin, and teammates cannot interact with it. Reconnection before timeout restores control and ordinary visibility immediately, with no extra protection from nearby guards. Preserve its sack and goblin identity rather than granting a new loadout. At timeout, spill its remaining sack contents once and remove that goblin from the current run, as accepted from the preceding proposal. A later arrival follows the existing wait-for-next-run rule. Repeated reconnects must never duplicate gear, floor loot or rewards.
+
+Next check: does a disconnected goblin count towards group departure during the 60 seconds? Recommend excluding it, but this is not agreed yet. Also pending: no-connected-standing-player outcome; run ending during grace; disconnect while downed/carried/caged/hidden; interrupted interaction/reservation cleanup; repeat-disconnect grace policy. Reconnect should preserve prior health/recovery state, not silently revive a goblin, but exact special-state rules require review. Connection loss must not reset dungeon heat/alerts/reinforcements or pause the shared world. This is future multiplayer behavior, not implemented in V24.
 
 ## Batch 4 — searching and carrying loot
 

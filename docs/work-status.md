@@ -297,3 +297,10 @@ User clarified guard-only doors on some upper walls and roaming/searching reinfo
 Verified all 102 tests pass, standalone build/bundle syntax and unique HTML IDs. New pressure suite covers 100 maps' solid-wall reachable doors, counted alerts/remainder and warning/arrival order, heat/cooling/cap, real reset lifecycle, witness entry, actual broad sweep/pauses, uncapped20 arrivals and fresh-run reset. Main mock-DOM flow also checks heat/alerts and reset, preserving loot/economy/gear/hiding coverage. No rendered browser or multiplayer tests. Review artifact green-team-heat-v24.html; play.html updated. Guard count intentionally grows without cap; large-population browser/server performance needs real testing before hosting.
 
 Next user playtests heat pacing, three-alert reinforcements, door readability and hiding/cooling; tune HEAT values based on feel. Continue remaining multiplayer rules afterward. Server-owned counting/queues, reconnect snapshots, party scaling and jail-guard integration are documented follow-ups. Capture/cages/Packed Lunch and minecart/team flow remain design-only.
+
+
+## V24 accepted; multiplayer disconnect rule recorded
+
+User says V24 works very well. Continue team-rule review before capture/rescue implementation. New agreed disconnect behavior: detected connection loss makes goblin grey/translucent and untargetable by guards for 60 seconds; players cannot interact. Reconnect resumes same goblin/sack immediately, normal visibility and no bonus safety. Timeout spills sack once and removes goblin from the run. Updated active C2 rule/decisions; vulnerable-grace proposal superseded.
+
+Next ask whether disconnected goblins are excluded from the departure counter during grace (recommend yes, pending). Special downed/carried/caged/hidden states, no connected standing players, run-end settlement and repeat-disconnect timers remain open. Documentation only; no tests rerun or new playable version, V24 remains approved baseline.

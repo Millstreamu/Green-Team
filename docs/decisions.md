@@ -328,3 +328,10 @@ User specified reinforcement entrances as doors on some rooms' top walls; clarif
 Prototype tuning (editable, not final balance): buildup30s, quiet grace4s, cooling20s, max chase speed1.08×goblin speed, arrival warning2s. Doors in solid north walls cycle deterministically, exclude entrance-room placements, preserve wall collision and never join interaction targeting. Reinforcements cache broad room sweeps with pause/look-around stops, reuse all normal guard/gear/hiding rules and never target unseen player coordinates. Shared heat affects chase/known-hide approach only; slower trail search, routine speeds and directional attacks are preserved. No other escalation effects added.
 
 Future server must own one heat/alert/spawn state per run and replicate it rather than updating per browser/player. Stable door IDs and reinforcement serials avoid duplicate entities; reconnects must snapshot live timers/counts. Party/difficulty scaling and jail guards still need review. This slice is local; no server/multiplayer or capture implementation.
+
+
+## Disconnect grace revised and agreed — 17 October 2026
+
+User chose a grey, see-through disconnected goblin for 60 seconds. Guards ignore it and other players cannot interact with it, replacing the proposal that it remain vulnerable. Reconnecting restores control and ordinary visibility immediately; being spotted at that moment is fair game, with no extra reconnect protection. User accepted the prior proposed timeout outcome: sack spills and goblin is removed from that run. Preserve identity/actual sack contents; never duplicate gear or spill twice. Later arrival waits for the next run under the existing arrival rule.
+
+Next pending question: exclude disconnected goblins from the group exit counter during grace? Recommended yes, not yet accepted. Downed/carried/caged/hidden disconnects, all-connected-player departure/failure, run ending during grace and repeat-disconnect handling remain to decide before implementation. No networking or runtime change; V24 stays current. User also approved V24 heat/reinforcement playtest.
