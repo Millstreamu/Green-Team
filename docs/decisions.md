@@ -372,3 +372,10 @@ User confirmed: taking gear from shared stash immediately transfers it to that g
 ## Sack-first crafting; progression ownership reopened — 17 October 2026
 
 User corrected output priority: if the crafter's sack has room, crafted items go there first. Shared stash as overflow remains proposed. Do not treat always-shared crafting output as agreed. User questioned whose lair/save is used after logout and across different friend groups, and suggested individual XP/unlocks with Payday 2 as inspiration. This opens a design discussion, not authorisation to replace the economy. Personal profile versus named shared-lair saves is a proposal to explore; gold/recipe ownership and member/offline access remain undecided. No runtime changes.
+
+
+## Persistent friend-group homes selected — 17 October 2026
+
+User chose persistent home per friend group and accepted running with the proposed personal/group split. Named group lairs save on the server across logout, independent of session organiser. Goblin XP/level, learned recipes and personal improvements travel between groups; shared gold/materials, stations and decorations stay with the group's lair. Players can belong to several homes and select/join the relevant one via invitation/link/code.
+
+Personal XP learning recipes and shared gold improving lair facilities are the agreed progression direction, replacing shared-gold recipe purchases as the eventual design. Exact rewards/levels/effects/station costs and account/access/gear portability rules remain open. V24 economy is unchanged until a defined progression slice is built. Proposed next check: equal personal XP to run participants based on team recovered haul, not ownership of each pickup. Not yet approved. Documentation only.

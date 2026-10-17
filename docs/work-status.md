@@ -339,3 +339,8 @@ User approved stash-to-personal-sack transfer during lair preparation: stock dec
 ## Progression ownership discussion active
 
 User wants crafted outputs in own sack first when they fit; recorded correction, stash overflow still proposed. User raised persistent lair ownership/access across logout and changing friend groups, and personal XP/unlocks inspired by Payday 2. Added clearly pending ownership brainstorm to review/decisions. Do not keep advancing permission questions as if shared-recipe progression is fully settled. Discuss persistent personal goblin progression versus named shared-lair resources/facilities before implementation. V24 remains current; documentation only, no tests rerun.
+
+
+## Persistent group-home progression direction accepted
+
+User selected a persistent home for each friend group and said run with it. Updated active G1/ownership notes and decisions: player progress/recipe knowledge travels, group stock/gold/facilities/decor stay with named server-saved home. Personal-XP recipe unlocks/shared-gold facilities supersede prototype shared-gold recipe unlock direction for future progression. Existing V24 behavior remains unchanged. Next specify one bounded personal-XP reward/unlock slice; recommend equal run-participant XP from team recovered haul (pending), then decide minimum identity/lair join flow needed for a test. Avoid building a broad account/permissions system prematurely. No runtime changes/tests.
