@@ -242,3 +242,8 @@ User approved E board/ready, E again leave/unready, three-second countdown when 
 ## Escape/recovery answers recorded
 
 User chose group extraction: everyone together, not individual escape. Revive to one health with required Packed Lunch. Sack spills immediately on downing; contents remain recoverable and must be picked/repacked normally. Updated review/decisions, removed individual-banking proposal from active batch. Next ask whether downed goblins can be carried to exit or must be revived before departure. Lunch costs/consumption, team-failure rules and exit interaction remain pending. Documentation only; no Packed Lunch/runtime code or game tests changed, V21 remains current.
+
+
+## Downed extraction exception recorded
+
+User rejected carrying: downed goblins must be revived to leave themselves and are excluded from the extraction counter. All standing goblins gather; downed teammates do not block surviving players leaving. Reviving brings that goblin back into the count. Updated review/decisions. Next confirm all-down failed-run handling and Packed Lunch consumption only on completed rescue. Still documentation only; no runtime changes/tests, V21 remains playable.

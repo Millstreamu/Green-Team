@@ -265,3 +265,10 @@ User approved: E climbs aboard and marks ready; E again hops out/unreadies. When
 **Agreed:** everyone must be together to leave, replacing the proposed individual escape/spectate rule. Rescue restores one health and requires an item named Packed Lunch. On downing, the goblin's sack items spill out and can be picked up again; revival does not repack the sack automatically. Preserve original item identity and metadata; do not duplicate equipped references.
 
 **Pending:** carrying a downed teammate versus requiring revival before extraction; all-downed/failure/disconnect outcomes; group exit activation; repeated rescue limits; Packed Lunch recipe/unlock/consumption details. Proposed completed rescue uses one lunch; interruptions preserve it. No new recipe prices or mechanics implemented yet. Next focused question is whether a downed goblin can be carried to the exit.
+
+
+## Downed goblins do not block extraction — 17 October 2026
+
+**Agreed clarification:** a downed goblin must be revived to leave itself; no carrying downed goblins out. Downed goblins do not count in the leave-check counter. Thus all standing participating goblins must gather, but they can extract without reviving every downed teammate. Revival restores participation in the standing-player extraction requirement. This refines “everyone together,” rather than requiring recovery of all downed teammates.
+
+**Next pending checks:** everyone down causes failed-run end (never a successful zero-player extraction); a Packed Lunch is consumed only on completed rescue, with interrupted attempts preserving it. These proposals await confirmation. Floor contents remain recoverable as already agreed; loot carried out by a teammate must not also be deleted as someone else's lost sack.
