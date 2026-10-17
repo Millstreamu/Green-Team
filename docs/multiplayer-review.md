@@ -20,16 +20,17 @@ Accepted by the user, 17 October 2026:
 | ID | Decision | Agreed rule |
 |---|---|---|
 | A1 | Who chooses job and difficulty? | Anyone can interact with a map-planning station in the lair. The latest confirmed selection stays selected until someone changes it. This replaces team voting. |
-| A2 | Readiness / departure | Everyone readies at a separate minecart departure point; the selected destination is used when the party departs. |
+| A2 | Readiness / departure | Everyone readies at a separate minecart departure point. Ready means ready to go, not approval of a destination. Map/difficulty edits do not clear readiness; departure uses the latest selection. |
 | A3 | New arrivals during a run | Wait until the next run. Reconnecting an existing goblin is a separate question. |
 
 The lair has distinct functions: stash, workbench, map-planning station and departure minecart. The cart sits on tracks leading into darkness as the travel theme. Keep the selected destination/difficulty visible so teammates know what they are preparing for. Do not implement a vote or host-only selection gate. Tie-breaking is no longer relevant.
 
+Confirmed clarification: even if someone readies on Normal and another changes it to Hard, readiness remains and the party departs on Hard if that is the selection when the cart leaves. Do not add a reset, destination approval or confirmation gate. Freeze the live run profile at actual departure.
+
 Follow-ups still open:
 
-- If someone changes the map/difficulty after others are ready, should everyone's readiness clear? Recommended: yes, so nobody launches into a different job than they agreed to.
-- Must goblins remain at/near the cart to stay ready, or does interacting there mark them ready until they cancel?
-- Exact departure timing/countdown after everyone is ready, and whether a ready player may walk away/cancel it.
+- How does cart readiness work physically? Proposed next: E boards the cart and marks ready; E again hops out/unreadies.
+- Departure timing: proposed three-second countdown once all participating goblins are aboard; getting out cancels the countdown. This has not yet been accepted.
 - Where the current gear-packing screen fits between stash preparation and cart readiness. The map station should not silently spend supplies or start the dungeon.
 
 One job profile/seed must be frozen for the departed run and shared by everyone. Subsequent edits at the planning station cannot alter a live dungeon. New arrivals still wait for the next run. Server implementation remains deferred.

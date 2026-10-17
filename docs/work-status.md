@@ -227,3 +227,8 @@ User chose team vote, everyone marks Ready, and new arrivals wait until next run
 User replaced team voting with an interactable map-planning station: anyone can change map/difficulty, latest confirmed selection persists. Everyone readies at a separate minecart departure point, with tracks into darkness. Updated review batch1 and marked original vote decision superseded. New arrivals still wait for next run. No tie-break decision needed.
 
 Next focused question: does changing destination/difficulty clear everyone’s Ready state? Recommend yes. Cart proximity/ready cancellation, departure countdown and packing-flow details remain open for the next short review. Keep reviewing rather than silently treating proposals as accepted. Documentation only; V21 executable unchanged, no runtime tests rerun.
+
+
+## Readiness clarification confirmed
+
+User confirmed Ready means ready to go; changing selected destination/difficulty never clears it. Cart leaves for the latest selection at departure. Updated review and decisions; previous readiness-reset recommendation is rejected/superseded. Next short question proposes E to board/ready, E again to hop out, and a three-second departure countdown once all are aboard (not yet agreed). Documentation only, V21 remains unchanged; no runtime tests rerun.
