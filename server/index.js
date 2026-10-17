@@ -19,7 +19,7 @@ export function createGameServer({ session = createHubSession(), admin = null } 
       const relative = path === '/' ? 'index.html' : path.slice(1);
       if (!(relative === 'index.html' || relative.startsWith('src/') || ['assets/goblin.png', 'assets/human/GreenTeam-tileset.png', 'assets/human/GreenTeam-tileset.json'].includes(relative)) || relative.includes('..')) { res.writeHead(404).end(); return; }
       let data = await readFile(resolve(root, relative));
-      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Human dungeon art · V45'));
+      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js'));
       res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.json': 'application/json' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
     } catch { res.writeHead(404).end(); }
   });

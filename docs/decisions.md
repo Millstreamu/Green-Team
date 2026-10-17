@@ -547,3 +547,8 @@ User supplied green-team-settings-moss.json after requesting export-to-GitHub pr
 ## V45 — supplied Human tile sheet
 
 User supplied a five-tile Proplet32×32 PNG/JSON pair. Accepted mapping: top-right mirrors top-left, bottom-left and bottom-right both reuse wall_bottom_horz, side walls mirror as needed. Integrated Human Manor only in existing renderer, preserving source files/metadata and gameplay geometry. Dwarf/Elf/lair retain placeholders. Standalone embeds both files. No general upload UI, new inner-corner art, collisions or camera zoom added; current tile selection uses deterministic adjacency. See terrain-art.md.
+
+
+## V46 — correct wall joins from screenshot
+
+User reported wall pieces not lining up in the single-player Human preview and supplied screenshot seed2828433373. Fixed shared art selection/composition rather than changing supplied tiles or dungeon geometry: thin bottom rims retain side support underneath; inside joins use square faces; outer corners retain the agreed tile reuse/mirroring. New shared layers apply to solo and online, with updated standalone preview.

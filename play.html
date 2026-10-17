@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Plan and board V30</title>
+<title>Green Team · Wall joins V46</title>
 <style>
 [hidden]{display:none!important}
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
@@ -37,7 +37,7 @@
 <section><h2>Create a lair</h2><form id="create-lair-form"><label>New lair name<input id="create-lair-name" maxlength="32" required autocomplete="off" placeholder="Moss Hollow"></label><button id="create-lair">Create lair</button></form><p>You’ll get a join code to share with friends.</p></section></div></div><p id="home-message" role="status" aria-live="polite">Connecting to the server…</p>
 </main>
 <main id="game-shell">
-<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Plan and board · V30</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><button id="regenerate">Return to lair</button></header>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Wall joins · V46</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><button id="regenerate">Return to lair</button></header>
 <div id="lair-bar" hidden><span id="current-lair-name"></span> · Join code <code id="current-lair-code"></code><button id="leave-lair">Home screen</button></div>
 <div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div id="quick-label" hidden role="status"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
         <span id="heat-label" hidden></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Job</dt><dd id="job-label">At home</dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
@@ -2095,10 +2095,7 @@ function terrainTile(world, x, y) {
   if (isFloor(world, x, y)) return { name: 'floor', flipX: false };
   const north = isFloor(world, x, y - 1), south = isFloor(world, x, y + 1);
   const east = isFloor(world, x + 1, y), west = isFloor(world, x - 1, y);
-  if (south) {
-    if (east !== west && !north) return { name: 'wall_corner_top_left', flipX: west };
-    return { name: 'wall_top_horz', flipX: false };
-  }
+  if (south) return { name: 'wall_top_horz', flipX: false };
   if (north) return { name: 'wall_bottom_horz', flipX: false };
   if (east || west) return { name: 'wall_vert', flipX: west };
   const belowRight = isFloor(world, x + 1, y + 1), belowLeft = isFloor(world, x - 1, y + 1);
@@ -2107,15 +2104,45 @@ function terrainTile(world, x, y) {
   return null;
 }
 
-function drawTerrainTile(ctx, art, world, x, y, px, py, size) {
+// A corridor mouth can expose more than one face of the same wall square.
+// Thin bottom caps are transparent below their rim, so they need a side behind
+// them at inside joins. Diagonal art belongs only to outside corners.
+function terrainLayers(world, x, y) {
   const tile = terrainTile(world, x, y);
-  if (!tile) return false;
-  const frame = art.frames[tile.name];
-  if (tile.flipX) {
-    ctx.save(); ctx.translate(px + size, py); ctx.scale(-1, 1);
-    ctx.drawImage(art.image, frame.x, frame.y, frame.width, frame.height, 0, 0, size, size); ctx.restore();
-  } else ctx.drawImage(art.image, frame.x, frame.y, frame.width, frame.height, px, py, size, size);
-  return true;
+  if (!tile) return [];
+  if (tile.name === 'floor') return [tile];
+  const north = isFloor(world, x, y - 1), south = isFloor(world, x, y + 1);
+  const east = isFloor(world, x + 1, y), west = isFloor(world, x - 1, y);
+  const side = flipX => ({ name: 'wall_vert', flipX });
+  if (north && !south && (east || west)) {
+    const layers = [side(!east)];
+    if (east && west) layers.push({ ...side(true), crop: { x: .5, y: 0, width: .5, height: 1 } });
+    return [...layers, tile];
+  }
+  if (south && (east || west)) {
+    const layers = [tile];
+    // Retain the horizontal wall face and add only the vertical edge trim.
+    for (const flipX of [false, true]) if (flipX ? west : east) layers.push({ ...side(flipX), crop: { x: .75, y: 0, width: .25, height: 1 } });
+    if (north) layers.push({ name: 'wall_bottom_horz', flipX: false });
+    return layers;
+  }
+  if (!north && !south && east && west) return [side(false), { ...side(true), crop: { x: .5, y: 0, width: .5, height: 1 } }];
+  return [tile];
+}
+
+function drawTerrainTile(ctx, art, world, x, y, px, py, size) {
+  const layers = terrainLayers(world, x, y);
+  for (const tile of layers) {
+    const frame = art.frames[tile.name], crop = tile.crop ?? { x: 0, y: 0, width: 1, height: 1 };
+    const sx = frame.x + crop.x * frame.width, sy = frame.y + crop.y * frame.height;
+    const sw = crop.width * frame.width, sh = crop.height * frame.height;
+    const dx = crop.x * size, dy = crop.y * size, dw = crop.width * size, dh = crop.height * size;
+    if (tile.flipX) {
+      ctx.save(); ctx.translate(px + size, py); ctx.scale(-1, 1);
+      ctx.drawImage(art.image, sx, sy, sw, sh, dx, dy, dw, dh); ctx.restore();
+    } else ctx.drawImage(art.image, sx, sy, sw, sh, px + dx, py + dy, dw, dh);
+  }
+  return layers.length > 0;
 }
 
 

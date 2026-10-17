@@ -3,7 +3,7 @@ import { createLairWorld } from '../src/lair.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { terrainFrames, terrainTile, loadHumanTerrain, drawTerrainTile } from '../src/terrain-art.js';
+import { terrainFrames, terrainTile, terrainLayers, loadHumanTerrain, drawTerrainTile } from '../src/terrain-art.js';
 import { generateDungeon } from '../src/world.js';
 const metadata = JSON.parse(readFileSync(new URL('../assets/human/GreenTeam-tileset.json', import.meta.url), 'utf8'));
 function arena(floors) {
@@ -31,7 +31,7 @@ test('floor-facing edges and all outer corners select the agreed original or mir
     [5,1,'wall_corner_top_left',true], [1,5,'wall_bottom_horz',false], [5,5,'wall_bottom_horz',false]
   ]) assert.deepEqual(terrainTile(world,x,y),{name,flipX});
   assert.equal(terrainTile(world,0,0),null);
-  assert.deepEqual(terrainTile(arena([[3,4],[4,3]]),3,3),{name:'wall_corner_top_left',flipX:false});
+  assert.deepEqual(terrainTile(arena([[3,4],[4,3]]),3,3),{name:'wall_top_horz',flipX:false});
 });
 test('every generated Human floor/adjacent wall selects valid art without changing any collision tile', () => {
   const frames = terrainFrames(metadata, 128, 64);
@@ -86,4 +86,38 @@ test('the real renderer uses supplied art only for Human runs, loads once, and r
   world.job = { jobId: 'manor' }; calls.length = 0;
   fallback(world, p, { ground: [], bag: [], held: null }, null, { entrance: world.spawn }, false, [], [], null, { active: null });
   assert.equal(warnings.length, 1); assert.ok(calls.every(args => args[0].src !== 'assets/human/GreenTeam-tileset.png'));
+});
+
+
+test('corridor mouths retain side walls beneath transparent caps and use square inside joins', () => {
+  for (const dx of [-1, 1]) {
+    const lower = terrainLayers(arena([[3,2],[3+dx,3]]),3,3);
+    assert.equal(lower[0].name,'wall_vert'); assert.equal(lower[0].flipX,dx<0);
+    assert.equal(lower.at(-1).name,'wall_bottom_horz');
+    const upper = terrainLayers(arena([[3,4],[3+dx,3]]),3,3);
+    assert.equal(upper[0].name,'wall_top_horz');
+    assert.ok(upper.some(layer=>layer.name==='wall_vert' && layer.flipX===(dx<0)));
+    assert.ok(upper.every(layer=>layer.name!=='wall_corner_top_left'));
+  }
+});
+test('all sixteen cardinal wall configurations retain opaque support where a side or top face is exposed', () => {
+  const neighbours=[[3,2],[3,4],[4,3],[2,3]];
+  for(let mask=0;mask<16;mask++) {
+    const world=arena(neighbours.filter((_,i)=>mask & 1<<i)), before=world.tiles.slice();
+    const layers=terrainLayers(world,3,3);
+    if(mask & 14) assert.ok(['wall_vert','wall_top_horz'].includes(layers[0].name),`unsupported face mask ${mask}`);
+    for(const layer of layers) if(layer.crop) {
+      const c=layer.crop; assert.ok(c.x>=0&&c.y>=0&&c.width>0&&c.height>0&&c.x+c.width<=1&&c.y+c.height<=1);
+    }
+    assert.deepEqual(world.tiles,before);
+  }
+});
+test('screenshot layout keeps connected inner joins without changing its generated floors', async () => {
+  const { dungeonConfig } = await import('../src/generator-settings.js');
+  const world=generateDungeon(2828433373,dungeonConfig()), before=world.tiles.slice();let joins=0;
+  for(let y=0;y<world.height;y++) for(let x=0;x<world.width;x++) if(!world.tiles[y*world.width+x]) {
+    const layers=terrainLayers(world,x,y);
+    if(layers.length>1) {joins++;assert.ok(layers.every(layer=>layer.name!=='wall_corner_top_left'));}
+  }
+  assert.ok(joins>0);assert.deepEqual(world.tiles,before);
 });

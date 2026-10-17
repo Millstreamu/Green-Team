@@ -40,10 +40,7 @@ export function terrainTile(world, x, y) {
   if (isFloor(world, x, y)) return { name: 'floor', flipX: false };
   const north = isFloor(world, x, y - 1), south = isFloor(world, x, y + 1);
   const east = isFloor(world, x + 1, y), west = isFloor(world, x - 1, y);
-  if (south) {
-    if (east !== west && !north) return { name: 'wall_corner_top_left', flipX: west };
-    return { name: 'wall_top_horz', flipX: false };
-  }
+  if (south) return { name: 'wall_top_horz', flipX: false };
   if (north) return { name: 'wall_bottom_horz', flipX: false };
   if (east || west) return { name: 'wall_vert', flipX: west };
   const belowRight = isFloor(world, x + 1, y + 1), belowLeft = isFloor(world, x - 1, y + 1);
@@ -52,13 +49,43 @@ export function terrainTile(world, x, y) {
   return null;
 }
 
-export function drawTerrainTile(ctx, art, world, x, y, px, py, size) {
+// A corridor mouth can expose more than one face of the same wall square.
+// Thin bottom caps are transparent below their rim, so they need a side behind
+// them at inside joins. Diagonal art belongs only to outside corners.
+export function terrainLayers(world, x, y) {
   const tile = terrainTile(world, x, y);
-  if (!tile) return false;
-  const frame = art.frames[tile.name];
-  if (tile.flipX) {
-    ctx.save(); ctx.translate(px + size, py); ctx.scale(-1, 1);
-    ctx.drawImage(art.image, frame.x, frame.y, frame.width, frame.height, 0, 0, size, size); ctx.restore();
-  } else ctx.drawImage(art.image, frame.x, frame.y, frame.width, frame.height, px, py, size, size);
-  return true;
+  if (!tile) return [];
+  if (tile.name === 'floor') return [tile];
+  const north = isFloor(world, x, y - 1), south = isFloor(world, x, y + 1);
+  const east = isFloor(world, x + 1, y), west = isFloor(world, x - 1, y);
+  const side = flipX => ({ name: 'wall_vert', flipX });
+  if (north && !south && (east || west)) {
+    const layers = [side(!east)];
+    if (east && west) layers.push({ ...side(true), crop: { x: .5, y: 0, width: .5, height: 1 } });
+    return [...layers, tile];
+  }
+  if (south && (east || west)) {
+    const layers = [tile];
+    // Retain the horizontal wall face and add only the vertical edge trim.
+    for (const flipX of [false, true]) if (flipX ? west : east) layers.push({ ...side(flipX), crop: { x: .75, y: 0, width: .25, height: 1 } });
+    if (north) layers.push({ name: 'wall_bottom_horz', flipX: false });
+    return layers;
+  }
+  if (!north && !south && east && west) return [side(false), { ...side(true), crop: { x: .5, y: 0, width: .5, height: 1 } }];
+  return [tile];
+}
+
+export function drawTerrainTile(ctx, art, world, x, y, px, py, size) {
+  const layers = terrainLayers(world, x, y);
+  for (const tile of layers) {
+    const frame = art.frames[tile.name], crop = tile.crop ?? { x: 0, y: 0, width: 1, height: 1 };
+    const sx = frame.x + crop.x * frame.width, sy = frame.y + crop.y * frame.height;
+    const sw = crop.width * frame.width, sh = crop.height * frame.height;
+    const dx = crop.x * size, dy = crop.y * size, dw = crop.width * size, dh = crop.height * size;
+    if (tile.flipX) {
+      ctx.save(); ctx.translate(px + size, py); ctx.scale(-1, 1);
+      ctx.drawImage(art.image, sx, sy, sw, sh, dx, dy, dw, dh); ctx.restore();
+    } else ctx.drawImage(art.image, sx, sy, sw, sh, px + dx, py + dy, dw, dh);
+  }
+  return layers.length > 0;
 }
