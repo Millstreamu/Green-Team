@@ -426,3 +426,12 @@ User suggested XP-driven levels granting spendable tokens, with multi-token cost
 ## Separate map planning and cart departure built — 17 October 2026
 
 User approved implementing the previously agreed lair flow: map table selects job/difficulty; E boards/marks ready at a separate minecart; E again hops out; all participating goblins aboard starts three seconds; hop-out cancels; selection edits preserve readiness and departure uses latest plan. Implemented V30 with one playable goblin and an explicit participant coordinator for future server use. No seed/world/stock consumption until final launch; prepared bag moves once. Latest confirmed selection persists across visits/runs/reloads; unconfirmed drafts cancel, readiness never persists. Destination is visible in the home HUD. Online multiplayer remains deferred.
+
+
+## V31 — first multiplayer lair test authorised and implemented
+
+**Agreed scope:** user accepted bringing the first server test forward: two browser tabs see each other, share stash/materials, use existing crafting/maps and board together, with one winner for the last shared item. Shared dungeon follows later. Dedicated Node/WebSocket direction retained; `ws` selected as a small transport dependency, not a game framework.
+
+**Bounded test implementation:** server-local temporary home, separate per-tab goblins/bags/profiles; same domain rules/UI as solo, authoritative inputs/stock/clock, single shared launch checkpoint with job/seed. No actual dungeon starts in this test. Test-only return button returns everyone to home. Normal standalone solo game remains available. No rental/deployment.
+
+**Still experimenting / not final policy:** temporary memory-only home and fresh zero-XP test identities; per-tab opaque reconnect token while process stays alive, no accounts/SQLite yet. Lair disconnect preserves bag offline, excludes from ready membership, and membership changes cancel countdown. No automatic countdown restart: hop/board again. This is a home-test cleanup choice, not a substitute for the agreed in-run 60-second ghost policy. Runtime does not grant starter XP/free debug stock; existing solo saves remain separate. Pending public hosting/auth/groups/persistence/in-run networking/rescue remain pending.

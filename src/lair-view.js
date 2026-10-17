@@ -3,22 +3,24 @@ import { knowsRecipe, ownsUpgrade, buyPersonalUpgrade, PERSONAL_UPGRADES } from 
 import { RECIPES, canCraftRecipe, craftForSack, takeStashItem, returnStashItem } from './lair.js';
 import { createStashGrid, createLairSackGrid } from './stash-view.js';
 
-export function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onProfileChange = () => {}) {
+export function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onProfileChange = () => {}, commands = null) {
   const title = document.querySelector('#lair-title'), description = document.querySelector('#lair-description');
   const status = document.querySelector('#craft-status'), recipePanel = document.querySelector('#recipes');
   const grid = createStashGrid(document.querySelector('#stash-grid'), camp, onChange, type => {
     if (mode === 'campfire') return;
+    if (commands) { commands({ type: 'take', item: type }); return; }
     if (!takeStashItem(camp, getLoot(), type)) { status.textContent = 'No room in your sack, or that stack is empty.'; return; }
     onChange(); refresh(); status.textContent = 'One item packed. Shared stock updated.';
-  });
+  }, commands ? (item, slot) => { commands({ type: 'stack', item, slot }); return true; } : null);
   const sackGrid = createLairSackGrid(document.querySelector('#lair-sack-grid'), getLoot, item => {
     if (mode === 'campfire') return;
+    if (commands) { commands({ type: 'return', id: item.id }); return; }
     if (!returnStashItem(camp, getLoot(), item.id)) return;
     onChange(); refresh(); status.textContent = item.debugSupply ? 'Debug supply removed; shared stock unchanged.' : 'Item returned to the shared stash.';
   });
   document.querySelector('#stash-move').addEventListener('click', () => { grid.beginMove(); document.querySelector('#stash-grid').focus(); });
   for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).addEventListener('click', () => {
-    if (mode === 'campfire') return;
+    if (mode === 'campfire' || commands) return;
     if (!takeStashItem(camp, getLoot(), type, true)) { status.textContent = 'Your sack is full.'; return; }
     onChange(); refresh(); status.textContent = 'Free debug supply packed. It never adds real stock.';
   });
@@ -50,7 +52,9 @@ export function createLairView(dialog, camp, profile, getLoot, onChange, onClose
   };
   for (const [id, selector] of [['smoke', '#buy-smoke'], ['quickSearch', '#buy-quick-search']]) document.querySelector(selector).addEventListener('click', () => {
     const station = PERSONAL_UPGRADES[id].kind === 'passive' ? 'campfire' : 'craft';
-    if (mode !== station || !buyPersonalUpgrade(profile, id)) return;
+    if (mode !== station) return;
+    if (commands) { commands({ type: 'buy', upgrade: id }); return; }
+    if (!buyPersonalUpgrade(profile, id)) return;
     onProfileChange(); refresh(); status.textContent = `${PERSONAL_UPGRADES[id].name} purchased for ${PERSONAL_UPGRADES[id].cost} XP. It stays with your goblin.`;
   });
   const close = () => { grid.reset(); dialog.close(); onClose(); };
@@ -59,13 +63,15 @@ export function createLairView(dialog, camp, profile, getLoot, onChange, onClose
   document.querySelector('#close-lair').addEventListener('click', close);
   for (const [type, recipe] of Object.entries(RECIPES)) document.querySelector(`#craft-${type}`).addEventListener('click', () => {
     if (mode !== 'craft') return;
+    if (commands) { commands({ type: 'craft', item: type }); return; }
     const crafted = craftForSack(camp, getLoot(), type, profile); if (!crafted) return;
     onChange(); refresh(); status.textContent = `${recipe.name} crafted into ${crafted.destination === 'sack' ? 'your sack' : 'the shared stash (sack full)'}. Your XP and gold were not spent.`;
   });
-  return { open(kind) {
+  return { refresh, open(kind) {
     mode = kind; dialog.dataset.mode = kind; title.textContent = kind === 'campfire' ? 'Campfire · personal upgrades' : kind === 'craft' ? 'Workbench & recipes' : 'Central lair stash';
     document.querySelector('#lair-eyebrow').textContent = kind === 'campfire' ? 'FOR YOUR GOBLIN' : 'LAIR PREPARATION';
     description.textContent = kind === 'campfire' ? 'Spend personal XP on permanent passive upgrades for your goblin.' : kind === 'craft' ? 'Spend personal XP on recipes. Crafting uses shared materials.' : 'E or click takes one item. In your sack, E or click returns one. R moves a whole stash stack.';
+    for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).hidden = !!commands;
     status.textContent = ''; grid.reset(); sackGrid.reset(); refresh(); dialog.showModal();
     (kind === 'campfire' ? !document.querySelector('#buy-quick-search').disabled ? document.querySelector('#buy-quick-search') : document.querySelector('#close-lair') : kind === 'craft' ? ['#buy-smoke', '#craft-smoke', '#craft-snare'].map(selector => document.querySelector(selector)).find(button => !button.disabled) ?? document.querySelector('#close-lair') : document.querySelector('#stash-grid')).focus();
   } };

@@ -2,7 +2,7 @@ import { LOOT_TYPES, SACK, bagItemAt, itemCells } from './loot.js';
 import { STASH, syncStashSlots, moveStashStack } from './lair.js';
 import { drawInventoryGrid } from './inventory-grid.js';
 
-export function createStashGrid(canvas, camp, onChange, onTake = null) {
+export function createStashGrid(canvas, camp, onChange, onTake = null, onMove = null) {
   const cell = 56, ctx = canvas.getContext('2d'), label = document.querySelector('#stash-selection');
   canvas.width = STASH.width * cell; canvas.height = STASH.height * cell;
   let selected = { x: 0, y: 0 }, held = null;
@@ -20,7 +20,7 @@ export function createStashGrid(canvas, camp, onChange, onTake = null) {
     const index = selected.y * STASH.width + selected.x;
     if (!held && onTake) { const type = camp.slots[index]; if (type) onTake(type); }
     else if (!held) held = camp.slots[index];
-    else if (moveStashStack(camp, held, index)) { held = null; onChange(); }
+    else if (onMove ? onMove(held, index) : moveStashStack(camp, held, index)) { held = null; onChange(); }
     paint();
   };
   canvas.addEventListener('keydown', event => {

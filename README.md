@@ -4,6 +4,25 @@ A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loo
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. Server-based multiplayer is the chosen direction; hosting setup, online implementation and player limits remain future work.
 
+## Two-player lair test · V31
+
+The first real server test is available separately from the solo game. It reuses the goblin art, renderer, movement/collision, inventory grids, crafting and map dialog. A Node server owns movement, shared stock, each goblin’s separate sack, destination and departure clock. No client supplies stock, elapsed time or its own coordinates.
+
+With Node.js 22 or newer installed, open a terminal in this repository and run:
+
+```sh
+npm ci
+npm start
+```
+
+Open **http://localhost:8080** in two browser tabs. Each tab gets a separate temporary test goblin. WASD moves; Tab opens shared stash; E uses nearby stations, boards or hops out. Take the starting snare in both tabs: only one succeeds. Return it, or craft another at the workbench using the starting materials. Set the destination at the upper-left map table. Everyone boards the cart; after three seconds both see the same departure/job/seed. E hops out and cancels. The **Return team to lair** button repeats the test after departure without restarting the server.
+
+This milestone ends at shared departure; dungeon movement, guards, loot, capture/rescue and in-run reconnect are still solo/design work. Opening `play.html` continues to run the solo game. There is no downloadable HTML that can run a server by itself.
+
+This test is **local only**, listening on 127.0.0.1. No hosting bill or public play link is created. Server memory holds one temporary group; restarting it resets all test stock and profiles. It never reads or writes solo browser saves. No accounts, SQLite persistence, XP awards or production access control yet. Session tokens stored per tab allow reconnecting to the same home goblin/bag while the server stays open; duplicating an open tab gets a fresh identity. Offline lair goblins keep their bags server-side and stop participating in readiness. Membership changes cancel an active countdown; board/hop out again to restart it. These are bounded home-test rules, not implementation of the agreed dungeon 60-second ghost policy. New arrivals after departure wait; return-to-lair resets the test for everyone.
+
+`server/lair-session.js` holds authoritative home rules, `server/index.js` serves only the game files and WebSocket endpoint, and `src/online-main.js` connects the existing screens through commands instead of mutating shared state. Deployment later needs HTTPS/WSS, authenticated group membership, durable per-player/lair saves, heartbeat/grace rules and a server-controlled dungeon. Do not expose this development server publicly.
+
 ## Play
 
 Download `play.html` and open it in a desktop browser. Start in the lair. E at the stash or workbench opens side-by-side shared stash and personal sack grids. WASD selects within the focused grid; E or click takes one stash item or returns one sack item. Q switches grid focus. R (or Move whole stack) rearranges a stash stack. Crafting puts the item into your sack if it fits, otherwise into shared stock. Packed supplies save while you are at home. E at the campfire below the home spawn opens personal passive upgrades; recipe purchases/crafting stay at the workbench. Visit the upper-left map table to confirm Human Manor on Normal/Hard. Then E at the separate northern minecart boards it; E again hops out. Once all participating goblins are aboard (one in this local test), the three-second countdown leaves with your packed sack. Planning and cancelled boarding never spend supplies. Free test gear is under Debug supplies in the lair dialog. No installation, account or server is needed. Use WASD or arrow keys to move. Hold E while stationary beside a highlighted chest, cupboard or crate to search it. Release E or move away to cancel. Loot spills onto the floor only when the search completes; release E and press again to pack the highlighted nearby loot automatically; click loot to lift it, R rotates a held item, and clicking the sack places it. While holding an item, E or clicking the dungeon drops it nearby. Click a packed item to lift and rearrange it. Invalid placements keep the item in your hand. The sack slides off the lower-right edge while moving, leaving a tab. Tab or the edge tab opens/closes it. When opened manually, WASD selects sack squares instead of moving the goblin; Tab closes it again. Automatic loot peeks do not take over movement. Highlighting loose loot briefly reveals it; pickup attempts reveal it too (including a full sack). It stays open while holding an item so placement remains available, unless explicitly closed with Tab. Furniture highlights do not open it.
@@ -12,7 +31,7 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Return to lair** during a run abandons carried loot/traps after confirmation; stock already at home is safe. The small map shows your position. Lair stock carries between runs and saves locally in this browser when browser storage is available. The footer reports whether saving works. Active dungeon runs are not saved; reloading returns home with the supplies already spent when that run started.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, spendable personal XP for recipes and passives and no multiplayer yet.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, spendable personal XP for recipes and passives in the standalone solo game. The separate V31 server test covers the shared lair only.
 
 ## Searching
 
@@ -38,7 +57,7 @@ Teammate recovery, its rules and returning after the team run are future multipl
 
 ## Development
 
-The prototype uses JavaScript and the browser's Canvas drawing surface, with no external packages. Edit `src/`, not the generated `play.html`.
+The prototype uses JavaScript and the browser's Canvas drawing surface, with no external browser packages. The separate multiplayer test server uses the small `ws` package. Edit `src/`, not the generated `play.html`.
 
 - `npm test`: check dungeon connectivity and movement rules (Node.js required).
 - `npm run build`: regenerate the standalone `play.html` after source changes.
