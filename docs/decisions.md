@@ -194,3 +194,12 @@ Uses existing guard actor/state/vision/combat/trail/return/snare code. An unsucc
 **Tuning for review:** calculate each container's shortest walking path from world.spawn using existing findPath; normalise against the longest container path in the current map. Interpolate empty chance .7→.5, material chance .75→.2, rare-valuable chance .1→.8 with depth. Two-item chance remains .15 conditional on nonempty. Split existing furniture valuables into common/rare pools: chest common coin/horn, rare ruby/candlestick; cupboard common scroll/coin, rare candlestick/horn; crate common scroll/coin, rare sword/horn. This expresses “better” through rarity and success odds; no prices/selling system is introduced.
 
 Generate once per seed, retain empty outcomes everywhere and permit materials anywhere. No guaranteed near/far reward. Path distance includes winding corridors rather than physical proximity. Keep loot generation separate from searching controls/state. No guard or lair economy change.
+
+
+## V19: quicker directional guard attacks — 17 October 2026
+
+**Agreed:** user finds current wait-then-hit too easy; wants a quick pause, swing in that direction, then chase, with a little player knockback. Values should remain parameters for later editing.
+
+**Tuning for review:** lock aim at attack start; .18s preparation, .14s directional swing, .45s attack cooldown. Trigger within .95 tiles, strike up to 1.2 tiles in a 120-degree forward arc, checking walls. Deal damage once at swing start. After the short swing, pursue even during cooldown. Draw the actual sector/weapon sweep instead of a full-circle strike. Keep health3 and one-second immunity.
+
+A damaging hit pushes the player .55 tiles over .1s away from the guard. Share collision-safe displacement with walking, preserving facing and allowing movement inputs. Immune hits do not add another push. Search/placement interruption and snare cancellation remain shared. COMBAT exposes all new timing/reach/angle/knockback values. No general stun or new combat subsystem.

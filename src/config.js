@@ -5,7 +5,7 @@ export const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, extraCon
 export const GOBLIN_ART = Object.freeze({ src: 'assets/goblin.png', width: 16, height: 16, scale: 2, faces: -1 });
 
 // Prototype balance values, separate from behaviour so they can be tuned later.
-export const COMBAT = Object.freeze({ health: 3, invulnerable: 1.0, patrolSpeed: 1.8, chaseSpeed: 3.8, searchSpeed: 2.2, trailSeconds: 2.5, trailSpacing: 0.3, sight: 7, alertSight: 9, halfCone: Math.PI / 3.6, noticeTime: 0.8, searchTime: 4, attackRange: 0.95, windup: 0.55, cooldown: 1.1, guardRadius: 0.26 });
+export const COMBAT = Object.freeze({ health: 3, invulnerable: 1.0, patrolSpeed: 1.8, chaseSpeed: 3.8, searchSpeed: 2.2, trailSeconds: 2.5, trailSpacing: 0.3, sight: 7, alertSight: 9, halfCone: Math.PI / 3.6, noticeTime: 0.8, searchTime: 4, attackRange: 0.95, attackReach: 1.2, attackHalfArc: Math.PI / 3, windup: 0.18, swingTime: 0.14, cooldown: 0.45, knockbackDistance: 0.55, knockbackTime: 0.1, guardRadius: 0.26 });
 
 export const SEARCH = Object.freeze({ reach: 1.6, movementTolerance: 0.08, chestTime: 2.5, cupboardTime: 3.5, crateTime: 1.5, spillTime: 0.4 });
 

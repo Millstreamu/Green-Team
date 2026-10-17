@@ -49,15 +49,18 @@ export function movePlayer(world, player, input, dt, config = CONFIG) {
   const length = Math.hypot(input.x, input.y);
   if (!length) { player.moving = false; player.phase = 0; return; }
   const distance = config.speed * Math.max(0, dt);
-  // Small steps avoid tunnelling through walls, even for a delayed update.
-  const steps = Math.max(1, Math.ceil(distance / 0.15));
-  const dx = input.x / length * distance / steps, dy = input.y / length * distance / steps;
-  const oldX = player.x, oldY = player.y;
-  for (let i = 0; i < steps; i++) {
-    if (canStand(world, player.x + dx, player.y, config.radius)) player.x += dx;
-    if (canStand(world, player.x, player.y + dy, config.radius)) player.y += dy;
-  }
-  player.moving = Math.hypot(player.x - oldX, player.y - oldY) > 0.00001;
+  player.moving = moveActor(world, player, input.x / length * distance, input.y / length * distance, config.radius);
   if (input.x) player.facing = Math.sign(input.x);
   player.phase = player.moving ? player.phase + dt * config.hopRate : 0;
+}
+
+// Shared collision-safe displacement for walking and hit knockback.
+export function moveActor(world, actor, dx, dy, radius = CONFIG.radius) {
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / .15));
+  const startX = actor.x, startY = actor.y;
+  for (let i = 0; i < steps; i++) {
+    if (canStand(world, actor.x + dx / steps, actor.y, radius)) actor.x += dx / steps;
+    if (canStand(world, actor.x, actor.y + dy / steps, radius)) actor.y += dy / steps;
+  }
+  return Math.hypot(actor.x - startX, actor.y - startY) > .00001;
 }

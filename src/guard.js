@@ -1,11 +1,18 @@
 import { createRoamingRoute } from './guard-routes.js';
 import { CONFIG, COMBAT, GUARD_PATTERNS } from './config.js';
-import { canStand } from './world.js';
+import { canStand, moveActor } from './world.js';
 import { clearPath } from './loot.js';
 import { findPath, followPath } from './navigation.js';
 
-export function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active' }; }
-export function tickVitality(player, dt) { player.invulnerable = Math.max(0, player.invulnerable - dt); }
+export function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active', knockbackLeft: 0, knockbackX: 0, knockbackY: 0 }; }
+export function tickVitality(player, dt, world = null) {
+  player.invulnerable = Math.max(0, player.invulnerable - dt);
+  if (player.knockbackLeft > 0) {
+    const step = Math.min(Math.max(0, dt), player.knockbackLeft);
+    if (world && player.state === 'active') moveActor(world, player, player.knockbackX * step, player.knockbackY * step);
+    player.knockbackLeft = Math.max(0, player.knockbackLeft - step);
+  }
+}
 export function hurtPlayer(player, damage = 1) {
   if (player.state !== 'active' || player.invulnerable > 0) return false;
   player.health = Math.max(0, player.health - damage); player.invulnerable = COMBAT.invulnerable;
@@ -30,7 +37,7 @@ export function createGuard(world, options = {}) {
     angle: firstAngle, watchAngles, watchIndex: 0, watchLeft: GUARD_PATTERNS.lookPause, pauseLeft: GUARD_PATTERNS.roomPause,
     state: 'patrol', suspicion: 0, patrol, patrolIndex: behaviour === 'lookout' ? 0 : 1, path: [], repath: 0, goal: null, lastSeen: null,
     searchLeft: COMBAT.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
-    windup: 0, cooldown: 0, swing: 0, snareLeft: 0, moving: false, resumeState: 'patrol' };
+    windup: 0, cooldown: 0, swing: 0, attackAngle: null, snareLeft: 0, moving: false, resumeState: 'patrol' };
 }
 
 export function createGuards(world) {
@@ -143,7 +150,7 @@ function setGuardGoal(world, guard, point, dt) {
 export function updateGuard(world, guard, player, dt) {
   const events = { hit: false, spotted: false };
   if (player.state !== 'active' || dt <= 0) return events;
-  if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; return events; }
+  if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; guard.swing = 0; return events; }
   guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
   const alerted = guard.state === 'chase' || guard.state === 'search';
   const sees = seesPlayer(world, guard, player, alerted);
@@ -168,27 +175,36 @@ export function updateGuard(world, guard, player, dt) {
     guard.trailLeft = COMBAT.trailSeconds;
   }
   if (guard.state === 'search') recordGuardTrail(world, guard, player, dt);
-  // A strike has a visible wind-up. Stepping out of range makes it miss.
+  // Commit to the direction chosen at attack start; a dodge can make it miss.
   if (guard.windup > 0) {
+    guard.angle = guard.attackAngle ?? guard.angle;
     guard.windup = Math.max(0, guard.windup - dt);
     if (!guard.windup) {
-      guard.swing = 0.18; guard.cooldown = COMBAT.cooldown;
-      if (Math.hypot(player.x - guard.x, player.y - guard.y) <= COMBAT.attackRange && clearPath(world, guard, player)) events.hit = hurtPlayer(player);
+      guard.swing = COMBAT.swingTime; guard.cooldown = COMBAT.cooldown;
+      if (guardStrikeHits(world, guard, player) && hurtPlayer(player)) {
+        events.hit = true;
+        const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
+        const speed = COMBAT.knockbackDistance / Math.max(.001, COMBAT.knockbackTime);
+        player.knockbackX = (distance ? dx / distance : Math.cos(guard.angle)) * speed;
+        player.knockbackY = (distance ? dy / distance : Math.sin(guard.angle)) * speed;
+        player.knockbackLeft = COMBAT.knockbackTime;
+      }
     }
     return events;
   }
+  if (guard.swing > 0) { guard.angle = guard.attackAngle ?? guard.angle; return events; }
   if (guard.state === 'suspicious') return events;
   if (guard.state === 'chase' && sees) {
     const distance = Math.hypot(player.x - guard.x, player.y - guard.y);
-    if (distance <= COMBAT.attackRange) {
-      guard.angle = Math.atan2(player.y - guard.y, player.x - guard.x);
-      if (!guard.cooldown) guard.windup = COMBAT.windup;
+    if (distance <= COMBAT.attackRange && !guard.cooldown) {
+      guard.attackAngle = Math.atan2(player.y - guard.y, player.x - guard.x); guard.angle = guard.attackAngle;
+      guard.windup = COMBAT.windup;
       return events;
     }
     // Navigate to the target's tile; approach precisely once inside that tile.
     if (Math.floor(player.x) === Math.floor(guard.x) && Math.floor(player.y) === Math.floor(guard.y)) guard.path = [{ x: player.x, y: player.y }];
     else setGuardGoal(world, guard, player, dt);
-    guard.moving = followPath(world, guard, guard.path, COMBAT.chaseSpeed * dt, COMBAT.guardRadius) > 0;
+    guard.moving = followPath(world, guard, guard.path, Math.min(COMBAT.chaseSpeed * dt, Math.max(0, distance - CONFIG.radius - COMBAT.guardRadius)), COMBAT.guardRadius) > 0;
   } else if (guard.state === 'search') {
     while (guard.trail.length && Math.hypot(guard.trail[0].x - guard.x, guard.trail[0].y - guard.y) <= 0.35) {
       guard.trail.shift(); guard.repath = 0;
@@ -212,4 +228,11 @@ export function updateGuard(world, guard, player, dt) {
   } else if (guard.state === 'patrol') updateRoutine(world, guard, dt);
 
   return events;
+}
+
+export function guardStrikeHits(world, guard, player) {
+  const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
+  const angle = guard.attackAngle ?? guard.angle;
+  return distance <= COMBAT.attackReach && clearPath(world, guard, player)
+    && (distance < .001 || (dx * Math.cos(angle) + dy * Math.sin(angle)) / distance >= Math.cos(COMBAT.attackHalfArc));
 }

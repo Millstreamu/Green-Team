@@ -32,7 +32,7 @@ Two blue lookouts stay at fixed posts, alternating between two directions with r
 
 Walls block sight. A question mark and filling bar give notice before a chase. Guards may pursue into otherwise quiet rooms; breaking sight starts a brief invisible trail of the goblin's next movements. The guard follows it at a slower search pace, including around corners into rooms, then looks around at the end before returning to its post/route. Hidden movements stop adding clues after 2.5 seconds. Actual sight resumes the chase; another later sight break starts a new brief trail. Quiet rooms are not magical safe zones. The faint cone and small labels are prototype observation aids.
 
-The guard attacks at close range with a visible wind-up and red strike circle. Move away to make it miss. You have three health points with a short gap between damaging hits. Zero health puts you down. In this solo test there is no teammate left to recover you, so the run ends and bag/cursor loot is lost. Start next run restores health; getting close to a guard is not an instant failure.
+The guard briefly pauses, commits to a direction and swings through a red arc. Dodge out of reach or around the committed direction. Successful hits push the goblin back slightly; guards resume chasing after the quick swing. You have three health points with a short gap between damaging hits. Zero health puts you down. In this solo test there is no teammate left to recover you, so the run ends and bag/cursor loot is lost. Start next run restores health; getting close to a guard is not an instant failure.
 
 Teammate recovery, its rules and returning after the team run are future multiplayer work. There is no player attack; single-use snares are available for testing.
 
@@ -134,3 +134,14 @@ Provisional probabilities blend smoothly: near/far empty chance 70%/50%; near/fa
 Values live in SEARCH_LOOT in config.js; each container stores distance/depth metadata for future tuning. Rewards stay fixed for a given seed and cannot be rerolled by cancelling. No guard, crafting, stash or control changes.
 
 Verified: 70 automated tests, including a winding-corridor case and near/far material/rarity/empty comparisons over 300 maps. Existing sparse-loot checks and gameplay loop pass. Standalone build and bundled syntax pass; browser balance review pending. Download green-team-deeper-loot-v18.html.
+
+
+## V19: faster directional swings and knockback
+
+User requested a quicker pause → directional swing → chase, plus a little player knockback, with later parameter editing. COMBAT now holds the trigger range (0.95 tiles), strike reach (1.2), half arc (60 degrees), windup (0.18 seconds), visible swing (0.14), attack cooldown (0.45), knockback distance (0.55 tiles) and push duration (0.1 seconds). These are provisional. Damage immunity remains one second and health remains three.
+
+Guard locks its attack angle when beginning the pause. The hit is checked once at swing start against reach, that fixed arc and an unobstructed path; moving behind/outside it can dodge. It pauses through the short swing, then pursues even while the next attack is cooling down. The floor preview is a directional sector and a short blade sweep shows the swing.
+
+Only a damaging hit starts knockback, directed away from the guard. Smooth movement over the short push uses the same small-step collision helper as walking, stops at walls, retains goblin facing and can coexist with player movement. Simultaneous immune hits do not stack damage or pushes. Hits still interrupt searching and placement; snares interrupt attacks as before. No extra stun system or player attacks added.
+
+Verified: 74 tests including direction locking/dodging, quick chase resumption, knockback distance across frame rates, wall safety and shared hit/push immunity. Existing gameplay/guard/route/loot suites pass. Standalone build and bundled syntax pass; timing/feel still need browser playtest. Download green-team-quick-swings-v19.html.

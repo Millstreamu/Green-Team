@@ -11,7 +11,7 @@ import { autoPickup, liftItem } from '../src/loot.js';
 const arena = () => ({ width: 20, height: 20, tiles: Uint8Array.from({ length: 400 }, (_, i) => i % 20 > 0 && i % 20 < 19 && Math.floor(i / 20) > 0 && Math.floor(i / 20) < 19 ? 1 : 0), spawn: { x: 4.5, y: 4.5 }, rooms: [{ x: 2, y: 2, w: 5, h: 5, cx: 4, cy: 4 }, { x: 10, y: 10, w: 5, h: 5, cx: 12, cy: 12 }] });
 const enemy = world => ({ ...createGuard(world), x: 5.5, y: 5.5, angle: 0 });
 const goblin = (x, y) => ({ x, y, ...createVitality() });
-const step = (world, guard, player, dt = 0.05) => { tickVitality(player, dt); return updateGuard(world, guard, player, dt); };
+const step = (world, guard, player, dt = 0.05) => { tickVitality(player, dt, world); return updateGuard(world, guard, player, dt); };
 
 test('guard routes stay on walkable tiles and reach all patrol goals across 100 generated maps', () => {
   for (let seed = 0; seed < 100; seed++) {
@@ -94,7 +94,7 @@ test('strikes damage health with recovery time; zero health puts the goblin down
     const event = step(world, guard, player);
     if (event.hit) { hits++; if (firstHitAt === null) firstHitAt = i; assert.equal(hurtPlayer(player), false); }
   }
-  assert.ok(firstHitAt >= 10); assert.equal(hits, 3); assert.equal(player.health, 0); assert.equal(player.state, 'down');
+  assert.ok(firstHitAt >= Math.ceil(COMBAT.windup / .05)); assert.ok(firstHitAt < 10); assert.equal(hits, 3); assert.equal(player.health, 0); assert.equal(player.state, 'down');
   assert.equal(hurtPlayer(player), false);
 });
 
@@ -189,4 +189,54 @@ test('simultaneous guard strikes share player damage immunity instead of stackin
   tickVitality(player, 0.05);
   const events = guards.map(guard => updateGuard(world, guard, player, 0.05));
   assert.equal(events.filter(event => event.hit).length, 1); assert.equal(player.health, 2);
+});
+
+test('guard commits to its swing direction so moving behind it can dodge the hit', () => {
+  const world = arena(), guard = enemy(world), player = goblin(6.2, 5.5);
+  guard.state = 'chase'; step(world, guard, player, .02);
+  assert.equal(guard.attackAngle, 0);
+  player.x = 4.8;
+  for (let i = 0; i < 11; i++) step(world, guard, player, .02);
+  assert.equal(guard.attackAngle, 0); assert.equal(player.health, 3);
+  assert.ok(guard.swing > 0); assert.equal(guard.x, 5.5);
+});
+test('guard resumes chasing after the short swing even while its attack cooldown remains', () => {
+  const world = arena(), guard = enemy(world), player = goblin(6.2, 5.5);
+  guard.state = 'chase'; updateGuard(world, guard, player, .02);
+  let hit = false;
+  for (let i = 0; i < 20 && !hit; i++) hit = updateGuard(world, guard, player, .02).hit;
+  assert.ok(hit); assert.equal(player.health, 2);
+  const position = guard.x; player.x = 8;
+  updateGuard(world, guard, player, .05); assert.equal(guard.x, position);
+  for (let i = 0; i < 3; i++) updateGuard(world, guard, player, .05);
+  assert.ok(guard.x > position); assert.ok(guard.cooldown > 0); assert.equal(guard.state, 'chase');
+});
+test('successful hits cause a short consistent knockback without changing goblin facing', () => {
+  const simulate = dt => {
+    const world = arena(), guard = enemy(world), player = { ...goblin(6.2, 5.5), facing: -1 };
+    guard.state = 'chase'; updateGuard(world, guard, player, .02);
+    let hit = false;
+    for (let i = 0; i < 20 && !hit; i++) hit = updateGuard(world, guard, player, .02).hit;
+    assert.ok(hit); const start = player.x;
+    for (let time = 0; time < .3; time += dt) tickVitality(player, dt, world);
+    assert.ok(Math.abs(player.x - start - COMBAT.knockbackDistance) < .00001);
+    assert.equal(player.facing, -1); assert.equal(player.knockbackLeft, 0); assert.equal(player.health, 2);
+    return player.x;
+  };
+  assert.ok(Math.abs(simulate(.01) - simulate(.04)) < .00001);
+});
+test('knockback stops at walls and simultaneous hits cannot reverse or stack the push', () => {
+  const world = arena(), player = goblin(6.6, 5.5), guard = enemy(world);
+  guard.x = 5.9; guard.state = 'chase'; guard.attackAngle = 0; guard.windup = .01;
+  for (let y = 0; y < world.height; y++) world.tiles[y * world.width + 7] = 0;
+  assert.ok(updateGuard(world, guard, player, .02).hit);
+  for (let i = 0; i < 20; i++) tickVitality(player, .02, world);
+  assert.ok(player.x < 7 - .26); assert.ok(canStand(world, player.x, player.y));
+  const otherWorld = arena(), otherPlayer = goblin(6.2, 5.5), first = enemy(otherWorld), second = enemy(otherWorld);
+  Object.assign(first, { state: 'chase', windup: .01, attackAngle: 0 });
+  Object.assign(second, { x: 6.9, state: 'chase', windup: .01, attackAngle: Math.PI });
+  assert.ok(updateGuard(otherWorld, first, otherPlayer, .02).hit);
+  const push = otherPlayer.knockbackX;
+  assert.equal(updateGuard(otherWorld, second, otherPlayer, .02).hit, false);
+  assert.ok(push > 0); assert.equal(otherPlayer.knockbackX, push); assert.equal(otherPlayer.health, 2);
 });

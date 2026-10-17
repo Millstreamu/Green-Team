@@ -23,9 +23,15 @@ export function drawGuard(ctx, guard, ox, oy) {
   const alert = guard.state === 'chase' || guard.state === 'search';
   const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
   if (guard.windup > 0 || guard.swing > 0) {
-    ctx.beginPath(); ctx.arc(x, y, COMBAT.attackRange * t, 0, Math.PI * 2);
+    const attackAngle = guard.attackAngle ?? guard.angle;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, COMBAT.attackReach * t, attackAngle - COMBAT.attackHalfArc, attackAngle + COMBAT.attackHalfArc); ctx.closePath();
     ctx.fillStyle = guard.swing > 0 ? '#ef727b50' : '#ef727b18'; ctx.fill();
     ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
+    if (guard.swing > 0) {
+      const sweep = attackAngle - COMBAT.attackHalfArc + (1 - guard.swing / COMBAT.swingTime) * COMBAT.attackHalfArc * 2;
+      ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + Math.cos(sweep) * COMBAT.attackReach * t, y - 8 + Math.sin(sweep) * COMBAT.attackReach * t);
+      ctx.strokeStyle = '#ffe4ba'; ctx.lineWidth = 3; ctx.stroke();
+    }
   }
   rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
   rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : guard.behaviour === 'roamer' ? '#81729b' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : guard.behaviour === 'roamer' ? '#b2a0ca' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
