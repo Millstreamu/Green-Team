@@ -44,13 +44,13 @@ export function drawGuard(ctx, guard, ox, oy) {
     ctx.fillStyle = '#d7eeb2'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('SNARED', x, y - 29);
   } else if (guard.state !== 'patrol') {
     ctx.fillStyle = alert ? '#f19a91' : '#efd18a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
+    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'carry' ? 'CARRYING' : guard.state === 'capture' ? 'CAPTURE' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
   }
   if (guard.state === 'suspicious') {
     rect(-9, -29, 18, 2, '#242e29'); rect(-9, -29, Math.round(18 * guard.suspicion), 2, '#efd18a');
   }
   if (guard.state === 'patrol') {
     ctx.fillStyle = guard.behaviour === 'lookout' ? '#a3c5cd' : (guard.behaviour === 'roamer' || guard.reinforcement) ? '#c4b5dc' : '#d9b297'; ctx.font = '6px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(guard.behaviour === 'lookout' ? 'LOOKOUT' : (guard.behaviour === 'roamer' || guard.reinforcement) ? guard.reinforcement ? guard.pauseLeft > 0 ? 'SWEEP / SEARCHING' : 'SWEEP' : guard.pauseLeft > 0 ? 'ROAMER / PAUSED' : 'ROAMER' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
+    ctx.fillText(guard.jailer ? 'JAIL GUARD' : guard.behaviour === 'lookout' ? 'LOOKOUT' : (guard.behaviour === 'roamer' || guard.reinforcement) ? guard.reinforcement ? guard.pauseLeft > 0 ? 'SWEEP / SEARCHING' : 'SWEEP' : guard.pauseLeft > 0 ? 'ROAMER / PAUSED' : 'ROAMER' : guard.pauseLeft > 0 ? 'PAUSED' : 'PATROL', x, y + 6);
   }
 }

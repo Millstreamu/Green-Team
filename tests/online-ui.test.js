@@ -80,6 +80,8 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.equal(session.action(player, { type: 'take', item: 'snare' }), true);
   for (const p of [player, other]) { p.x = 9; p.y = 2.5; session.action(p, { type: 'board' }); }
   for (let i = 0; i < 61; i++) session.tick(.05);
+  // Keep random patrol combat out of this UI fixture; real combat is checked separately.
+  player.invulnerable = other.invulnerable = 1000;
   sync(); frames.shift()(16);
   assert.equal(element('sack-tab').hidden, false);
   assert.match(element('rooms').textContent, /rooms/);
@@ -136,10 +138,13 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   const flush = () => { for (const message of sent.slice(consumed)) session.action(player, message); consumed = sent.length; };
   key('Tab'); element('debug-pack-snare').send('click'); flush(); sync();
   element('debug-pack-smoke').send('click'); flush(); sync();
-  assert.deepEqual(player.bag.map(i => i.type), ['snare', 'smoke']);
+  element('debug-pack-lunch').send('click'); flush(); sync();
+  assert.deepEqual(player.bag.map(i => i.type), ['snare', 'smoke', 'lunch']);
   element('lair-panel').send('keydown', { code: 'Tab' }); flush();
   for (const p of [player, other]) { p.x = 9; p.y = 2.5; session.action(p, { type: 'board' }); }
   for (let i = 0; i < 61; i++) session.tick(.05);
+  // Keep random patrol combat out of this UI fixture; real combat is checked separately.
+  player.invulnerable = other.invulnerable = 1000;
   sync(); frames.shift()(96);
   assert.ok(session.snapshot(player).dungeon.guards.length >= 4);
   assert.match(element('health-label').textContent, /Health 3/);
@@ -166,6 +171,21 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.match(element('target-label').textContent, /Hidden/);
   const beforeTab = sent.length; key('Tab'); assert.equal(sent.length, beforeTab);
   key('KeyE'); flush(); sync(); assert.equal(player.hiding, null);
+  other.state = 'down'; other.health = 0; session.tick(.05);
+  player.x = other.x + .5; player.y = other.y; sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450 - .5 * 24 * 2, clientY: 300 });
+  key('KeyE'); assert.equal(sent.at(-1).type, 'rescue'); flush(); sync(); frames.shift()(184);
+  assert.match(element('target-label').textContent, /Rescuing/);
+  for (let i = 0; i < 41; i++) { intervals[0](); flush(); session.tick(.05); }
+  sync(); assert.equal(other.state, 'active'); assert.equal(other.health, 1); assert.ok(!player.bag.some(i => i.type === 'lunch'));
+  const cage = session.snapshot(player).dungeon.cages[0];
+  Object.assign(other, { state: 'caged', health: 0, cageId: cage.id, x: cage.x, y: cage.y, downSpilled: true }); cage.prisoners.push(other.id);
+  player.x = cage.entry.x; player.y = cage.entry.y; player.invulnerable = 10; sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450, clientY: 300 });
+  key('KeyE'); assert.equal(sent.at(-1).type, 'rescue'); flush(); sync(); frames.shift()(188);
+  for (let i = 0; i < 61; i++) { intervals[0](); flush(); session.tick(.05); }
+  sync(); assert.equal(other.state, 'active'); assert.equal(other.health, 1); assert.equal(cage.prisoners.length, 0);
+  other.invulnerable = 10; // Isolate the following downed-control UI check from jailer damage.
   player.state = 'down'; player.health = 0; session.tick(.05); sync(); frames.shift()(192);
   assert.match(element('health-label').textContent, /DOWN/);
   const beforeDownAction = sent.length; key('KeyE'); assert.equal(sent.length, beforeDownAction);

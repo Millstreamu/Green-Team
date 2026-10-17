@@ -1,3 +1,4 @@
+import { drawCages, drawRescues } from './rescue-view.js';
 import { drawReinforcementDoors } from './pressure-view.js';
 import { drawHidingSpots } from './hiding-view.js';
 import { drawSmoke } from './smoke-view.js';
@@ -30,7 +31,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null, pressure = null, teammates = []) => {
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null, pressure = null, teammates = [], rescueTarget = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -49,6 +50,7 @@ export async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
+    drawCages(ctx, run.cages ?? [], ox, oy);
     drawReinforcementDoors(ctx, pressure, ox, oy);
     for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy, clouds);
     const highlightTunnel = tunnelReady || world.lair && lairTarget(world, player)?.kind === 'tunnel';
@@ -67,7 +69,7 @@ export async function createRenderer(canvas, mapCanvas) {
     ctx.fillStyle = highlightTunnel ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText(world.lair ? 'DEPARTURE CART' : 'SECRET TUNNEL', tx, ty - 30);
     if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
-    drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots], placement, ox, oy);
+    drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots, ...(run.cages ?? [])], placement, ox, oy);
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
     drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy);
     for (const item of loot.ground) {
@@ -95,13 +97,16 @@ export async function createRenderer(canvas, mapCanvas) {
       rect(sx - 7, sy - 2, 14, 4, '#182222');
       ctx.save(); ctx.translate(sx, sy - hop);
       if (player.ghost) { ctx.globalAlpha = .35; ctx.filter = 'grayscale(1)'; } ctx.scale(player.facing / GOBLIN_ART.faces, 1);
-      if (player.state === 'down') ctx.rotate(Math.PI / 2);
+      if (player.state === 'carried') ctx.translate(0, -10);
+      if (player.state === 'down' || player.state === 'carried') ctx.rotate(Math.PI / 2);
       else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
       const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
       ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
       ctx.restore();
-      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state === 'down' ? `${actor.name} · DOWN` : actor.name, sx, sy - sh - 8); }
+      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state !== 'active' && actor.state ? `${actor.name} · ${actor.state.toUpperCase()}` : actor.name, sx, sy - sh - 8); }
     }
+    drawCages(ctx, run.cages ?? [], ox, oy, true);
+    drawRescues(ctx, [...teammates, player], run.cages ?? [], run.rescues ?? [], rescueTarget, ox, oy);
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
     map.fillStyle = '#667670';

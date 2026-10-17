@@ -1,3 +1,4 @@
+import { createRescue } from './rescue.js';
 import { createGuards, createVitality, tickVitality, seesPlayer } from '../src/guard.js';
 import { createPressure, updatePressure } from '../src/pressure.js';
 import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from '../src/hiding.js';
@@ -12,11 +13,13 @@ export function createDanger(world, participants, objects) {
     Object.assign(p, createVitality()); p.hiding = null; p.enteringHide = null;
     p.placement = createPlacement(); p.quickType = null; p.downSpilled = false; p.downItems = [];
   }
+  const rescue = createRescue(world, participants, guards, obstacles);
+  obstacles.push(...rescue.cages.map(c => ({ x: c.x, y: c.y })));
   const witnesses = p => guards.filter(g => seesPlayer(world, g, p, ['chase', 'search'].includes(g.state), clouds));
   return {
-    guards, hidingSpots, traps, clouds, pressure,
+    guards, hidingSpots, traps, clouds, pressure, rescue,
     cancel(p, releaseSpot = false) {
-      cancelHiding(p); cancelPlacement(p.placement);
+      rescue.cancel(p); cancelHiding(p); cancelPlacement(p.placement);
       if (releaseSpot) { p.quickType = null; leaveHiding(p); }
     },
     action(p, m) {
@@ -62,15 +65,16 @@ export function createDanger(world, participants, objects) {
       updateSmoke(clouds, dt);
       updateTraps(traps, live.filter(p => p.state === 'active'), guards, dt);
       for (const g of guards) {
+        if (rescue.guardTick(g, dt, clouds)) continue;
         const event = updateTeamGuard(world, g, participants, dt, clouds, pressure.heat);
         for (const id of event.hitIds) {
-          const p = participants.find(p => p.id === id); stopSearch(p, true); cancelHiding(p); interruptPlacement(p.placement);
+          const p = participants.find(p => p.id === id); stopSearch(p, true); rescue.cancel(p); cancelHiding(p); interruptPlacement(p.placement);
         }
       }
       for (const p of live) {
-        if (p.state === 'down') {
-          if (!p.downSpilled) { p.downSpilled = true; p.downItems = [...p.bag, ...(p.loot.held ? [p.loot.held] : [])].map(i => ({ ...i })); spillBag(p); }
-          stopSearch(p); cancelHiding(p); leaveHiding(p); cancelPlacement(p.placement); p.quickType = null;
+        if (p.state !== 'active') {
+          if (p.state === 'down' && !p.downSpilled) { p.downSpilled = true; p.downItems = [...p.bag, ...(p.loot.held ? [p.loot.held] : [])].map(i => ({ ...i })); spillBag(p); }
+          stopSearch(p); rescue.cancel(p); cancelHiding(p); leaveHiding(p); cancelPlacement(p.placement); p.quickType = null;
           continue;
         }
         const holding = p.inputAge <= .4 && p.searchHeld;
@@ -78,12 +82,13 @@ export function createDanger(world, participants, objects) {
         const point = p.placement.aimPoint ?? placementPoint(p);
         updatePlacement(p.placement, world, p, p.loot, traps, obstacles, point, holding, dt);
       }
+      rescue.tick(dt);
       updatePressure(world, pressure, guards, dt);
     },
     snapshot() {
-      return { guards: guards.map(g => ({ id: g.id, x: g.x, y: g.y, angle: g.angle, state: g.state, behaviour: g.behaviour,
+      return { ...rescue.snapshot(), guards: guards.map(g => ({ id: g.id, x: g.x, y: g.y, angle: g.angle, state: g.state, behaviour: g.behaviour,
         suspicion: g.suspicion, windup: g.windup, swing: g.swing, attackAngle: g.attackAngle, snareLeft: g.snareLeft,
-        reinforcement: g.reinforcement, pauseLeft: g.pauseLeft, targetId: g.targetId })), hidingSpots, traps, clouds, pressure };
+        reinforcement: g.reinforcement, stationary: g.stationary, jailer: g.jailer, captiveId: g.captiveId ?? null, pauseLeft: g.pauseLeft, targetId: g.targetId })), hidingSpots, traps, clouds, pressure };
     }
   };
 }

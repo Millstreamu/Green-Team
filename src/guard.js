@@ -145,7 +145,7 @@ function updateRoamingRoutine(world, guard, dt) {
 }
 
 export function seesPlayer(world, guard, player, alerted = false, clouds = []) {
-  if (player.hiding || player.unavailable || player.ghost || player.state === 'down') return false;
+  if (player.hiding || player.unavailable || player.ghost || player.state && player.state !== 'active') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (alerted || distance < 1.2) return true;
@@ -168,10 +168,11 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
   guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
   if (guard.knownHiding) {
     const known = guard.knownHiding;
-    if (player.id === known.playerId && player.hiding?.spot.id === known.spotId) {
+    if (player.id === known.playerId && player.hiding?.spot.id === known.spotId
+      && (!guard.stationary || Math.hypot(guard.x - known.x, guard.y - known.y) <= HIDING.pullReach)) {
       guard.state = 'chase'; guard.windup = 0; guard.swing = 0;
       setGuardGoal(world, guard, known, dt);
-      guard.moving = followPath(world, guard, guard.path, heatedChaseSpeed(heat) * dt, COMBAT.guardRadius) > 0;
+      guard.moving = !guard.stationary && followPath(world, guard, guard.path, heatedChaseSpeed(heat) * dt, COMBAT.guardRadius) > 0;
       if (Math.hypot(guard.x - known.x, guard.y - known.y) <= HIDING.pullReach) {
         leaveHiding(player); guard.knownHiding = null; guard.repath = 0;
         guard.lastSeen = { x: player.x, y: player.y }; clearGuardTrail(guard); events.exposed = true;
@@ -225,8 +226,9 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
     // Navigate to the target's tile; approach precisely once inside that tile.
     if (Math.floor(player.x) === Math.floor(guard.x) && Math.floor(player.y) === Math.floor(guard.y)) guard.path = [{ x: player.x, y: player.y }];
     else setGuardGoal(world, guard, player, dt);
-    guard.moving = followPath(world, guard, guard.path, Math.min(heatedChaseSpeed(heat) * dt, Math.max(0, distance - CONFIG.radius - COMBAT.guardRadius)), COMBAT.guardRadius) > 0;
+    guard.moving = !guard.stationary && followPath(world, guard, guard.path, Math.min(heatedChaseSpeed(heat) * dt, Math.max(0, distance - CONFIG.radius - COMBAT.guardRadius)), COMBAT.guardRadius) > 0;
   } else if (guard.state === 'search') {
+    if (guard.stationary) clearGuardTrail(guard);
     while (guard.trail.length && Math.hypot(guard.trail[0].x - guard.x, guard.trail[0].y - guard.y) <= 0.35) {
       guard.trail.shift(); guard.repath = 0;
     }
@@ -252,7 +254,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
 }
 
 export function guardStrikeHits(world, guard, player) {
-  if (player.hiding || player.unavailable || player.ghost || player.state === 'down') return false;
+  if (player.hiding || player.unavailable || player.ghost || player.state && player.state !== 'active') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   const angle = guard.attackAngle ?? guard.angle;
   return distance <= COMBAT.attackReach && clearPath(world, guard, player)

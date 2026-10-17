@@ -19,7 +19,7 @@ export function createLairView(dialog, camp, profile, getLoot, onChange, onClose
     onChange(); refresh(); status.textContent = item.debugSupply ? 'Debug supply removed; shared stock unchanged.' : 'Item returned to the shared stash.';
   });
   document.querySelector('#stash-move').addEventListener('click', () => { grid.beginMove(); document.querySelector('#stash-grid').focus(); });
-  for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).addEventListener('click', () => {
+  for (const type of ['snare', 'smoke', 'lunch']) document.querySelector(`#debug-pack-${type}`).addEventListener('click', () => {
     if (mode === 'campfire') return;
     if (commands) { if (debugSupplies) commands({ type: 'debug-pack', item: type }); return; }
     if (!takeStashItem(camp, getLoot(), type, true)) { status.textContent = 'Your sack is full.'; return; }
@@ -72,7 +72,7 @@ export function createLairView(dialog, camp, profile, getLoot, onChange, onClose
     mode = kind; dialog.dataset.mode = kind; title.textContent = kind === 'campfire' ? 'Campfire · personal upgrades' : kind === 'craft' ? 'Workbench & recipes' : 'Central lair stash';
     document.querySelector('#lair-eyebrow').textContent = kind === 'campfire' ? 'FOR YOUR GOBLIN' : 'LAIR PREPARATION';
     description.textContent = kind === 'campfire' ? 'Spend personal XP on permanent passive upgrades for your goblin.' : kind === 'craft' ? 'Spend personal XP on recipes. Crafting uses shared materials.' : 'E or click takes one item. In your sack, E or click returns one. R moves a whole stash stack.';
-    for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).hidden = !!commands && !debugSupplies;
+    for (const type of ['snare', 'smoke', 'lunch']) document.querySelector(`#debug-pack-${type}`).hidden = !!commands && !debugSupplies;
     status.textContent = ''; grid.reset(); sackGrid.reset(); refresh(); dialog.showModal();
     (kind === 'campfire' ? !document.querySelector('#buy-quick-search').disabled ? document.querySelector('#buy-quick-search') : document.querySelector('#close-lair') : kind === 'craft' ? ['#buy-smoke', '#craft-smoke', '#craft-snare'].map(selector => document.querySelector(selector)).find(button => !button.disabled) ?? document.querySelector('#close-lair') : document.querySelector('#stash-grid')).focus();
   } };

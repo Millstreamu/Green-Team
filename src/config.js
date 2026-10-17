@@ -26,3 +26,6 @@ export const HEAT = Object.freeze({ riseSeconds: 30, coolDelay: 4, coolSeconds: 
 export const HIDING = Object.freeze({ enterTime: 0.5, reach: 1.6, roomInterval: 2, pullReach: 0.8 });
 
 export const SMOKE = Object.freeze({ radius: 2, duration: 5 });
+
+// Rescue timings/capacity are playtest values; recipe cost remains undecided.
+export const RESCUE = Object.freeze({ reach: 1.6, reviveSeconds: 2, cageSeconds: 3, pickupSeconds: 1, carrySpeed: 1.6, cages: 3 });

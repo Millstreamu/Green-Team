@@ -39,23 +39,27 @@ export function createDungeonSession(launch, participants, camp) {
     if (outcome === 'escaped') bankEscape(camp, result, { bag: recovered });
     for (const p of participants) {
       const wasInRun = p.inRun;
-      stopSearch(p); danger.cancel(p, true); p.bag.length = 0; p.loot.held = null; p.inRun = false;
-      p.result = p.connected && wasInRun ? { ...result, ...(p.state === 'down' ? { outcome: 'down', leftBehind: outcome === 'escaped', items: [], count: 0, slots: 0, lostItems: (p.downItems ?? []).filter(i => !recoveredIds.has(i.id)) } : {}), personalXp: { earned: 0, total: p.profile.xp } } : null;
+      stopSearch(p); danger.rescue.remove(p); danger.cancel(p, true); p.bag.length = 0; p.loot.held = null; p.inRun = false;
+      p.result = p.connected && wasInRun ? { ...result, ...(p.state !== 'active' ? { outcome: 'down', leftBehind: outcome === 'escaped', items: [], count: 0, slots: 0, lostItems: (p.downItems ?? []).filter(i => !recoveredIds.has(i.id)) } : {}), personalXp: { earned: 0, total: p.profile.xp } } : null;
     }
     return result;
   }
   return {
     world, objects, ground, run, danger,
-    disconnect(p) { stopSearch(p); danger.cancel(p, true); p.disconnectedFor = 0; p.moving = false; },
+    disconnect(p) { stopSearch(p); danger.rescue.disconnect(p); danger.cancel(p, true); p.disconnectedFor = 0; p.moving = false; },
     action(p, message) {
       if (settled || !p.inRun || !p.connected || p.state !== 'active') return false;
       const loot = p.loot;
       if (message.type === 'cancel-search') { stopSearch(p);
         // Releasing E cancels hide entry, but keeps equipped traps available.
-        p.enteringHide = null; return true; }
+        p.enteringHide = null; danger.rescue.cancel(p); return true; }
       if (p.hiding && message.type !== 'hide') return false;
+      if (message.type === 'rescue') {
+        if (typeof message.id !== 'string') return false;
+        stopSearch(p); danger.cancel(p); return danger.rescue.start(p, message.id);
+      }
       if (['equip', 'aim', 'smoke', 'hide', 'cancel-placement'].includes(message.type)) {
-        if (message.type !== 'aim') { stopSearch(p); p.enteringHide = null; }
+        if (message.type !== 'aim') { danger.rescue.cancel(p); stopSearch(p); p.enteringHide = null; }
         return danger.action(p, message);
       }
       if (message.type === 'search') {
@@ -76,10 +80,12 @@ export function createDungeonSession(launch, participants, camp) {
         return message.type === 'pickup' ? autoPickup(loot, item.id) : liftItem(loot, source, item.id);
       }
       if (message.type === 'rotate') {
+        danger.rescue.cancel(p);
         if (!loot.held) return false;
         loot.held.rotation = (loot.held.rotation + 1) % 4; return true;
       }
       if (message.type === 'place') {
+        danger.rescue.cancel(p);
         if (![message.x, message.y].every(n => Number.isInteger(n) && n >= 0 && n < 3)) return false;
         return placeHeld(loot, message.x, message.y);
       }
@@ -101,7 +107,7 @@ export function createDungeonSession(launch, participants, camp) {
           tickVitality(p, dt); // Existing hit immunity expires while offline; reconnect grants none.
           p.disconnectedFor += dt;
           if (p.disconnectedFor + .000001 >= 60) {
-            stopSearch(p); danger.cancel(p, true); spillBag(p); p.inRun = false; p.waiting = true; p.location = 'home';
+            stopSearch(p); danger.rescue.remove(p); danger.cancel(p, true); spillBag(p); p.inRun = false; p.waiting = true; p.location = 'home';
           }
           continue;
         }

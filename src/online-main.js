@@ -9,6 +9,7 @@ import { generateDungeon } from './world.js';
 import { selectInteraction, SEARCHABLE_TYPES } from './search.js';
 import { createSackView } from './sack-view.js';
 import { createResultsView } from './results-view.js';
+import { selectRescue } from './rescue.js';
 import { pressureLabel } from './pressure-view.js';
 import { atTunnel } from './run.js';
 
@@ -31,11 +32,20 @@ const clear = () => {
 const stopSearch = () => send({ type: 'cancel-search' });
 const self = () => state?.players.find(p => p.id === state.selfId);
 const activeDungeon = () => connected && state?.dungeon && !state.result && !self()?.waiting && self()?.state === 'active';
-const runView = () => ({ phase: 'exploring', entrance: state.dungeon.entrance });
+const runView = () => ({ phase: 'exploring', entrance: state.dungeon.entrance, cages: state.dungeon.cages, rescues: state.dungeon.rescues });
 function interaction() {
-  const player = self();
-  return state?.dungeon && player ? selectInteraction(world, player, loot.ground, state.dungeon.objects,
-    pointer.active && pointer.overGame ? screenToWorld($('#game'), player, pointer) : null, state.dungeon.hidingSpots ?? []) : null;
+  const player = self(); if (!state?.dungeon || !player) return null;
+  const at = pointer.active && pointer.overGame ? screenToWorld($('#game'), player, pointer) : null;
+  const normal = selectInteraction(world, player, loot.ground, state.dungeon.objects, at, state.dungeon.hidingSpots ?? []);
+  const rescue = selectRescue(world, player, state.players, state.dungeon.cages ?? [], at);
+  if (!rescue) return normal;
+  if (at) {
+    const rd = Math.hypot(rescue.item.x - at.x, rescue.item.y - at.y);
+    const nd = normal ? Math.hypot(normal.item.x - at.x, normal.item.y - at.y) : Infinity;
+    if (nd <= .8 && nd < rd) return normal;
+    if (rd <= .8) return rescue;
+  }
+  return rescue.kind === 'rescue' || loot.bag.some(i => i.type === 'lunch') ? rescue : normal ?? rescue;
 }
 const lair = createLairView($('#lair-panel'), camp, profile, () => loot, () => {}, clear, () => {}, send, { debugSupplies: true });
 const planning = createMapPlanningView($('#map-planning'), selection => {
@@ -43,8 +53,8 @@ const planning = createMapPlanningView($('#map-planning'), selection => {
 }, () => state.cart.selection, () => loot.bag, clear);
 $('#regenerate').hidden = true; $('#sack-tab').hidden = true; $('#seed').textContent = 'Shared home';
 $('#rooms').textContent = 'Network dungeon test';
-$('.controls').textContent = 'WASD move · Tab sack / lair stash · Hold E search · E pack loot / drop held item · Click loot to lift · R rotate · Click sack to place · E at tunnel: leave together · Hold E hide / E exit · E equip selected gear · WASD aim · Hold E place · Space smoke';
-$('.note').textContent = 'Two tabs share one dungeon and its loot. One goblin searches each container at a time. Everyone returns to the secret tunnel to leave. Guards can chase either goblin. Hide, snare or smoke to escape. Reviving/cages and network XP are still coming. Use Debug supplies in the lair to test gear. Temporary home: restarting the server resets stock and progress. Solo saves are separate.';
+$('.controls').textContent = 'WASD move · Tab sack / lair stash · Hold E search · E pack loot / drop held item · Click loot to lift · R rotate · Click sack to place · Hold E revive / cage rescue · E at tunnel: leave together · Hold E hide / E exit · E equip selected gear · WASD aim · Hold E place · Space smoke';
+$('.note').textContent = 'Two tabs share one dungeon and its loot. One goblin searches each container at a time. Everyone returns to the secret tunnel to leave. Guards can chase either goblin. Hide, snare or smoke to escape. Packed Lunch revives a downed teammate. Cage rescue needs no lunch. Network XP is still coming. Use Debug supplies in the lair to test gear. Temporary home: restarting the server resets stock and progress. Solo saves are separate.';
 $('#xp-label').textContent = 'Test goblin · 0 XP';
 $('#next-run').addEventListener('click', () => { send({ type: 'dismiss-result' }); results.close(); clear(); });
 $('#sack-tab').addEventListener('click', () => { if (activeDungeon() && !self().hiding) { clear(); stopSearch(); send({ type: 'cancel-placement' }); sack.toggle(); } });
@@ -126,6 +136,7 @@ window.addEventListener('keydown', event => {
   event.preventDefault();
   if (state.placement?.itemId) return; // Held E is sent in the input heartbeat.
   const chosen = sack.itemForEquip(loot, pointer);
+  if (!loot.held && chosen?.type === 'lunch') { tell('Carry a Packed Lunch, close the sack, and hold E near a downed teammate.'); return; }
   if (!loot.held && chosen && LOOT_TYPES[chosen.type].equipment) {
     input.clearMovement(); dragStart = null;
     send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE') });
@@ -133,12 +144,17 @@ window.addEventListener('keydown', event => {
     tell(chosen.type === 'smoke' ? 'Smoke equipped. Space uses one.' : 'WASD aims. Release E, then hold E for a second to place. Esc cancels.'); return;
   }
   if (loot.held) { send({ type: 'drop' }); return; }
+  const target = interaction();
+  if (target && ['revive', 'rescue'].includes(target.kind)) {
+    if (target.kind === 'revive' && !loot.bag.some(i => i.type === 'lunch')) { tell('You need a Packed Lunch. Test lunches are in lair Debug supplies.'); return; }
+    input.clearMovement(); send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE') });
+    send({ type: 'rescue', id: target.item.id }); return;
+  }
   if (atTunnel(runView(), world, player)) {
     const others = state.players.filter(p => !p.ghost && !p.waiting && p.state === 'active');
     if (others.some(p => !atTunnel(runView(), world, p))) { tell('Everyone needs to be together at the secret tunnel to leave.'); return; }
     send({ type: 'extract' }); return;
   }
-  const target = interaction();
   if (target?.kind === 'hide') { send({ type: 'hide', id: target.item.id }); return; }
   if (target?.kind === 'search') {
     if (target.item.searcherId && target.item.searcherId !== player.id) { tell(`${target.item.searcherName} is searching that already.`); return; }
@@ -167,7 +183,7 @@ document.addEventListener('pointerdown', event => {
     else {
       const cell = sack.cellAt(pointer), item = cell && bagItemAt(loot.bag, cell.x, cell.y);
       if (item) {
-        const deferred = !!LOOT_TYPES[item.type].equipment;
+        const deferred = !!LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].rescue;
         if (!deferred) send({ type: 'lift', source: 'bag', id: item.id });
         else tell(`${LOOT_TYPES[item.type].name} selected. E equips; drag to move it.`);
         dragStart = { x: pointer.x, y: pointer.y, id: item.id, deferred };
@@ -209,22 +225,23 @@ function frame(time) {
     $('#job-label').textContent = `${selection.jobName} · ${selection.difficultyName}`;
     const aboard = state.cart.aboard.includes(player.id), station = world.lair ? lairTarget(world, player) : null;
     const target = dungeon && player.state === 'active' ? interaction() : null;
-    $('#health-label').textContent = dungeon ? player.state === 'down' ? 'DOWN · sack spilled' : `Health ${player.health} / ${player.maxHealth}` : '';
+    $('#health-label').textContent = dungeon ? player.state !== 'active' ? `${player.state.toUpperCase()} · teammates can rescue you` : `Health ${player.health} / ${player.maxHealth}` : '';
     $('#heat-label').hidden = !dungeon;
     $('#heat-label').textContent = dungeon ? pressureLabel(dungeon.pressure) : '';
     $('#alert-label').textContent = dungeon && dungeon.guards.some(g => g.state === 'chase') ? 'TEAM SPOTTED' : '';
     $('#quick-label').hidden = !dungeon || !state.quickType;
     $('#quick-label').textContent = state.quickType === 'smoke' ? `SPACE · smoke (${loot.bag.filter(i => i.type === 'smoke').length})` : '';
+    const rescuing = dungeon?.rescues?.find(a => a.actorId === player.id);
     const searching = dungeon?.objects.find(o => o.searcherId === player.id);
     $('#target-label').textContent = !connected ? 'Connection lost' : player.waiting ? 'Waiting in the lair for the next run' : dungeon
-      ? player.state === 'down' ? 'Downed · sack spilled · wait for teammates to finish' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : loot.held ? `Holding ${LOOT_TYPES[loot.held.type].name} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · leave together' : target?.kind === 'loot' ? `E · pack ${LOOT_TYPES[target.item.type].name}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${SEARCHABLE_TYPES[target.item.type].name}` : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
+      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${LOOT_TYPES[loot.held.type].name} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · leave together' : target?.kind === 'loot' ? `E · pack ${LOOT_TYPES[target.item.type].name}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${SEARCHABLE_TYPES[target.item.type].name}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
       : aboard ? `${state.cart.aboard.length}/${state.cart.participants.length} aboard · ${state.cart.countdown === null ? 'waiting for team' : `${Math.ceil(state.cart.countdown)}s`} · E hop out` : station ? `E · ${station.name}` : 'Tab · shared stash';
     sack.updateVisibility({ moving: player.moving && !sack.isNavigating(), targetId: target?.kind === 'loot' ? target.item.id : null, held: loot.held, pointer, active: !!dungeon && connected && player.state === 'active' && !player.hiding && !state.placement?.itemId && !modal() }, dt);
     sack.paint(loot, pointer);
     render(world, player, loot, target?.kind === 'loot' ? target.item : null,
       dungeon ? runView() : { entrance: { x: 9, y: 2.5 } }, !!dungeon && atTunnel(runView(), world, player), dungeon?.guards ?? [], dungeon?.objects ?? [],
       searching ?? (target?.kind === 'search' ? target.item : null), searching ? { active: searching, elapsed: searching.elapsed, duration: searching.duration } : { active: null },
-      dungeon?.traps ?? [], state.placement, dungeon?.clouds ?? [], dungeon?.hidingSpots ?? [], target?.kind === 'hide' ? target.item : null, dungeon?.pressure ?? null, state.players.filter(p => p.id !== player.id));
+      dungeon?.traps ?? [], state.placement, dungeon?.clouds ?? [], dungeon?.hidingSpots ?? [], target?.kind === 'hide' ? target.item : null, dungeon?.pressure ?? null, state.players.filter(p => p.id !== player.id), target && ['revive', 'rescue'].includes(target.kind) ? target : null);
   }
   requestAnimationFrame(frame);
 }

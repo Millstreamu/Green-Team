@@ -13,7 +13,7 @@ export function createLairSession() {
   let launched = null, dungeon = null;
   function returnHome() {
     dungeon = null; launched = null; cart.launched = false; cart.aboard.clear(); cart.countdown = null;
-    for (const q of players.values()) { q.location = 'home'; q.waiting = false; q.inRun = false; Object.assign(q, world.spawn, createVitality()); q.hiding = null; q.enteringHide = null; q.input = { x: 0, y: 0 }; q.moving = false; }
+    for (const q of players.values()) { q.location = 'home'; q.waiting = false; q.inRun = false; Object.assign(q, world.spawn, createVitality()); q.hiding = null; q.enteringHide = null; q.carrierId = null; q.cageId = null; q.input = { x: 0, y: 0 }; q.moving = false; }
     membership();
   }
   function membership() {
@@ -109,6 +109,7 @@ export function createLairSession() {
         dungeon: p.location === 'dungeon' ? dungeon?.snapshot() : null,
         camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination },
         players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, state: q.state, health: q.health, maxHealth: q.maxHealth, invulnerable: q.invulnerable,
+          carrierId: q.carrierId ?? null, cageId: q.cageId ?? null,
           hiding: q.hiding ? { spot: { id: q.hiding.spot.id } } : null, enteringHide: q.enteringHide ? { spot: { id: q.enteringHide.spot.id }, elapsed: q.enteringHide.elapsed } : null, waiting: q.waiting, ghost: !q.connected, ghostSeconds: !q.connected ? Math.max(0, Math.ceil(60 - q.disconnectedFor)) : null })),
         cart: { selection: cart.selection, participants: cart.participants, aboard: [...cart.aboard], countdown: cart.countdown }, launched };
     }

@@ -13,6 +13,7 @@ export const LOOT_TYPES = Object.freeze({
   cloth: { name: 'Cloth', color: '#c9b998', cells: [[0, 0]], mark: '≈', material: true },
   gold: { name: 'Gold', color: '#e3be59', cells: [[0, 0]], mark: 'G' },
   smoke: { name: 'Smoke bomb', color: '#a8b7bf', cells: [[0, 0]], mark: '☁', equipment: true, quickUse: true },
+  lunch: { name: 'Packed Lunch', color: '#c4a66c', cells: [[0, 0]], mark: 'L', equipment: true, rescue: true },
   snare: { name: 'Snare trap', color: '#a9c3a3', cells: [[0, 0]], mark: '⌘', equipment: true }
 });
 
