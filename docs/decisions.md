@@ -293,3 +293,10 @@ Still pending: failure with no free standing rescuers, Packed Lunch consumption/
 **Agreed through “ok cool” to the preceding two proposals:** when no free standing goblins remain, the run ends unsuccessfully and everyone returns to the lair; loot left behind is lost. Rescue is hold E at teammate/cage, cancelled by movement or damage. A Packed Lunch is used only on completed ground revival, not interrupted attempts. Cage rescue needs no lunch and restores one health as already agreed. Keep zero-standing failure separate from successful survivor extraction.
 
 **New requested goal:** prevent indefinite kiting by making guards more dangerous over sustained pursuit. User asked for a proposal, not immediate implementation. Draft idea in multiplayer-review.md: readable shared heat, pursuit-driven buildup, delayed slow cooling after contact breaks, capped gradual chase-speed increase. High heat can let alerted guards slightly outrun a goblin; hiding/gear can break contact. Shared/per-guard scope, exact effects/values and scaling are not approved. No heat code added.
+
+
+## Heat accepted; accumulating reinforcements requested — 17 October 2026
+
+User accepted the preceding shared-heat proposal and added one new guard entering after every three chases/alerts. Heat gradually increases alerted chase speed, capped just above goblin speed; escaping pursuit allows delayed slow cooling. Reinforcements persist for the run independently of cooling, accumulating pressure until staying becomes untenable. No extra escalation systems requested. Exact heat values remain tuning details.
+
+Counting clarification pending: recommend one separate team alert incident, even when multiple guards spot players together; continuous pursuit and brief reacquisition do not generate repeated counts. Ask before marking that interpretation agreed. Entry location and warning remain unspecified. Documentation only; no runtime implementation.

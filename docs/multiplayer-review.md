@@ -102,13 +102,15 @@ Crafting, purchases and withdrawals must validate against the same shared quanti
 
 Per-player damage immunity, knockback and attack direction must remain separate. A guard's invisible trail belongs to its pursued target, not whichever browser updates last. Smoke must obstruct the same sight checks for everyone. Placement safety follows the actual setter's identity. No secret map/guard information should leak through another player's local UI unless the team intentionally shares it.
 
-## Heat — new design request, still discussing
+## Heat and reinforcements — core agreed, counting detail pending
 
-User wants increasing danger over time to prevent indefinite guard kiting. No heat mechanic or specific escalation is approved yet.
+Agreed: shared dungeon heat rises during sustained pursuit, including fresh trail-following, holds through brief sight breaks, and slowly cools after a grace period without pursuit. Higher heat gradually increases alerted guards' chase speed, capped just above goblin running speed at maximum heat. Keep routine routes and attack timing predictable; heat never reveals hidden goblins. Show readable heat feedback. Exact rates, delay and speed cap remain tuning parameters.
 
-Proposed first version: a shared dungeon heat meter that rises during sustained active pursuit (including fresh trail-following), retains pressure through brief corner/sight breaks, and slowly cools after a grace period without pursuit. A smooth capped chase-speed increase affects alerted guards, reaching just above goblin running speed at the highest heat. This makes prolonged open kiting unsafe while preserving hiding, corners, smoke and snares as ways to escape. Keep routine routes and attack timing predictable. Heat does not reveal hidden goblin locations. Add a clear meter/warning so escalation is readable; tune rise/cooldown/cap later. Reinforcements are a possible later extension, not part of the first proposal.
+User additionally requested one extra guard entering the dungeon for every three chases/alerts. Reinforcements remain for the rest of that run: cooling heat does not remove them. The accumulating guards create increasing run pressure, eventually making continued looting/escape overwhelmingly difficult. Do not silently cap the guard count to negate that intended pressure. No automatic elapsed-time reinforcements were requested.
 
-Still open: shared versus per-guard heat, exactly what builds/holds/decays it, escalation effects/caps, difficulty/party scaling and how jail guards interact with heat. Discuss user intent before implementation. Local detection/global heat must not silently imply every guard knows every goblin's position.
+Counting still needs confirmation. Recommended: count separate team alert incidents, not each alerted guard, each browser, or repeated sight checks. Several guards spotting goblins together count once; an ongoing chase or brief reacquisition does not repeatedly increment the counter. A genuinely new alert after pursuit has cleared counts again. Every third incident adds one guard and counting continues. This is a proposal until confirmed.
+
+Still open: precise incident start/end rules, reinforcement entry location/arrival warning, heat tuning and difficulty/party scaling, and jail-guard interaction. Local detection/global heat must not imply every guard knows every goblin's position. No heat or reinforcement runtime code has been added.
 
 ## Batch 7 — progress, difficulty and running the session
 

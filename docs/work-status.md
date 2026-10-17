@@ -262,3 +262,8 @@ User answered yes: carrier drops captive and chases a standing goblin in sight; 
 ## Recovery accepted; heat proposal pending
 
 User said “ok cool” to no-free-standing-player failure and hold-E rescue/cancellation with Packed Lunch consumed only upon completed revival. Recorded as agreed. User then requested anti-kiting heat and asked for thoughts. Added a clearly pending proposal to review: sustained-pursuit heat with slow cooling and capped chase-speed escalation, readable UI, no hidden-player omniscience; reinforcements only a future possibility. Next obtain reaction to heat concept, then resume remaining multiplayer batches. No runtime/heat/capture implementation, V21 remains current and no game tests rerun for docs.
+
+
+## Heat accepted and reinforcement cadence recorded
+
+User accepted shared pursuit-driven heat and requested one additional persistent guard every three chases/alerts, creating increasing run pressure. Updated multiplayer review and decisions. Next clarify whether multiple guards spotting the team together count as one team incident (recommended) or separately; continuous-pursuit counting and reinforcement arrival details remain pending. No further escalation features requested. Documentation only; V21 remains playable, no runtime changes or game tests rerun.
