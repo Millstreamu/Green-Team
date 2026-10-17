@@ -83,13 +83,43 @@ export function movePlayer(world, player, input, dt, config = CONFIG) {
   player.phase = player.moving ? player.phase + dt * config.hopRate : 0;
 }
 
+// Resolve a circular foot collider against tiles, preserving tangent movement.
+// Small steps prevent tunnelling; the final check prevents corner pushes through walls.
+function slideStep(world, x, y, dx, dy, radius) {
+  let nx = x + dx, ny = y + dy;
+  if (canStand(world, nx, ny, radius)) return { x: nx, y: ny };
+  const budget = Math.hypot(dx, dy);
+  for (let pass = 0; pass < 8; pass++) {
+    const travel = Math.hypot(nx - x, ny - y);
+    if (travel > budget) { nx = x + (nx - x) * budget / travel; ny = y + (ny - y) * budget / travel; }
+    let corrected = false;
+    for (let ty = Math.floor(ny - radius); ty <= Math.floor(ny + radius); ty++) {
+      for (let tx = Math.floor(nx - radius); tx <= Math.floor(nx + radius); tx++) {
+        if (isWalkable(world, tx, ty)) continue;
+        const cx = Math.max(tx, Math.min(nx, tx + 1)), cy = Math.max(ty, Math.min(ny, ty + 1));
+        const vx = nx - cx, vy = ny - cy, distance = Math.hypot(vx, vy);
+        if (distance >= radius || distance < 1e-10) continue;
+        const push = (radius - distance + 1e-7) / distance;
+        nx += vx * push; ny += vy * push; corrected = true;
+      }
+    }
+    if (!corrected) break;
+  }
+  const progress = (nx - x) * dx + (ny - y) * dy;
+  if (progress >= -1e-9 && Math.hypot(nx - x, ny - y) <= Math.hypot(dx, dy) + 1e-6 && canStand(world, nx, ny, radius)) return { x: nx, y: ny };
+  // A tight inside corner can have conflicting contacts. Keep legal axis motion.
+  if (canStand(world, x + dx, y, radius)) x += dx;
+  if (canStand(world, x, y + dy, radius)) y += dy;
+  return { x, y };
+}
+
 // Shared collision-safe displacement for walking and hit knockback.
 export function moveActor(world, actor, dx, dy, radius = CONFIG.radius) {
-  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / .15));
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / .08));
   const startX = actor.x, startY = actor.y;
   for (let i = 0; i < steps; i++) {
-    if (canStand(world, actor.x + dx / steps, actor.y, radius)) actor.x += dx / steps;
-    if (canStand(world, actor.x, actor.y + dy / steps, radius)) actor.y += dy / steps;
+    const point = slideStep(world, actor.x, actor.y, dx / steps, dy / steps, radius);
+    actor.x = point.x; actor.y = point.y;
   }
   return Math.hypot(actor.x - startX, actor.y - startY) > .00001;
 }

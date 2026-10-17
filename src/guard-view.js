@@ -20,27 +20,30 @@ export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
   ctx.closePath(); ctx.fillStyle = guard.state === 'suspicious' ? '#efc65e25' : '#e1d9a010'; ctx.fill();
 }
 
-export function drawGuard(ctx, guard, ox, oy) {
+export function drawGuard(ctx, guard, ox, oy, pass = 'all') {
   const t = CONFIG.tile, x = Math.round(guard.x * t + ox), y = Math.round(guard.y * t + oy);
   const alert = guard.state === 'chase' || guard.state === 'search';
   const rect = (dx, dy, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x + dx, y + dy, w, h); };
-  if (guard.windup > 0 || guard.swing > 0) {
-    const attackAngle = guard.attackAngle ?? guard.angle;
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, COMBAT.attackReach * t, attackAngle - COMBAT.attackHalfArc, attackAngle + COMBAT.attackHalfArc); ctx.closePath();
-    ctx.fillStyle = guard.swing > 0 ? '#ef727b50' : '#ef727b18'; ctx.fill();
-    ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
-    if (guard.swing > 0) {
-      const sweep = attackAngle - COMBAT.attackHalfArc + (1 - guard.swing / COMBAT.swingTime) * COMBAT.attackHalfArc * 2;
-      ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + Math.cos(sweep) * COMBAT.attackReach * t, y - 8 + Math.sin(sweep) * COMBAT.attackReach * t);
-      ctx.strokeStyle = '#ffe4ba'; ctx.lineWidth = 3; ctx.stroke();
+  if (pass !== 'ui') {
+    if (guard.windup > 0 || guard.swing > 0) {
+      const attackAngle = guard.attackAngle ?? guard.angle;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, COMBAT.attackReach * t, attackAngle - COMBAT.attackHalfArc, attackAngle + COMBAT.attackHalfArc); ctx.closePath();
+      ctx.fillStyle = guard.swing > 0 ? '#ef727b50' : '#ef727b18'; ctx.fill();
+      ctx.strokeStyle = '#f08b87'; ctx.lineWidth = 1; ctx.stroke();
+      if (guard.swing > 0) {
+        const sweep = attackAngle - COMBAT.attackHalfArc + (1 - guard.swing / COMBAT.swingTime) * COMBAT.attackHalfArc * 2;
+        ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + Math.cos(sweep) * COMBAT.attackReach * t, y - 8 + Math.sin(sweep) * COMBAT.attackReach * t);
+        ctx.strokeStyle = '#ffe4ba'; ctx.lineWidth = 3; ctx.stroke();
+      }
     }
+    rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
+    rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : (guard.behaviour === 'roamer' || guard.reinforcement) ? '#81729b' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : (guard.behaviour === 'roamer' || guard.reinforcement) ? '#b2a0ca' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
+    rect(-5, -24, 11, 10, '#a9b2b2'); rect(-6, -23, 13, 3, '#d2d5c6'); rect(-4, -19, 9, 3, '#283b3e');
+    rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
+    ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x + Math.cos(guard.angle) * 12, y - 12 + Math.sin(guard.angle) * 12); ctx.stroke();
   }
-  rect(-7, -1, 14, 4, '#152022'); rect(-5, -5, 4, 5, '#303c43'); rect(2, -5, 4, 5, '#303c43');
-  rect(-7, -17, 14, 13, guard.behaviour === 'lookout' ? '#557d89' : (guard.behaviour === 'roamer' || guard.reinforcement) ? '#81729b' : '#a65f49'); rect(-5, -15, 10, 3, guard.behaviour === 'lookout' ? '#80a8b1' : (guard.behaviour === 'roamer' || guard.reinforcement) ? '#b2a0ca' : '#c9805e'); rect(-7, -7, 14, 2, '#d1b976');
-  rect(-5, -24, 11, 10, '#a9b2b2'); rect(-6, -23, 13, 3, '#d2d5c6'); rect(-4, -19, 9, 3, '#283b3e');
-  rect(-9, -14, 3, 7, '#aab8b6'); rect(7, -19, 2, 14, '#d6cc9d');
-  ctx.strokeStyle = alert ? '#eea494' : '#c9cfb0'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x + Math.cos(guard.angle) * 12, y - 12 + Math.sin(guard.angle) * 12); ctx.stroke();
+  if (pass === 'body') return;
   if (guard.snareLeft > 0) {
     ctx.fillStyle = '#d7eeb2'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('SNARED', x, y - 29);
   } else if (guard.state !== 'patrol') {

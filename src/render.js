@@ -60,7 +60,9 @@ export async function createRenderer(canvas, mapCanvas) {
       }
     }
     if (torches) drawTorches(ctx, torches, ox, oy, seconds);
-    drawCages(ctx, run.cages ?? [], ox, oy);
+    const scene = [], overlays = [];
+    const add = (y, draw) => scene.push({ y, draw });
+    const propDepth = prop => (prop.tileY ?? prop.y - (prop.height ?? 1) / 2) + (prop.height ?? 1);
     drawReinforcementDoors(ctx, pressure, ox, oy);
     for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy, clouds);
     const highlightTunnel = tunnelReady || world.lair && lairTarget(world, player)?.kind === 'tunnel';
@@ -80,43 +82,62 @@ export async function createRenderer(canvas, mapCanvas) {
     ctx.fillText(world.lair ? 'DEPARTURE CART' : 'SECRET TUNNEL', tx, ty - 30);
     if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots, ...(run.cages ?? [])], placement, ox, oy);
-    drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
-    drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy);
-    for (const item of loot.ground) {
+    for (const object of objects) add(propDepth(object), () => drawSearchables(ctx, [object], null, searchSession, ox, oy, 'body'));
+    for (const spot of hidingSpots) add(propDepth(spot), () => drawHidingSpots(ctx, [spot], null, player, ox, oy, 'body'));
+    for (const item of loot.ground) add(item.y, () => {
       const cells = itemCells(item), size = 7;
       const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
       const x = Math.round(item.x * t + ox - w / 2), y = Math.round(item.y * t + oy - h / 2);
       const fall = item.spillAge === undefined ? 0 : Math.round(Math.sin(Math.min(1, item.spillAge / SEARCH.spillTime) * Math.PI) * 8);
       drawItem(ctx, item, x, y - fall, size);
-      if (target?.id === item.id && !loot.held && !tunnelReady) {
+      if (target?.id === item.id && !loot.held && !tunnelReady) overlays.push(() => {
         ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
         ctx.strokeRect(x - 3.5, y - 3.5, w + 7, h + 7);
         ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
         ctx.fillText('E', x + w / 2, y - 6);
-      }
-    }
+      });
+    });
     if (world.lair) drawLair(ctx, world, lairTarget(world, player), ox, oy);
-    drawSmoke(ctx, world, clouds, ox, oy);
-    for (const guard of guards) drawGuard(ctx, guard, ox, oy);
+    for (const guard of guards) add(guard.y, () => drawGuard(ctx, guard, ox, oy, 'body'));
     // Feet and shadow stay on the floor; only the supplied sprite hops.
     for (const actor of [...teammates, player]) {
       if (actor.hiding) continue;
-      const player = actor;
-      const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
-      const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
-      rect(sx - 7, sy - 2, 14, 4, '#182222');
-      ctx.save(); ctx.translate(sx, sy - hop);
-      if (player.ghost) { ctx.globalAlpha = .35; ctx.filter = 'grayscale(1)'; } ctx.scale(player.facing / GOBLIN_ART.faces, 1);
-      if (player.state === 'carried') ctx.translate(0, -10);
-      if (player.state === 'down' || player.state === 'carried') ctx.rotate(Math.PI / 2);
-      else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
-      const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
-      ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
-      ctx.restore();
-      if (actor.name) { ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state !== 'active' && actor.state ? `${actor.name} · ${actor.state.toUpperCase()}` : actor.name, sx, sy - sh - 8); }
+      add(actor.y, () => {
+        const player = actor;
+        const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
+        const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
+        rect(sx - 7, sy - 2, 14, 4, '#182222');
+        ctx.save(); ctx.translate(sx, sy - hop);
+        if (player.ghost) { ctx.globalAlpha = .35; ctx.filter = 'grayscale(1)'; } ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+        if (player.state === 'carried') ctx.translate(0, -10);
+        if (player.state === 'down' || player.state === 'carried') ctx.rotate(Math.PI / 2);
+        else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
+        const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
+        ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
+        ctx.restore();
+      });
     }
-    drawCages(ctx, run.cages ?? [], ox, oy, true);
+    // Cage backs and bars bracket a captive at the cage centre; actors in front
+    // draw over the bars instead of being covered by every cage in the room.
+    for (const cage of run.cages ?? []) {
+      add(cage.y - .4, () => drawCages(ctx, [cage], ox, oy));
+      add(cage.y + .4, () => drawCages(ctx, [cage], ox, oy, true));
+    }
+    scene.sort((a, b) => a.y - b.y);
+    for (const entry of scene) entry.draw();
+    drawSmoke(ctx, world, clouds, ox, oy);
     lighting.draw(ctx, width, height, torches, ox, oy, seconds);
+    for (const draw of overlays) draw();
+    // Labels, interaction outlines and progress remain readable above the scene.
+    drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy, 'ui');
+    drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy, 'ui');
+    for (const guard of guards) drawGuard(ctx, guard, ox, oy, 'ui');
+    for (const actor of [...teammates, player]) if (!actor.hiding && actor.name) {
+      const sx = Math.round(actor.x * t + ox), sy = Math.round(actor.y * t + oy);
+      ctx.fillStyle = '#d1f69b'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      const sh = GOBLIN_ART.height * GOBLIN_ART.scale;
+      ctx.fillText(actor.ghost ? `${actor.name} · reconnect ${actor.ghostSeconds}s` : actor.state !== 'active' && actor.state ? `${actor.name} · ${actor.state.toUpperCase()}` : actor.name, sx, sy - sh - 8);
+    }
     drawRescues(ctx, [...teammates, player], run.cages ?? [], run.rescues ?? [], rescueTarget, ox, oy);
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);

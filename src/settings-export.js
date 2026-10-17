@@ -6,7 +6,7 @@ export function createSettingsExport(summary, now = new Date()) {
   const lair = summary?.lairs?.find(l => l.id === summary.selectedLairId);
   if (!lair || !summary.tuning || !summary.generator) throw Error('Choose a lair with saved builder settings first.');
   const data = {
-    format: 'green-team-builder-settings', version: 1, gameVersion: 'V49', exportedAt: now.toISOString(),
+    format: 'green-team-builder-settings', version: 1, gameVersion: 'V50', exportedAt: now.toISOString(),
     lairName: lair.name,
     tuning: validateTuning(summary.tuning), generator: generatorSettings(summary.generator)
   };
