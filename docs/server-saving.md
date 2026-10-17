@@ -1,4 +1,4 @@
-# Server saving — V37
+# Server saving — V38
 
 Run `npm ci`, then `npm start` as before. Node 22.13+ includes the SQLite database used here; no database download is needed. Existing Node24 works.
 
@@ -30,7 +30,7 @@ One SQLite row contains the versioned home snapshot, committed as one atomic sta
 
 Loading checks schema/version, counts, profiles, unique identities/item IDs, item footprints and bags. Unreadable or unsupported saves stop startup rather than silently resetting. Do not delete that file to make an error disappear; retain a copy and restore a known backup while the server is stopped. On write failure the session blocks further changes, the server pauses simulation, and players see a saving error. Fix disk space/access, then restart from the last successful save.
 
-There are no public accounts, named group selection, cross-device identity recovery, automatic backups, or public hosting yet. This is one durable friend-group home on the existing local server.
+There are no public accounts, named group selection, cross-device identity recovery, scheduled backups, or public hosting yet. This is one durable friend-group home on the existing local server.
 
 ## Verification
 
@@ -41,3 +41,7 @@ Automated checks cover SQLite close/reopen, distinct sacks, stock/crafting/stack
 Settlement uses the immutable departure roster and one live settled flag. It reuses the existing profile award calculator and keeps its temporary receipt cache off network snapshots. The lair checkpoint atomically saves shared bank changes, cleared sacks and every participant’s XP before acknowledging an escape. Live dungeons/results are not reloaded or replayed on restart, so the durable state is either the previous launched-run snapshot (no rewards) or the completed home snapshot (bank and XP together). No client command can replay a run ID or grant XP. Separate durable run history/receipt browsing is not part of this slice; if resumable runs are added later, they must retain this guarantee with a durable settlement ledger.
 
 Personal purchases already use server profile balances/station checks and save immediately. Recipe ownership remains separate per goblin; crafting spends shared materials and puts output into the acting goblin's sack first. Quick Fingers derives search rate from the stored profile when a run begins. Offline reward balances persist even if the temporary result/notice is missed. V36 schema1 saves work unchanged in V37.
+
+## V38 admin backups and recovery
+
+The private browser admin tool adds manual backups plus an automatic before-change backup for each reset, stock/XP edit, restore and forced run ending. These are versioned validated JSON snapshots under data/backups, flushed before changes can commit. Restore uses the same atomic SQLite checkpoint and keeps current goblin identities. Backup failure prevents the action. Database commit failure keeps the backup and pauses the session. The normal game cannot call admin actions. See [server-admin.md](server-admin.md) for reset scopes, private-link access and damaged-save recovery. V36/V37 schema remains compatible; keep the entire data directory during updates. Backups exclude live dungeon state just like the durable home save. They are not a scheduled or off-machine backup service.

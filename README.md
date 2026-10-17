@@ -4,7 +4,9 @@ A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loo
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Public hosting, persistent accounts/group homes and player limits remain future work.
 
-## Personal team XP rewards · V37
+## Server admin tools · V38
+
+V38 adds a separate browser admin page. After npm start, open the **Private server admin** link printed in Terminal. Back up/restore saves, reset the lair/one goblin/all progression, set shared stock or personal XP, and end a stuck run without rewards. Every change makes a backup first; a failed backup blocks the change. Edits require no active dungeon. Existing V36/V37 saves work unchanged. See [server admin instructions](docs/server-admin.md).
 
 V37 completes the raid → escape → earn → upgrade loop. On a successful escape, every goblin who departed earns equal personal XP from the team’s banked valuables, including downed/caged/disconnected/expired participants. Waiting arrivals earn none. Current balance is1XP per gold from valuables; failed/empty runs, materials, equipment and debug items grant no XP. Shared gold and all personal XP balances save together before results are shown. Spend personal XP on Quick Fingers at the campfire (30XP,+10% search speed) or the smoke recipe at the workbench (50XP); ownership stays personal and persists after spending. These reuse existing rules/screens, with no new prices, level gates or tokens. V36 saves remain compatible: stop the server and copy its data folder into V37 before starting.
 
@@ -27,7 +29,7 @@ The Goblin selector above the game remembers local goblins separately from solo 
 
 Keep the **data folder** when updating to another version: stop the server, copy that folder into the new game folder, then start there. For backup, stop the server and copy data somewhere safe. Runtime saves are ignored by Git and are never included in downloads. A broken/unsupported save stops startup instead of silently replacing the home. A disk write failure pauses the live server and tells players. See [server saving](docs/server-saving.md) for recovery, optional save path and checks. Opening play.html remains the separate standalone solo game.
 
-For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v37 to distinguish it from older copies.
+For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v38 to distinguish it from older copies.
 
 `server/lair-session.js` owns home/run membership and routing; `server/dungeon-session.js` owns the active world, search reservations, loot transactions and outcome. `server/danger.js` reuses guard/pressure/hiding/snare/smoke rules; `server/team-guards.js` selects one focus per guard without advancing timers once per player. It retains the brief target trail without reading unseen teammates or ghosts for new clues. The browser regenerates the deterministic layout from the server-selected seed; all movement/collision, search duration and item ownership are still checked by the server. Snapshots conceal container contents and other players’ bags/profiles. Each active scene shares player poses and searchable/ground updates. Public deployment still needs HTTPS/WSS, authenticated group membership, transport heartbeat handling and production account recovery and group membership management. SQLite home persistence is implemented; one server process owns each save file. Server/rescue.js owns rescue claims/hold completion, captives and guard transport; src/rescue.js shares cage layout/reach targeting, and rescue-view.js reuses pixel progress bars for the temporary cage/body art.
 
@@ -95,7 +97,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V37 XP. Bring valuables home and check equal rewards in both tabs. Buy Quick Fingers at the campfire or the smoke recipe at the workbench, restart and confirm balance/ownership stay saved. A teammate purchase must not unlock your own goblin. Keep the data folder on updates. Future choices include level gates/tokens, more recipes or authenticated friend-group joining/public hosting.
+Next: playtest V38 admin tools. Copy your existing data folder, open the new private Terminal link, make a manual backup, set a goblin's XP or shared materials, then restore the backup. Confirm the game updates live. Try ending a test run and check there are no gold/XP rewards. Future gameplay choices include level gates/tokens, more recipes or friend-group joining/public hosting.
 
 
 ## V12: single-use snare

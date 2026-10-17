@@ -25,7 +25,7 @@ export function createDungeonSession(launch, participants, camp) {
     for (const item of [...p.bag, ...(p.loot.held ? [p.loot.held] : [])]) ground.push({ ...item, x: p.x, y: p.y, spillAge: 0 });
     p.bag.length = 0; p.loot.held = null;
   };
-  function finish(outcome) {
+  function finish(outcome, aborted = false) {
     if (settled) return null;
     settled = true;
     // Ghosts and expired goblins never bank their dungeon sacks on another's exit.
@@ -35,7 +35,7 @@ export function createDungeonSession(launch, participants, camp) {
     const items = recovered.filter(item => !LOOT_TYPES[item.type].equipment);
     const result = { runId: launch.id, outcome, job: launch.job, items, count: items.length,
       slots: items.reduce((sum, item) => sum + itemCells(item).length, 0), team: true,
-      elapsed: Math.floor(elapsed), lostItems: [] };
+      elapsed: Math.floor(elapsed), lostItems: [], ...(aborted ? { aborted: true } : {}) };
     if (outcome === 'escaped') bankEscape(camp, result, { bag: recovered });
     // The departure roster earns equally, including offline/left-behind goblins.
     // The lair checkpoint commits these profiles and the bank together before
@@ -44,14 +44,16 @@ export function createDungeonSession(launch, participants, camp) {
     delete result.xpAwards; // Internal receipt cache never belongs in snapshots.
     for (const p of participants) {
       const wasInRun = p.inRun;
+      const abandoned = aborted ? [...p.bag, ...(p.loot.held ? [p.loot.held] : [])].map(i => ({ ...i })) : null;
       stopSearch(p); danger.rescue.remove(p); danger.cancel(p, true); p.bag.length = 0; p.loot.held = null; p.inRun = false;
       if (!p.connected || !wasInRun) p.notice = { id: `${launch.id}-xp`, text: `Team run finished. +${receipts.get(p.id).earned} XP · ${p.profile.xp} XP available.` };
-      p.result = p.connected && wasInRun ? { ...result, ...(p.state !== 'active' ? { outcome: 'down', leftBehind: outcome === 'escaped', items: [], count: 0, slots: 0, lostItems: (p.downItems ?? []).filter(i => !recoveredIds.has(i.id)) } : {}), personalXp: receipts.get(p.id) } : null;
+      p.result = p.connected && wasInRun ? { ...result, ...(p.state !== 'active' ? { outcome: 'down', leftBehind: outcome === 'escaped', items: [], count: 0, slots: 0, lostItems: (p.downItems ?? []).filter(i => !recoveredIds.has(i.id)) } : {}), ...(aborted ? { outcome: 'down', leftBehind: false, lostItems: abandoned } : {}), personalXp: receipts.get(p.id) } : null;
     }
     return result;
   }
   return {
     world, objects, ground, run, danger,
+    abort() { return finish('down', true); },
     disconnect(p) { stopSearch(p); danger.rescue.disconnect(p); danger.cancel(p, true); p.disconnectedFor = 0; p.moving = false; },
     action(p, message) {
       if (settled || !p.inRun || !p.connected || p.state !== 'active') return false;

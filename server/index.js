@@ -1,21 +1,24 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, dirname } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { WebSocketServer } from 'ws';
 import { createLairSession } from './lair-session.js';
 import { openSaveStore } from './save-store.js';
+import { createAdminController, createBackupStore } from './admin.js';
+import { createAdminHttp } from './admin-http.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-export function createGameServer({ session = createLairSession() } = {}) {
+export function createGameServer({ session = createLairSession(), admin = null } = {}) {
   const server = createServer(async (req, res) => {
     try {
       const path = new URL(req.url, 'http://localhost').pathname;
+      if (admin && await admin.handle(req, res, path)) return;
       const relative = path === '/' ? 'index.html' : path.slice(1);
       if (!(relative === 'index.html' || relative.startsWith('src/') || relative === 'assets/goblin.png') || relative.includes('..')) { res.writeHead(404).end(); return; }
       let data = await readFile(resolve(root, relative));
-      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Team XP rewards · V37'));
+      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Server admin tools · V38'));
       res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
     } catch { res.writeHead(404).end(); }
   });
@@ -77,7 +80,9 @@ export function createGameServer({ session = createLairSession() } = {}) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const filename = resolve(process.env.GREEN_TEAM_SAVE_FILE || resolve(root, 'data/home.sqlite'));
   const store = openSaveStore(filename);
-  const { server, wss } = createGameServer({ session: createLairSession({ store }) });
+  const session = createLairSession({ store });
+  const admin = createAdminHttp(createAdminController(session, createBackupStore(resolve(dirname(filename), 'backups'))));
+  const { server, wss } = createGameServer({ session, admin });
   let stopping = false;
   function stop() {
     if (stopping) return;
@@ -88,5 +93,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   process.once('SIGINT', stop); process.once('SIGTERM', stop);
   console.log(`Shared lair save: ${filename}`);
-  server.listen(Number(process.env.PORT || 8080), '127.0.0.1', () => console.log(`Green Team test: http://localhost:${server.address().port} — open in two tabs. Ctrl+C stops it.`));
+  server.listen(Number(process.env.PORT || 8080), '127.0.0.1', () => {
+    console.log(`Green Team test: http://localhost:${server.address().port} — open in two tabs. Ctrl+C stops it.`);
+    console.log(`Private server admin: http://localhost:${server.address().port}/admin#${admin.token}`);
+  });
 }

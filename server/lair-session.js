@@ -19,16 +19,16 @@ export function createLairSession({ store = null } = {}) {
   }
   for (const saved of restored.players) players.set(saved.token, actor(saved));
   let saveFailure = null;
-  function checkpoint() {
-    if (!store) return;
+  function durableState() {
     const { counts, slots, nextItemId, destination } = camp;
-    store.save({ version: 1, camp: { counts, slots, nextItemId, destination },
+    return { version: 1, camp: { counts, slots, nextItemId, destination },
       players: [...players.values()].map(p => {
         const interrupted = !!p.inRun || p.location === 'dungeon';
         return { token: p.token, id: p.id, name: p.name, profile: p.profile,
           bag: interrupted ? [] : p.bag, interrupted };
-      }) });
+      }) };
   }
+  function checkpoint() { if (store) store.save(durableState()); }
   const cart = createDeparture([], camp.destination);
   let launched = null, dungeon = null;
   function returnHome() {
@@ -44,6 +44,34 @@ export function createLairSession({ store = null } = {}) {
     // A membership change requires a fresh boarding action to begin a countdown.
   }
   const api = {
+    adminState() { return structuredClone(durableState()); },
+    adminInfo() {
+      return { runActive: !!dungeon, saved: !!store, saveFailed: !!saveFailure, camp: structuredClone({ counts: camp.counts, destination: camp.destination }),
+        players: [...players.values()].map(p => ({ id: p.id, name: p.name, connected: p.connected,
+          location: p.location, xp: p.profile.xp, purchases: [...p.profile.purchases], bagCount: p.bag.length })) };
+    },
+    adminReplace(saved) {
+      if (dungeon) throw new Error('End the active run before editing the saved home.');
+      const next = restoreSave(saved);
+      // Keep live actor objects: existing sockets refer to these same objects.
+      Object.assign(camp, next.camp);
+      for (const record of next.players) {
+        const p = players.get(record.token), connected = p?.connected ?? false;
+        const fresh = actor({ ...record, interrupted: false });
+        Object.assign(fresh, { connected, loot: null, result: null, hiding: null, enteringHide: null,
+          placement: null, quickType: null, carrierId: null, cageId: null,
+          notice: { id: `admin-${randomUUID()}`, text: 'Server admin updated the saved home. Your goblin is back at the lair.' } });
+        if (p) Object.assign(p, fresh); else players.set(record.token, fresh);
+      }
+      returnHome(); return true;
+    },
+    adminEndRun() {
+      if (!dungeon) throw new Error('There is no active run.');
+      const ids = [...launched.participants];
+      dungeon.abort(); returnHome();
+      for (const p of players.values()) if (ids.includes(p.id)) p.notice = { id: `admin-end-${randomUUID()}`, text: 'Server admin ended the run. Carried supplies and loot were lost; no gold or XP awarded.' };
+      return true;
+    },
     connect(token) {
       let p = players.get(token);
       if (!p) {
@@ -136,7 +164,7 @@ export function createLairSession({ store = null } = {}) {
   };
   // Commit before returning success or broadcasting a new snapshot. Comparison
   // inside the store avoids disk writes for movement-only ticks and inputs.
-  for (const name of ['connect', 'disconnect', 'action', 'tick']) {
+  for (const name of ['connect', 'disconnect', 'action', 'tick', 'adminReplace', 'adminEndRun']) {
     const operation = api[name];
     api[name] = (...args) => {
       if (saveFailure) throw saveFailure;

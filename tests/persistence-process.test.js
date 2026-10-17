@@ -11,7 +11,7 @@ import WebSocket from 'ws';
 test('CLI survives hard termination: home sack restored, launched sack spent durably', { timeout: 15000 }, async t => {
   const base = join(process.cwd(), 'data'); mkdirSync(base, { recursive: true });
   const dir = mkdtempSync(join(base, 'process-test-'));
-  let child; const clients = [];
+  let child; const clients = [], adminKeys = [];
   async function kill() {
     if (!child || child.exitCode !== null || child.signalCode !== null) return;
     const exited = once(child, 'exit'); child.kill('SIGKILL'); await exited;
@@ -28,7 +28,8 @@ test('CLI survives hard termination: home sack restored, launched sack spent dur
       child.stdout.on('data', data => {
         output += data;
         const found = output.match(/http:\/\/localhost:(\d+)/);
-        if (found) { clearTimeout(timeout); resolve(`http://127.0.0.1:${found[1]}`); }
+        const admin = output.match(/\/admin#([a-f0-9]{64})/);
+        if (found && admin) { adminKeys.push(admin[1]); clearTimeout(timeout); resolve(`http://127.0.0.1:${found[1]}`); }
       });
     });
   }
@@ -56,4 +57,5 @@ test('CLI survives hard termination: home sack restored, launched sack spent dur
   assert.equal(c.state().selfId, id); assert.deepEqual(c.state().bag, []);
   assert.equal(c.state().camp.counts.snare, 0); assert.equal(c.state().dungeon, null);
   assert.match(c.state().notice.text, /lost/);
+  assert.equal(new Set(adminKeys).size, 3); // Private admin key rotates on every real restart.
 });
