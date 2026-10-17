@@ -12,7 +12,7 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Return to lair** during a run abandons carried loot/traps after confirmation; stock already at home is safe. The small map shows your position. Lair stock carries between runs and saves locally in this browser when browser storage is available. The footer reports whether saving works. Active dungeon runs are not saved; reloading returns home with the supplies already spent when that run started.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, personal XP recipe unlocks and no multiplayer yet.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, spendable personal XP for recipes and passives and no multiplayer yet.
 
 ## Searching
 
@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V27 lair preparation: take/return individual supplies, craft into your sack, fill it and test crafting overflow to the stash, cancel departure and leave with the same packed items. Online team readiness and separate map-planning station remain future work.
+Next: playtest V28 spendable XP at the workbench: buy smoke knowledge for50 XP or Quick fingers for30 XP. Both are permanent personal purchases. Crafting still uses shared materials, with sack-first output/stash overflow. Online team readiness and separate map station remain future work.
 
 
 ## V12: single-use snare
@@ -242,3 +242,14 @@ The departure screen now contains job/difficulty and a read-only packed-sack sum
 Camp schema4 saves shared quantities and the local prepared sack/next item ID together. Reload at home retains both deducted stock and packed items. Departure persists an empty home-preparation bag, so reloading an active run cannot restore its spent gear. Schemas1–3 migrate with an empty prepared bag, retaining old stock/layout and the previous one-time smoke refund. Current prepared-bag persistence is for the single local goblin in this lair; the future server must key bags by lair/player and coordinate transfers atomically. Personal XP/knowledge save is separate and unchanged.
 
 Verified: 116 automated tests, standalone build, bundled syntax and unique HTML IDs. New cases cover conservation, competing last-copy takes, footprint packing, full-bag rejection, sack-first/overflow crafting, prepared-save reload, launch exactly once, escape/loss/debug stock handling and old/invalid save migration. Main keyboard/pointer flow now packs/returns/moves stacks, crafts into sacks, cancels/departs without repaying, uses debug buttons and still exercises search/loot/escape/XP/recipes/smoke/snare/heat/hiding. Q focus switching is checked in the mock DOM. No rendered browser or online team test. Review copy: green-team-packing-v27.html.
+
+
+## V28: spendable XP, recipe purchases and a search passive
+
+Personal XP is now an available balance. Run rewards increase it; workbench purchases decrease it. Snares start known. Smoke knowledge costs50 XP once, and Quick fingers costs30 XP once for a permanent10% search-speed bonus. Having50 XP no longer automatically teaches smoke. The existing workbench recipe cards now show available XP, buy/owned states and material crafting buttons; a matching passive card uses the same styles. Buying a recipe never crafts an item or spends shared gold/materials. Once owned, crafting spends only its usual materials, still preferring your sack and falling back to stash. Purchases cannot repeat or drive XP below zero.
+
+Knowledge/passives are saved with your goblin independently of the lair, so spending the remaining balance or changing lairs does not remove them. Profile save schema2 stores available XP, lifetime earned XP and explicit purchases. Existing schema1 profiles keep their saved XP as spendable balance; a previously automatically learned smoke recipe (old total>=50) remains owned, without charging XP on migration. That compatibility grant happens only for old schema1 saves, not new profiles. Camp save schema4 is unchanged.
+
+The passive gives1.1 times normal search speed (duration divided by1.1) for chests, cupboards and crates. Search sessions use the acting goblin's rate; the small existing pixel loading bar uses that same actual duration. Releasing/moving/hits still cancel and reset. Loot odds, item amounts, guards, hiding and trap timing are unchanged. Prices/bonus live in PROGRESSION in config.js. Online server must eventually validate each profile purchase and derive search effects itself.
+
+Verified:121 automated tests, standalone build, bundled syntax and unique HTML IDs. Tests cover affordability, ownership after spending, duplicate rejection, separate saves/lairs, passive isolation, legacy migration, old reward replay after spending, faster duration across all furniture, progress-bar timing and cancellation. Main event flow earns25 XP to bring a saved55-XP wallet fixture to80, buys smoke50 and passive30, persists zero available XP with both owned, then crafts/uses smoke and completes an actual faster search while the rest of packing/combat/heat/hiding checks pass. Fresh profiles start0 XP. No rendered browser or online team test; choices/prices/feel await playtest. Review copy: green-team-skills-v28.html.

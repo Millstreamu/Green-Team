@@ -7,7 +7,7 @@ export function createResultsView(dialog) {
     open(result) {
       const down = result.outcome === 'down';
       const xp = result.personalXp ?? { earned: 0, total: 0 };
-      document.querySelector('#result-xp').textContent = `Your goblin: +${xp.earned} XP · Total ${xp.total} XP`;
+      document.querySelector('#result-xp').textContent = `Your goblin: +${xp.earned} XP · ${xp.total} XP available`;
       document.querySelector('#result-job').textContent = result.job ? `${result.job.jobName} · ${result.job.difficultyName}` : '';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
       document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';

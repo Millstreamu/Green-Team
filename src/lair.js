@@ -6,8 +6,8 @@ import { clearPath } from './loot.js';
 
 export const STASH = Object.freeze({ width: 6, height: 6 });
 export const RECIPES = Object.freeze({
-  snare: { name: 'Snare trap', requiredXp: PROGRESSION.recipeXp.snare, materials: { scrap: 2, cloth: 1 } },
-  smoke: { name: 'Smoke bomb', requiredXp: PROGRESSION.recipeXp.smoke, materials: { scrap: 1, cloth: 2 } }
+  snare: { name: 'Snare trap', xpCost: PROGRESSION.recipeCosts.snare, materials: { scrap: 2, cloth: 1 } },
+  smoke: { name: 'Smoke bomb', xpCost: PROGRESSION.recipeCosts.smoke, materials: { scrap: 1, cloth: 2 } }
 });
 export const SNARE_RECIPE = RECIPES.snare.materials;
 export function syncStashSlots(camp) {

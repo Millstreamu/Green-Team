@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { buyPersonalUpgrade } from '../src/profile.js';
 import { LOOT_TYPES } from '../src/loot.js';
 import { createCamp, bankEscape, syncStashSlots, moveStashStack, craftRecipe, takeSupplies, loadCamp, saveCamp } from '../src/lair.js';
 
@@ -29,9 +30,10 @@ test('personal XP gates smoke crafting while materials are shared and neither XP
   const profile = { xp: 49 };
   const before = { ...camp.counts };
   assert.equal(craftRecipe(camp, 'smoke', profile), false); assert.deepEqual(camp.counts, before);
-  profile.xp = 50;
+  profile.xp = 50; assert.ok(buyPersonalUpgrade(profile, 'smoke'));
+  assert.equal(profile.xp, 0);
   assert.ok(craftRecipe(camp, 'smoke', profile)); assert.equal(camp.counts.smoke, 1);
-  assert.equal(camp.counts.scrap, 3); assert.equal(camp.counts.cloth, 2); assert.equal(camp.counts.gold, 25); assert.equal(profile.xp, 50);
+  assert.equal(camp.counts.scrap, 3); assert.equal(camp.counts.cloth, 2); assert.equal(camp.counts.gold, 25); assert.equal(profile.xp, 0);
   assert.ok(craftRecipe(camp, 'smoke', profile)); assert.equal(craftRecipe(camp, 'smoke', profile), false);
   assert.equal(craftRecipe(camp, 'constructor', profile), false);
   assert.equal(craftRecipe(camp, 'smoke'), false);
@@ -50,7 +52,7 @@ test('old saves sell legacy loot once and new saves preserve stock and positions
   const storage = { getItem: () => raw, setItem: (key, value) => { raw = value; } };
   const camp = loadCamp(storage);
   assert.equal(camp.counts.gold, 53); assert.equal(camp.counts.ruby, 0); assert.equal(camp.counts.snare, 3);
-  craftRecipe(camp, 'smoke', { xp: 50 }); moveStashStack(camp, 'gold', 35);
+  craftRecipe(camp, 'smoke', { xp: 0, purchases: ['smoke'] }); moveStashStack(camp, 'gold', 35);
   assert.ok(saveCamp(camp, storage)); assert.equal(JSON.parse(raw).version, 4);
   const restored = loadCamp(storage); assert.deepEqual(restored, camp);
   assert.equal(restored.counts.gold, 53); assert.equal(restored.slots[35], 'gold'); assert.equal(restored.unlocked, undefined);

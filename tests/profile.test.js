@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PROFILE_SAVE_KEY, createProfile, loadProfile, saveProfile, knowsRecipe, teamHaulXp, awardPersonalXp } from '../src/profile.js';
+import { PROFILE_SAVE_KEY, createProfile, loadProfile, saveProfile, knowsRecipe, buyPersonalUpgrade, ownsUpgrade, personalSearchRate, teamHaulXp, awardPersonalXp } from '../src/profile.js';
 import { createCamp, saveCamp, loadCamp, bankEscape, craftRecipe } from '../src/lair.js';
 import { createLoot, autoPickup } from '../src/loot.js';
 import { generateDungeon } from '../src/world.js';
@@ -70,22 +70,48 @@ test('each new run can reward XP, old receipts never recredit and total XP remai
   assert.deepEqual(awardPersonalXp(profile, haul([{ type: 'ruby' }])), { earned: 1, total: Number.MAX_SAFE_INTEGER });
 });
 
-test('recipes are known automatically at their exact personal XP thresholds without spending XP', () => {
+test('recipe knowledge is purchased once with XP and stays owned after the balance reaches zero', () => {
   const profile = createProfile();
   assert.equal(knowsRecipe(profile, 'snare'), true); assert.equal(knowsRecipe(profile, 'smoke'), false);
-  profile.xp = 49; assert.equal(knowsRecipe(profile, 'smoke'), false);
-  awardPersonalXp(profile, haul([{ type: 'coin' }]));
-  assert.equal(profile.xp, 52); assert.equal(knowsRecipe(profile, 'smoke'), true);
-  profile.xp = 50; assert.equal(knowsRecipe(profile, 'smoke'), true); assert.equal(profile.xp, 50);
-  assert.equal(knowsRecipe(profile, 'constructor'), false);
+  profile.xp = 49; assert.equal(buyPersonalUpgrade(profile, 'smoke'), false); assert.equal(profile.xp, 49);
+  awardPersonalXp(profile, haul([{ type: 'coin' }])); assert.equal(profile.xp, 52);
+  assert.equal(knowsRecipe(profile, 'smoke'), false);
+  assert.ok(buyPersonalUpgrade(profile, 'smoke')); assert.equal(profile.xp, 2); assert.equal(knowsRecipe(profile, 'smoke'), true);
+  assert.equal(buyPersonalUpgrade(profile, 'smoke'), false); assert.equal(profile.xp, 2);
+  assert.equal(knowsRecipe(profile, 'constructor'), false); assert.equal(buyPersonalUpgrade(profile, 'constructor'), false);
 });
 test('learned recipes reload with personal XP and work in different lairs without sharing knowledge to a novice', () => {
-  const storage = memory(), experienced = createProfile('experienced'); experienced.xp = 50;
+  const storage = memory(), experienced = createProfile('experienced'); experienced.xp = 50; buyPersonalUpgrade(experienced, 'smoke');
   saveProfile(experienced, storage); const restored = loadProfile(storage), novice = createProfile('novice');
   for (const camp of [createCamp(), createCamp()]) {
     camp.counts.scrap = 4; camp.counts.cloth = 4;
     assert.ok(craftRecipe(camp, 'smoke', restored));
     assert.equal(craftRecipe(camp, 'smoke', novice), false);
-    assert.equal(restored.xp, 50); assert.equal(novice.xp, 0);
+    assert.equal(restored.xp, 0); assert.equal(novice.xp, 0);
   }
+});
+
+test('passive purchase costs XP once, persists beside recipes and never affects another goblin', () => {
+  const profile = createProfile('one'), other = createProfile('two'); profile.xp = 80;
+  assert.ok(buyPersonalUpgrade(profile, 'quickSearch')); assert.equal(profile.xp, 50);
+  assert.equal(personalSearchRate(profile), 1.1); assert.equal(personalSearchRate(other), 1);
+  assert.equal(buyPersonalUpgrade(profile, 'quickSearch'), false); assert.equal(profile.xp, 50);
+  assert.ok(buyPersonalUpgrade(profile, 'smoke')); assert.equal(profile.xp, 0); assert.equal(profile.earnedXp, 80);
+  const storage = memory(); saveProfile(profile, storage); const restored = loadProfile(storage);
+  assert.equal(restored.xp, 0); assert.equal(ownsUpgrade(restored, 'smoke'), true); assert.equal(personalSearchRate(restored), 1.1);
+  assert.equal(ownsUpgrade(other, 'quickSearch'), false);
+});
+test('old automatic recipe knowledge migrates once without spending the saved XP balance', () => {
+  const storage = memory(); storage.setItem(PROFILE_SAVE_KEY, JSON.stringify({ version: 1, id: 'old', xp: 75 }));
+  const profile = loadProfile(storage); assert.equal(profile.xp, 75); assert.equal(knowsRecipe(profile, 'smoke'), true);
+  assert.equal(ownsUpgrade(profile, 'quickSearch'), false);
+  assert.ok(buyPersonalUpgrade(profile, 'quickSearch')); saveProfile(profile, storage);
+  const reloaded = loadProfile(storage); assert.equal(reloaded.xp, 45); assert.equal(knowsRecipe(reloaded, 'smoke'), true); assert.equal(ownsUpgrade(reloaded, 'quickSearch'), true);
+  storage.setItem(PROFILE_SAVE_KEY, JSON.stringify({ version: 1, id: 'old', xp: 49 }));
+  assert.equal(knowsRecipe(loadProfile(storage), 'smoke'), false);
+});
+test('replaying an old run receipt after spending XP cannot refill the wallet or remove purchases', () => {
+  const profile = createProfile(), result = haul([{ type: 'ruby' }, { type: 'ruby' }]);
+  awardPersonalXp(profile, result); buyPersonalUpgrade(profile, 'smoke'); assert.equal(profile.xp, 0);
+  awardPersonalXp(profile, result); assert.equal(profile.xp, 0); assert.equal(knowsRecipe(profile, 'smoke'), true); assert.equal(profile.earnedXp, 50);
 });

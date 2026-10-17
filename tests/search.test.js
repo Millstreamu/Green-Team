@@ -1,3 +1,4 @@
+import { createProfile, buyPersonalUpgrade, personalSearchRate } from '../src/profile.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, canStand } from '../src/world.js';
@@ -163,4 +164,33 @@ test('near containers favour materials and deep ones favour rarer valuables acro
   assert.ok(far.rare / (far.items - far.materials) > near.rare / (near.items - near.materials) + .25);
   assert.ok(near.empty / near.containers > far.empty / far.containers + .08);
   assert.ok(near.empty > 0 && far.empty > 0);
+});
+
+test('purchased search passive speeds every furniture type by ten percent without changing rewards or spill rules', () => {
+  const profile = createProfile(); profile.xp = 30; assert.ok(buyPersonalUpgrade(profile, 'quickSearch'));
+  for (const type of Object.keys(SEARCHABLE_TYPES)) {
+    const { world, loot, object, player, session } = setup(); object.type = type; object.contents = ['ruby'];
+    player.searchRate = personalSearchRate(profile);
+    assert.ok(beginSearch(session, world, player, loot, object));
+    const duration = SEARCHABLE_TYPES[type].duration / 1.1;
+    assert.equal(session.duration, duration);
+    assert.equal(updateSearch(session, world, player, loot, true, duration - 0.002), null);
+    assert.equal(loot.ground.length, 0);
+    assert.equal(updateSearch(session, world, player, loot, true, 0.002).type, 'completed');
+    assert.equal(loot.ground.length, 1); assert.equal(loot.ground[0].type, 'ruby'); assert.equal(loot.bag.length, 0);
+    assert.equal(profile.xp, 0); assert.equal(session.duration, 0);
+  }
+});
+test('passive search cancellation resets progress and its displayed bar uses the actual faster duration', async () => {
+  const { drawSearchables } = await import('../src/search-view.js');
+  const { world, loot, object, player, session } = setup(); player.searchRate = 1.1;
+  beginSearch(session, world, player, loot, object); const duration = session.duration;
+  updateSearch(session, world, player, loot, true, duration / 2);
+  const widths = [];
+  const ctx = new Proxy({ fillRect(x, y, w) { if (this.fillStyle === '#c8ec90') widths.push(w); } }, { get: (obj, key) => obj[key] ?? (() => {}) });
+  drawSearchables(ctx, [object], object, session, 0, 0); assert.ok(widths.includes(12));
+  assert.equal(updateSearch(session, world, player, loot, false, 0).type, 'cancelled');
+  assert.equal(session.duration, 0); beginSearch(session, world, player, loot, object);
+  assert.equal(updateSearch(session, world, player, loot, true, duration / 2), null);
+  assert.equal(object.searched, false);
 });

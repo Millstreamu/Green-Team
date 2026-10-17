@@ -67,11 +67,13 @@ export function selectInteraction(world, player, ground, objects, pointer = null
   return candidates.sort((a, b) => distance(a, player) - distance(b, player))[0] ?? null;
 }
 
-export function createSearchSession() { return { active: null, elapsed: 0, origin: null }; }
-export function cancelSearch(session) { session.active = null; session.elapsed = 0; session.origin = null; }
+export function createSearchSession() { return { active: null, elapsed: 0, origin: null, duration: 0 }; }
+export function cancelSearch(session) { session.active = null; session.elapsed = 0; session.origin = null; session.duration = 0; }
 
 export function beginSearch(session, world, player, loot, object) {
   if (session.active || loot.held || !canSearch(world, player, object)) return false;
+  const rate = Number.isFinite(player.searchRate) && player.searchRate > 0 ? player.searchRate : 1;
+  session.duration = SEARCHABLE_TYPES[object.type].duration / rate;
   session.active = object; session.elapsed = 0; session.origin = { x: player.x, y: player.y };
   return true;
 }
@@ -94,7 +96,7 @@ export function updateSearch(session, world, player, loot, holdingE, dt) {
     cancelSearch(session); return { type: 'cancelled', object };
   }
   session.elapsed += Math.max(0, dt);
-  if (session.elapsed + 0.000001 < SEARCHABLE_TYPES[object.type].duration) return null;
+  if (session.elapsed + 0.000001 < session.duration) return null;
   object.searched = true;
   spillContents(world, object, loot);
   cancelSearch(session);

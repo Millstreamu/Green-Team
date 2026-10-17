@@ -1,4 +1,4 @@
-import { loadProfile, saveProfile, awardPersonalXp } from './profile.js';
+import { loadProfile, saveProfile, awardPersonalXp, personalSearchRate } from './profile.js';
 import { createPressure, updatePressure } from './pressure.js';
 import { pressureLabel } from './pressure-view.js';
 import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
@@ -60,7 +60,7 @@ const updateTarget = () => {
 const enterLair = () => {
   results.close();
   world = createLairWorld(); pressure = createPressure(world);
-  player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
+  player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   guards = []; objects = []; hidingSpots = []; hideTarget = null; loot = createLoot(); loot.bag = camp.preparedBag; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now()); run.phase = 'lair'; run.entrance = { ...world.stations.find(station => station.kind === 'tunnel') };
   input.clear(); sack.reset(); dragStart = null; previous = 0;
@@ -75,7 +75,7 @@ const reset = () => {
   enterLair();
 };
 const closeLairPanel = () => { run.phase = 'lair'; input.clear(); canvas.focus(); };
-const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, () => loot, persistCamp, closeLairPanel);
+const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, () => loot, persistCamp, closeLairPanel, persistProfile);
 const loadout = createLoadoutView(document.querySelector('#run-setup'), (selection) => {
   if (run.phase !== 'setup') return false;
   const job = selection && selectJob(selection.jobId, selection.difficultyId);
@@ -84,7 +84,7 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), (selecti
   const dungeon = generateDungeon(seed);
   const bag = departWithSack(camp, loot);
   if (!bag) return false;
-  world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
+  world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = bag;
   guards = createGuards(world); objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
@@ -276,7 +276,7 @@ const frame = time => {
   updateTarget();
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId && !player.hiding }, dt);
   render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement, clouds, hidingSpots, hideTarget, pressure); sack.paint(loot, pointer);
-  const xpText = `Your goblin · ${profile.xp} XP`;
+  const xpText = `Your goblin · ${profile.xp} XP available`;
   if (document.querySelector('#xp-label').textContent !== xpText) document.querySelector('#xp-label').textContent = xpText;
   const heatLabel = document.querySelector('#heat-label');
   heatLabel.hidden = world.lair;
