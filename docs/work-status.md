@@ -387,3 +387,10 @@ Main assigns the goblin's owned-passive search rate at run start. Search session
 Verified121 tests pass. New/updated coverage: affordable one-time purchases, permanent knowledge atzeroXP, separate-profile passive isolation, saved knowledge/lair changes, legacy profile migration, old reward replay after XP spend, all furniture faster completion and same-duration progress bar/cancel. Real main flow saved55XP fixture earns25=>80, buys50+30=>0, saves both purchases, crafts atzeroXP, then real search completes sooner with passive; prior gear/stock/XP/guard/heat/hiding checks retained. Fresh profiles start0. Standalone build/syntax/unique HTML IDs pass. Review artifact green-team-skills-v28.html and play.html. No rendered browser/online team test.
 
 Next user tests XP choices/prices/passive feel. Server needs authenticated personal purchase transactions and authoritative rates; current local profile is not secure multi-account persistence. No extra skill tree/respecs added. Other roadmap: separate map station/team cart, group join/account/server slice, facilities and capture/rescue.
+
+
+## V29 campfire passive station ready
+
+Added campfire at(9,11.5), south of home spawn, with temporary pixel stones/logs/flame in existing lair drawing. Reused lair target/E and dialog mode; campfire displays personal balance/passives, hides stash/sack/recipes/gold, focuses passive purchase or close. Workbench retains recipes/crafting and rejects passive purchases. Passive uses same profile debit/ownership/persistence. Main welcome/help updated; save formats/costs/effects unchanged.
+
+Verified all121 tests pass. Existing main event flow now rejects passive buy at workbench, crafts smoke, walks to campfire, checks passive-only panels, buys30XP passive, closes and continues into run/faster-search/heat/hiding loop. Standalone build/syntax/unique HTML IDs pass. Review artifact green-team-campfire-v29.html and play.html. No rendered browser or online test. Next user checks campfire location/menu readability; remaining roadmap unchanged.

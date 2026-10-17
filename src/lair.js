@@ -129,7 +129,7 @@ export function createLairWorld() {
   const width = 18, height = 14, tiles = new Uint8Array(width * height);
   for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) tiles[y * width + x] = 1;
   return { seed: 0, width, height, tiles, rooms: [{ x: 1, y: 1, w: 16, h: 12, cx: 9, cy: 7 }], shortcuts: [], spawn: { x: 9, y: 9.5 }, lair: true,
-    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
+    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'campfire', name: 'Campfire', x: 9, y: 11.5 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
 }
 export function lairTarget(world, player) {
   return world.stations.filter(station => Math.hypot(station.x - player.x, station.y - player.y) <= 1.6 && clearPath(world, player, station))

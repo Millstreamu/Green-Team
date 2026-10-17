@@ -20,7 +20,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'heat-label', 'xp-label', 'result-xp', 'sack-panel', 'sack-tab', 'run-setup', 'loadout-total', 'start-run', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'lair-sack-grid', 'lair-sack-used', 'lair-sack-selection', 'stash-move', 'debug-pack-snare', 'debug-pack-smoke', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'personal-xp', 'buy-smoke', 'buy-quick-search', 'passive-search-state', 'recipe-snare-state', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'heat-label', 'xp-label', 'result-xp', 'sack-panel', 'sack-tab', 'run-setup', 'loadout-total', 'start-run', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'lair-sack-grid', 'lair-sack-used', 'lair-sack-selection', 'stash-move', 'debug-pack-snare', 'debug-pack-smoke', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'personal-xp', 'buy-smoke', 'buy-quick-search', 'passive-search-state', 'passives', 'campfire-xp', 'stash-section', 'sack-section', 'lair-eyebrow', 'recipe-snare-state', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
   elements.get('job-choice').value = 'manor'; elements.get('difficulty-choice').value = 'normal';
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
@@ -173,18 +173,16 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 30);
   assert.equal(elements.get('buy-smoke').disabled, true);
   elements.get('buy-smoke').send('click'); tick(); assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 30);
+  // The workbench cannot buy passive upgrades now, even by a stale event.
   elements.get('buy-quick-search').send('click'); tick();
-  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 0);
-  assert.match(elements.get('passive-search-state').textContent, /Owned/);
-  assert.equal(elements.get('buy-quick-search').disabled, true);
-  assert.equal(elements.get('personal-xp').textContent, 'Available XP: 0');
-  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 0 XP available');
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 30);
+  assert.equal(elements.get('passives').hidden, true);
   assert.match(elements.get('craft-smoke').textContent, /Craft Smoke bomb/);
   assert.match(elements.get('recipe-smoke-state').textContent, /Known by your goblin/);
   assert.equal(elements.get('craft-smoke').disabled, false);
   elements.get('craft-smoke').send('click'); tick();
   assert.equal(campCounts().gold, 25);
-  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 0);
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 30);
   assert.equal(JSON.parse(saved.get('green-team-camp-v1')).unlocked, undefined);
   assert.equal(campCounts().smoke, 0); assert.equal(prepared()[0].type, 'smoke');
   assert.equal(elements.get('craft-smoke').disabled, true);
@@ -194,6 +192,19 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   elements.get('close-lair').send('click'); tick();
   // Go back to the usual home spawn so the next launch helper stays reusable.
   walk('KeyA', 56); walk('KeyS', 49);
+  walk('KeyS', 28); tap('KeyE');
+  assert.equal(elements.get('lair-title').textContent, 'Campfire · personal upgrades');
+  assert.equal(elements.get('passives').hidden, false); assert.equal(elements.get('recipes').hidden, true);
+  assert.equal(elements.get('stash-section').hidden, true); assert.equal(elements.get('sack-section').hidden, true);
+  assert.equal(elements.get('campfire-xp').textContent, 'Available XP: 30');
+  elements.get('buy-smoke').send('click'); assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 30);
+  elements.get('buy-quick-search').send('click'); tick();
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 0);
+  assert.match(elements.get('passive-search-state').textContent, /Owned/);
+  assert.equal(elements.get('buy-quick-search').disabled, true);
+  assert.equal(elements.get('campfire-xp').textContent, 'Available XP: 0');
+  elements.get('lair-panel').send('cancel'); tick();
+  walk('KeyW', 28);
   prepareRun();
   elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-results').open, false);

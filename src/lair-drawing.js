@@ -13,6 +13,13 @@ export function drawLair(ctx, world, near, ox, oy) {
     if (station.kind === 'stash') {
       box(x - 16, y - 14, 32, 22, '#725a38'); box(x - 17, y - 17, 34, 9, '#b18d4e');
       box(x - 2, y - 12, 4, 14, '#d2bd74');
+    } else if (station.kind === 'campfire') {
+      box(x - 20, y - 11, 40, 21, '#c7823320');
+      box(x - 15, y, 8, 5, '#727b70'); box(x + 7, y, 8, 5, '#727b70');
+      box(x - 10, y + 6, 8, 4, '#8c9381'); box(x + 2, y + 6, 8, 4, '#8c9381');
+      box(x - 9, y - 6, 18, 4, '#5d4736'); box(x - 8, y - 2, 17, 5, '#896039');
+      box(x - 6, y - 16, 12, 14, '#c65b32'); box(x - 3, y - 22, 7, 18, '#e7903c');
+      box(x - 5, y - 11, 11, 9, '#eaa348'); box(x - 2, y - 13, 5, 11, '#f1d27a');
     } else {
       box(x - 22, y - 13, 44, 13, '#9e865b'); box(x - 18, y, 5, 12, '#5e4d35'); box(x + 13, y, 5, 12, '#5e4d35');
       box(x - 9, y - 21, 4, 12, '#9fada3'); box(x - 13, y - 23, 12, 5, '#c1c5ac'); box(x + 6, y - 18, 8, 5, '#b0c58f');

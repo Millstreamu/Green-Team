@@ -412,3 +412,8 @@ Implementation choices: schema4 saves prepared single-local-goblin bag/next seri
 User requested earned XP that can be spent on recipes/passives, and accepted the concrete first test: smoke recipe costs50 XP, Quick fingers costs30 XP for10% faster searching, snare known initially. Replaces automatic total-XP recipe unlocks. Purchases are personal, permanent and one-time; spending the balance never removes ownership. Crafting still costs shared materials, with existing sack-first/overflow behavior. Workbench shows available balance, costs and owned states using the same recipe cards/buttons.
 
 Implemented profile schema2 wallet/earned-XP/purchases. Existing schema1 profiles retain saved XP as available and retain previously automatic smoke knowledge if old XP>=50; compatibility choice avoids erasing earned knowledge or forcing spending. New profiles buy it normally. Search passive rate1.1 applies only to actual furniture searches and their shared pixel bar; no other timing/loot effects added. Costs/bonus provisional and editable. Server-side identity/purchase transactions remain future work.
+
+
+## Campfire for personal passive upgrades — 17 October 2026
+
+User requested moving personal passives to a little campfire. Added lower-lair campfire station with existing E/highlight behavior and reused dialog/cards in passive-only mode. Recipe learning/crafting stay at workbench. Quick fingers purchase is accepted only from campfire mode; recipes/crafting only from workbench mode. No costs, effects, ownership or save changes. No new UI system or networking added.

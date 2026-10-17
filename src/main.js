@@ -68,7 +68,7 @@ const enterLair = () => {
   document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = 'At home';
   document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
   persistCamp(); persistProfile(); canvas.focus(); updateTarget();
-  tell('Welcome home. WASD to walk. E at the stash, workbench or departure minecart.');
+  tell('Welcome home. WASD to walk. E at the stash, workbench, campfire or departure minecart.');
 };
 const reset = () => {
   if (run?.phase === 'exploring' && !window.confirm('Abandon this run? Carried loot and traps will be lost. Your lair stash is safe.')) return;
@@ -98,7 +98,7 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), (selecti
 }, () => loot.bag, closeLairPanel);
 const interactLair = () => {
   const station = lairTarget(world, player);
-  if (!station) { tell('Walk close to the stash, workbench or departure minecart, then press E.'); return; }
+  if (!station) { tell('Walk close to the stash, workbench, campfire or departure minecart, then press E.'); return; }
   input.clear(); player.moving = false;
   if (station.kind === 'tunnel') { run.phase = 'setup'; loadout.open(); }
   else { run.phase = 'lair-panel'; lairView.open(station.kind); }
@@ -290,7 +290,7 @@ const frame = time => {
     const station = lairTarget(world, player);
     targetText = station ? `${station.name} · E to ${station.kind === 'tunnel' ? 'prepare a run' : 'open'}` : 'Lair · WASD walk · E at stations · Tab stash';
   }
-  else if (run.phase === 'lair-panel') targetText = 'Lair stash / workbench · Esc to return';
+  else if (run.phase === 'lair-panel') targetText = 'Lair station · Esc to return';
   else if (run.phase === 'setup') targetText = 'Choose your gear, then start the run';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (player.hiding) targetText = 'Hidden in barrel · E to exit · guards still active';

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · Spend XP V28</title>
+<title>Green Team · Campfire upgrades V29</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px}#game{width:100%;height:min(72vh,760px);min-height:320px;display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px}.sidebar{border:1px solid #34413e;border-radius:5px;padding:18px;background:#192324}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}#map{width:100%;image-rendering:pixelated;margin-bottom:20px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}.layout{grid-template-columns:1fr}.sidebar{display:none}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}#game{height:65vh}.footer{flex-direction:column}}
 
@@ -25,14 +25,15 @@
 
 .loadout-row select{font:inherit;max-width:65%;padding:10px;border:1px solid #829260;border-radius:5px;background:#10191b;color:#e5e9df}#job-preview{padding:12px;border:1px solid #48594b;border-radius:5px;font-size:13px;color:#d3ddbf}#personal-xp{color:#d1f69b;font-weight:700}#result-job{color:#daca94}#result-xp{color:#d1f69b;border:1px solid #48594b;padding:10px;border-radius:4px}#xp-label{color:#c6e88f}
 #lair-sack-grid{max-width:252px}#recipes{grid-column:1 / -1}#lair-sack-selection{font-size:12px;min-height:42px}@media(max-width:640px){.lair-workspace,.lair-dialog[data-mode="stash"] .lair-workspace{grid-template-columns:1fr}}
+.lair-dialog[data-mode="campfire"]{width:min(440px,calc(100vw - 32px))}.lair-dialog[data-mode="campfire"] .lair-workspace{display:block}#campfire-xp{color:#d1f69b;font-weight:700}
 </style>
 </head>
 <body><main>
-<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Spend XP · V28</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><button id="regenerate">Return to lair</button></header>
+<header><div><div class="eyebrow">GREEN TEAM / SOMETHING SHINY IN THERE</div><h1>Campfire upgrades · V29</h1><p>Steal materials. Make traps. Bring something shiny home.</p></div><button id="regenerate">Return to lair</button></header>
 <div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div id="quick-label" hidden role="status"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="alert-label" role="status"></span>
-        <span id="heat-label" hidden></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Job</dt><dd id="job-label">At home</dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Choose your gear before each run.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
+        <span id="heat-label" hidden></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Job</dt><dd id="job-label">At home</dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Choose your gear before each run.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span id="save-status">LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
-</main><dialog id="lair-panel" class="results lair-dialog" aria-labelledby="lair-title"><div class="eyebrow">FOR THE WHOLE LAIR</div><h2 id="lair-title">Central lair stash</h2><p id="lair-description"></p><p id="lair-gold"></p><div class="lair-workspace"><section><div class="sack-title"><h2>SHARED STASH</h2><span id="stash-used"></span></div><canvas id="stash-grid" tabindex="0" aria-label="Six by six shared stash. WASD selects, E or click lifts and places whole stacks. Escape cancels a move."></canvas><p id="stash-selection" role="status"></p><button id="stash-move" class="secondary">Move whole stack · R</button></section><section><div class="sack-title"><h2>YOUR SACK</h2><span id="lair-sack-used"></span></div><canvas id="lair-sack-grid" tabindex="0" aria-label="Your three by three prepared sack. WASD selects; E or click returns one item to the stash."></canvas><p id="lair-sack-selection" role="status"></p><p class="note">WASD selects · E transfers one · Q switches grids. Tab closes the stash; Esc closes either panel.</p><details><summary>Debug supplies</summary><button id="debug-pack-snare" class="secondary">Add free test snare</button><button id="debug-pack-smoke" class="secondary">Add free test smoke</button></details></section><section id="recipes"><h2>YOUR RECIPES &amp; PASSIVES</h2><p id="personal-xp"></p><div class="recipe-card"><h3>Snare trap</h3><p>Place it to hold a guard for three seconds.</p><p id="recipe-snare-state"></p><button id="craft-snare">Craft snare</button></div><div class="recipe-card"><h3>Smoke bomb</h3><p>Equip from the sack; Space drops smoke that blocks guard sight for five seconds.</p><p id="recipe-smoke-state"></p><button id="buy-smoke">Buy smoke recipe · 50 XP</button><button id="craft-smoke">Craft smoke bomb</button></div><div class="recipe-card"><h3>Quick fingers</h3><p id="passive-search-state">Permanent passive · 10% faster searching.</p><button id="buy-quick-search">Buy Quick fingers · 30 XP</button></div></section></div><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="run-setup" class="results" aria-labelledby="setup-title"><div class="eyebrow">AT THE DEPARTURE CART</div><h2 id="setup-title">Choose a job</h2><label class="loadout-row" for="job-choice"><span>Job</span><select id="job-choice"><option value="manor">Human Manor</option></select></label><label class="loadout-row" for="difficulty-choice"><span>Difficulty</span><select id="difficulty-choice"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><p id="job-preview" role="status"></p><p>Your packed sack goes with you. Change supplies at the stash or workbench.</p><p id="loadout-total" role="status"></p><button id="start-run">Leave with packed sack →</button><button id="cancel-loadout" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="result-job"></p><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><p id="result-xp"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
+</main><dialog id="lair-panel" class="results lair-dialog" aria-labelledby="lair-title"><div class="eyebrow" id="lair-eyebrow">LAIR PREPARATION</div><h2 id="lair-title">Central lair stash</h2><p id="lair-description"></p><p id="lair-gold"></p><div class="lair-workspace"><section id="stash-section"><div class="sack-title"><h2>SHARED STASH</h2><span id="stash-used"></span></div><canvas id="stash-grid" tabindex="0" aria-label="Six by six shared stash. WASD selects, E or click lifts and places whole stacks. Escape cancels a move."></canvas><p id="stash-selection" role="status"></p><button id="stash-move" class="secondary">Move whole stack · R</button></section><section id="sack-section"><div class="sack-title"><h2>YOUR SACK</h2><span id="lair-sack-used"></span></div><canvas id="lair-sack-grid" tabindex="0" aria-label="Your three by three prepared sack. WASD selects; E or click returns one item to the stash."></canvas><p id="lair-sack-selection" role="status"></p><p class="note">WASD selects · E transfers one · Q switches grids. Tab closes the stash; Esc closes either panel.</p><details><summary>Debug supplies</summary><button id="debug-pack-snare" class="secondary">Add free test snare</button><button id="debug-pack-smoke" class="secondary">Add free test smoke</button></details></section><section id="recipes"><h2>YOUR RECIPES</h2><p id="personal-xp"></p><div class="recipe-card"><h3>Snare trap</h3><p>Place it to hold a guard for three seconds.</p><p id="recipe-snare-state"></p><button id="craft-snare">Craft snare</button></div><div class="recipe-card"><h3>Smoke bomb</h3><p>Equip from the sack; Space drops smoke that blocks guard sight for five seconds.</p><p id="recipe-smoke-state"></p><button id="buy-smoke">Buy smoke recipe · 50 XP</button><button id="craft-smoke">Craft smoke bomb</button></div></section><section id="passives" hidden><h2>PERSONAL PASSIVES</h2><p id="campfire-xp"></p><div class="recipe-card"><h3>Quick fingers</h3><p id="passive-search-state">Permanent passive · 10% faster searching.</p><button id="buy-quick-search">Buy Quick fingers · 30 XP</button></div></section></div><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="run-setup" class="results" aria-labelledby="setup-title"><div class="eyebrow">AT THE DEPARTURE CART</div><h2 id="setup-title">Choose a job</h2><label class="loadout-row" for="job-choice"><span>Job</span><select id="job-choice"><option value="manor">Human Manor</option></select></label><label class="loadout-row" for="difficulty-choice"><span>Difficulty</span><select id="difficulty-choice"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><p id="job-preview" role="status"></p><p>Your packed sack goes with you. Change supplies at the stash or workbench.</p><p id="loadout-total" role="status"></p><button id="start-run">Leave with packed sack →</button><button id="cancel-loadout" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="result-job"></p><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><p id="result-xp"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
 const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, extraConnections: 3, preserveDeadEnds: 2, minLoopDetour: 8, maxLoopLength: 40, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 6, hopRate: 12 });
 
@@ -647,7 +648,7 @@ function createLairWorld() {
   const width = 18, height = 14, tiles = new Uint8Array(width * height);
   for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) tiles[y * width + x] = 1;
   return { seed: 0, width, height, tiles, rooms: [{ x: 1, y: 1, w: 16, h: 12, cx: 9, cy: 7 }], shortcuts: [], spawn: { x: 9, y: 9.5 }, lair: true,
-    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
+    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'campfire', name: 'Campfire', x: 9, y: 11.5 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
 }
 function lairTarget(world, player) {
   return world.stations.filter(station => Math.hypot(station.x - player.x, station.y - player.y) <= 1.6 && clearPath(world, player, station))
@@ -1405,15 +1406,18 @@ function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onPro
   const title = document.querySelector('#lair-title'), description = document.querySelector('#lair-description');
   const status = document.querySelector('#craft-status'), recipePanel = document.querySelector('#recipes');
   const grid = createStashGrid(document.querySelector('#stash-grid'), camp, onChange, type => {
+    if (mode === 'campfire') return;
     if (!takeStashItem(camp, getLoot(), type)) { status.textContent = 'No room in your sack, or that stack is empty.'; return; }
     onChange(); refresh(); status.textContent = 'One item packed. Shared stock updated.';
   });
   const sackGrid = createLairSackGrid(document.querySelector('#lair-sack-grid'), getLoot, item => {
+    if (mode === 'campfire') return;
     if (!returnStashItem(camp, getLoot(), item.id)) return;
     onChange(); refresh(); status.textContent = item.debugSupply ? 'Debug supply removed; shared stock unchanged.' : 'Item returned to the shared stash.';
   });
   document.querySelector('#stash-move').addEventListener('click', () => { grid.beginMove(); document.querySelector('#stash-grid').focus(); });
   for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).addEventListener('click', () => {
+    if (mode === 'campfire') return;
     if (!takeStashItem(camp, getLoot(), type, true)) { status.textContent = 'Your sack is full.'; return; }
     onChange(); refresh(); status.textContent = 'Free debug supply packed. It never adds real stock.';
   });
@@ -1421,8 +1425,13 @@ function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onPro
   const refresh = () => {
     grid.paint(); sackGrid.paint(); document.querySelector('#lair-gold').textContent = `${camp.counts.gold} shared gold`;
     recipePanel.hidden = mode !== 'craft';
+    document.querySelector('#passives').hidden = mode !== 'campfire';
+    document.querySelector('#stash-section').hidden = mode === 'campfire';
+    document.querySelector('#sack-section').hidden = mode === 'campfire';
+    document.querySelector('#lair-gold').hidden = mode === 'campfire';
+    document.querySelector('#campfire-xp').textContent = `Available XP: ${profile.xp}`;
     document.querySelector('#personal-xp').textContent = `Available XP: ${profile.xp}`;
-    if (mode === 'craft') description.textContent = 'Spend personal XP on recipes and passives. Crafting uses shared materials.';
+    if (mode === 'craft') description.textContent = 'Spend personal XP on recipes. Crafting uses shared materials.';
     for (const [id, selector] of [['smoke', '#buy-smoke'], ['quickSearch', '#buy-quick-search']]) {
       const upgrade = PERSONAL_UPGRADES[id], owned = ownsUpgrade(profile, id), button = document.querySelector(selector);
       button.textContent = owned ? `${upgrade.name} · Owned` : `Buy ${upgrade.name} · ${upgrade.cost} XP`;
@@ -1439,7 +1448,8 @@ function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onPro
     }
   };
   for (const [id, selector] of [['smoke', '#buy-smoke'], ['quickSearch', '#buy-quick-search']]) document.querySelector(selector).addEventListener('click', () => {
-    if (mode !== 'craft' || !buyPersonalUpgrade(profile, id)) return;
+    const station = PERSONAL_UPGRADES[id].kind === 'passive' ? 'campfire' : 'craft';
+    if (mode !== station || !buyPersonalUpgrade(profile, id)) return;
     onProfileChange(); refresh(); status.textContent = `${PERSONAL_UPGRADES[id].name} purchased for ${PERSONAL_UPGRADES[id].cost} XP. It stays with your goblin.`;
   });
   const close = () => { grid.reset(); dialog.close(); onClose(); };
@@ -1452,10 +1462,11 @@ function createLairView(dialog, camp, profile, getLoot, onChange, onClose, onPro
     onChange(); refresh(); status.textContent = `${recipe.name} crafted into ${crafted.destination === 'sack' ? 'your sack' : 'the shared stash (sack full)'}. Your XP and gold were not spent.`;
   });
   return { open(kind) {
-    mode = kind; dialog.dataset.mode = kind; title.textContent = kind === 'craft' ? 'Workbench & recipes' : 'Central lair stash';
-    description.textContent = kind === 'craft' ? 'Spend personal XP on recipes and passives. Crafting uses shared materials.' : 'E or click takes one item. In your sack, E or click returns one. R moves a whole stash stack.';
+    mode = kind; dialog.dataset.mode = kind; title.textContent = kind === 'campfire' ? 'Campfire · personal upgrades' : kind === 'craft' ? 'Workbench & recipes' : 'Central lair stash';
+    document.querySelector('#lair-eyebrow').textContent = kind === 'campfire' ? 'FOR YOUR GOBLIN' : 'LAIR PREPARATION';
+    description.textContent = kind === 'campfire' ? 'Spend personal XP on permanent passive upgrades for your goblin.' : kind === 'craft' ? 'Spend personal XP on recipes. Crafting uses shared materials.' : 'E or click takes one item. In your sack, E or click returns one. R moves a whole stash stack.';
     status.textContent = ''; grid.reset(); sackGrid.reset(); refresh(); dialog.showModal();
-    (kind === 'craft' ? ['#buy-smoke', '#craft-smoke', '#buy-quick-search', '#craft-snare'].map(selector => document.querySelector(selector)).find(button => !button.disabled) ?? document.querySelector('#close-lair') : document.querySelector('#stash-grid')).focus();
+    (kind === 'campfire' ? !document.querySelector('#buy-quick-search').disabled ? document.querySelector('#buy-quick-search') : document.querySelector('#close-lair') : kind === 'craft' ? ['#buy-smoke', '#craft-smoke', '#craft-snare'].map(selector => document.querySelector(selector)).find(button => !button.disabled) ?? document.querySelector('#close-lair') : document.querySelector('#stash-grid')).focus();
   } };
 }
 
@@ -1473,6 +1484,13 @@ function drawLair(ctx, world, near, ox, oy) {
     if (station.kind === 'stash') {
       box(x - 16, y - 14, 32, 22, '#725a38'); box(x - 17, y - 17, 34, 9, '#b18d4e');
       box(x - 2, y - 12, 4, 14, '#d2bd74');
+    } else if (station.kind === 'campfire') {
+      box(x - 20, y - 11, 40, 21, '#c7823320');
+      box(x - 15, y, 8, 5, '#727b70'); box(x + 7, y, 8, 5, '#727b70');
+      box(x - 10, y + 6, 8, 4, '#8c9381'); box(x + 2, y + 6, 8, 4, '#8c9381');
+      box(x - 9, y - 6, 18, 4, '#5d4736'); box(x - 8, y - 2, 17, 5, '#896039');
+      box(x - 6, y - 16, 12, 14, '#c65b32'); box(x - 3, y - 22, 7, 18, '#e7903c');
+      box(x - 5, y - 11, 11, 9, '#eaa348'); box(x - 2, y - 13, 5, 11, '#f1d27a');
     } else {
       box(x - 22, y - 13, 44, 13, '#9e865b'); box(x - 18, y, 5, 12, '#5e4d35'); box(x + 13, y, 5, 12, '#5e4d35');
       box(x - 9, y - 21, 4, 12, '#9fada3'); box(x - 13, y - 23, 12, 5, '#c1c5ac'); box(x + 6, y - 18, 8, 5, '#b0c58f');
@@ -1939,7 +1957,7 @@ const enterLair = () => {
   document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = 'At home';
   document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
   persistCamp(); persistProfile(); canvas.focus(); updateTarget();
-  tell('Welcome home. WASD to walk. E at the stash, workbench or departure minecart.');
+  tell('Welcome home. WASD to walk. E at the stash, workbench, campfire or departure minecart.');
 };
 const reset = () => {
   if (run?.phase === 'exploring' && !window.confirm('Abandon this run? Carried loot and traps will be lost. Your lair stash is safe.')) return;
@@ -1969,7 +1987,7 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), (selecti
 }, () => loot.bag, closeLairPanel);
 const interactLair = () => {
   const station = lairTarget(world, player);
-  if (!station) { tell('Walk close to the stash, workbench or departure minecart, then press E.'); return; }
+  if (!station) { tell('Walk close to the stash, workbench, campfire or departure minecart, then press E.'); return; }
   input.clear(); player.moving = false;
   if (station.kind === 'tunnel') { run.phase = 'setup'; loadout.open(); }
   else { run.phase = 'lair-panel'; lairView.open(station.kind); }
@@ -2161,7 +2179,7 @@ const frame = time => {
     const station = lairTarget(world, player);
     targetText = station ? `${station.name} · E to ${station.kind === 'tunnel' ? 'prepare a run' : 'open'}` : 'Lair · WASD walk · E at stations · Tab stash';
   }
-  else if (run.phase === 'lair-panel') targetText = 'Lair stash / workbench · Esc to return';
+  else if (run.phase === 'lair-panel') targetText = 'Lair station · Esc to return';
   else if (run.phase === 'setup') targetText = 'Choose your gear, then start the run';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (player.hiding) targetText = 'Hidden in barrel · E to exit · guards still active';
