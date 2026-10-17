@@ -237,3 +237,8 @@ User confirmed Ready means ready to go; changing selected destination/difficulty
 ## Cart readiness approved; move to escape/recovery
 
 User approved E board/ready, E again leave/unready, three-second countdown when all participating goblins are aboard, cancelled if someone hops out. Updated accepted cart flow; destination edits never clear readiness. Next discuss individual escape, teammate rescue and recoverable sack contents in a short batch. Those rules are still pending. Documentation only; V21 remains current, no runtime tests rerun.
+
+
+## Escape/recovery answers recorded
+
+User chose group extraction: everyone together, not individual escape. Revive to one health with required Packed Lunch. Sack spills immediately on downing; contents remain recoverable and must be picked/repacked normally. Updated review/decisions, removed individual-banking proposal from active batch. Next ask whether downed goblins can be carried to exit or must be revived before departure. Lunch costs/consumption, team-failure rules and exit interaction remain pending. Documentation only; no Packed Lunch/runtime code or game tests changed, V21 remains current.

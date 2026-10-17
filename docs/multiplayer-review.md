@@ -10,7 +10,7 @@ The user requested a pass over multiplayer questions that should accompany featu
 - The team lair has shared gold, materials, crafted stock and recipe unlocks. Personal carried sacks hold separate item copies.
 - Successful return sells valuables and deposits materials/unused gear. Taking supplies uses lair stock. Debug items do not create real stock.
 - Goblins can trigger/waste armed snares without being harmed. A newly placed snare waits for its setter to step clear.
-- Downed goblins may be recoverable by teammates; unrecovered carried stuff is lost, and the player returns after the run. Exact recovery and run-ending rules remain open.
+- Team extraction requires everyone together. A teammate can revive a downed goblin to one health using a Packed Lunch. Downing spills sack contents as recoverable floor items; the revived goblin can pick them up again. Exact handling of an unrecovered goblin remains open.
 - Keep the game lightweight for inexpensive hosting. No working multiplayer or shared online save exists yet.
 
 ## Batch 1 — choosing and starting a job
@@ -39,16 +39,23 @@ One job profile/seed must be frozen for the departed run and shared by everyone.
 
 ## Batch 2 — escape, downing and recovery
 
-Next user discussion. All suggestions here remain open; do not infer acceptance from cart approval. Suggested first questions: individual escape, hold-E rescue, and whether teammates may recover a downed sack.
+Accepted user answers, 17 October 2026:
 
-| ID | Question | Recommended starting rule | Alternative |
-|---|---|---|---|
-| B1 | Can one goblin escape while others continue? | Yes. Its carried loot banks once, and that player waits/spectates until the team run ends. | Extraction requires the team to leave together. |
-| B2 | What ends a team run? | All participating goblins have escaped, are unrecoverable, or have left the run. An escaped player alone does not end everyone else's run. | Host/team can end it earlier; decide who confirms. |
-| B3 | How does teammate recovery work? | Hold E beside a downed goblin for a short, interruptible rescue, with a clear state/health result. | Carry them to the tunnel; a separate item revives them. |
-| B4 | What happens to unrecovered gear/loot? | Resolve loss at run end; decide whether teammates may first recover the sack. | Drop a recoverable sack immediately, or lose contents immediately. |
+| ID | Decision | Agreed rule |
+|---|---|---|
+| B1 | Leaving | Everyone must be together to leave. No individual extraction/banking while teammates continue. |
+| B3 | Revival | Teammate rescue restores one health and requires a Packed Lunch item. Existing proposed hold-E rescue was accepted with this item requirement. |
+| B4 | Sack on downing | Sack items spill onto the floor immediately. They can be picked up again, including by the goblin after recovery. Do not delete them at downing or automatically restore a packed sack on revival. |
 
-Need to settle before implementation: rescue duration, recovered health, whether a goblin can be rescued repeatedly, whether guards keep targeting downed goblins, and whether a rescued goblin keeps its sack. Do not silently infer these from the current solo loss screen.
+Unresolved before implementation:
+
+- Can teammates carry a downed goblin to the exit, or must everyone be revived before the group can leave? Next focused question. Proposed: allow carrying so revival supplies and physical recovery are distinct choices.
+- Exact end-of-run/failure handling if the team is all downed, someone leaves/disconnects, or a goblin cannot be recovered. Do not adopt the old proposed individual-escape end rule.
+- Packed Lunch crafting/unlock cost and consumption: proposed one lunch per completed three-second rescue, with interruptions resetting progress and preserving the lunch. Costs not yet set.
+- Whether there is a limit on repeated revivals and whether guards keep targeting downed goblins.
+- Group exit interaction/countdown/required proximity; do not automatically copy the departure-cart countdown onto extraction.
+
+Implementation notes: transfer bag contents to ground exactly once per down event, preserve item IDs/metadata/debug tags and clear the bag. The quick-use equipment display is a reference to a carried copy, not another item to duplicate. Recollection uses normal floor pickup and sack fitting. Proposed held-cursor behavior: drop that carried item too. Future loss settlement should concern items actually left behind, not also delete a copy already recovered by a teammate. Full team extraction banks/sells each player's actual remaining carried contents once.
 
 ## Batch 3 — joining, leaving and connection loss
 
