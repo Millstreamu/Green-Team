@@ -32,3 +32,6 @@ Tests include90 seeded architecture layouts with connectivity/bounds/grid/wall/d
 
 
 V48: searchables are solid movement obstacles. Hallway footprints (including wider corridors and added loops) stay clear even when crossing a room. Doorway-to-centre lanes stay clear too. Placement never splits walkable floor into disconnected pockets. Cupboards require a top/back wall; no valid slot means fewer objects. Chest/crate art fits one32px source ground tile, scaled with the floor. Preview counts/layout use exactly these same rules.
+
+
+V49: hiding barrels also register solid footprints, fit one source tile and use the same corridor/connectivity checks. All future static dungeon scenery must use shared whole-tile footprints/grid placement; use multiple tiles for larger props. Wall-mounted/flat art may explicitly remain non-solid.

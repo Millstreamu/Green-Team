@@ -312,7 +312,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   const { createHidingSpots } = await import('../src/hiding.js');
   const { createSearchables } = await import('../src/search.js');
   const hideWorld = generateDungeon(42, dungeonConfig()), barrel = createHidingSpots(hideWorld, createSearchables(hideWorld))[0];
-  const hideRoute = findPath(hideWorld, hideWorld.spawn, barrel), position = { ...hideWorld.spawn };
+  const hideRoute = findPath(hideWorld, hideWorld.spawn, barrel.approach), position = { ...hideWorld.spawn };
   for (const goal of hideRoute) {
     for (let i = 0; i < 150 && Math.hypot(goal.x - position.x, goal.y - position.y) > 0.06; i++) {
       const dx = goal.x - position.x, dy = goal.y - position.y, horizontal = Math.abs(dx) > 0.045;

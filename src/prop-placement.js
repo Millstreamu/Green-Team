@@ -2,12 +2,12 @@ import { isFloor, canStand } from './world.js';
 
 // Shared by furniture, hiding spots and future decor. Dimensions are floor tiles.
 export const PROP_RULES = Object.freeze({
-  chest: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
-  cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall', backWall: true }),
-  crate: Object.freeze({ width: 1, height: 1, placement: 'corner' }),
-  cage: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
-  torch: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
-  hiding: Object.freeze({ width: 1, height: 1, placement: 'wall' })
+  chest: Object.freeze({ solid: true, width: 1, height: 1, placement: 'wall' }),
+  cupboard: Object.freeze({ solid: true, width: 1, height: 1, placement: 'wall', backWall: true }),
+  crate: Object.freeze({ solid: true, width: 1, height: 1, placement: 'corner' }),
+  cage: Object.freeze({ solid: false, width: 1, height: 1, placement: 'wall' }),
+  torch: Object.freeze({ solid: false, width: 1, height: 1, placement: 'wall' }),
+  hiding: Object.freeze({ solid: true, width: 1, height: 1, placement: 'wall' })
 });
 export function propCells(prop) {
   const x = prop.tileX ?? Math.floor(prop.x), y = prop.tileY ?? Math.floor(prop.y);
@@ -52,7 +52,7 @@ export function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[ki
   }
   points.sort((a, b) => a.score - b.score || a.y - b.y || a.x - b.x);
   // Reject even corner arrangements that would seal off a walkable floor cell.
-  const solid = ['chest', 'cupboard', 'crate'].includes(kind);
+  const solid = rule.solid ?? true;
   const point = points.find(p => !solid || keepsFloorConnected(world, [...occupied, p]));
   if (!point) return null;
   delete point.score; return point;

@@ -36,6 +36,10 @@ Inventory, crafting, upgrades and similar screens should share item displays, bu
 
 Extend shared pieces when the behaviour is shared. Do not force unrelated features into a complicated universal system. Explain meaningful exceptions briefly.
 
+### Dungeon grid rule
+
+All new static dungeon furniture, hiding spots, decorations and other placed scenery use the shared floor grid and placement rules. Define a whole-tile footprint (one32×32 source tile or a larger whole-tile rectangle), keep carved hallways/doorway lanes clear and preserve reachable approaches. Floor-standing props should default to solid movement obstacles; wall/floor-mounted art may be non-solid explicitly. Use PROP_RULES, placeProp and the shared world solid mask rather than a separate placement/collision system. Body art stays within its declared footprint; intentional vertical wall height and UI labels/indicators may extend upward. Grid placement concerns scenery, not free movement of goblins/guards or loose dropped loot. Keep server, browser and generator preview consistent.
+
 ## 4. Keep planning bounded
 
 Describe the overall game briefly, then fully specify only the next playable slice. The agreed first slice is one goblin exploring a generated dungeon locally in a browser. See docs/decisions.md for current scope. Guards, loot, alarms, the lair and multiplayer testing follow later.

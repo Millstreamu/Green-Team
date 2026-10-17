@@ -36,3 +36,14 @@ test('closed and opened chest/crate art including shadows stays inside its singl
     }
   }
 });
+
+
+test('hiding barrel body and shadow fit one floor tile; labels remain outside as UI', async () => {
+  const { drawHidingSpots } = await import('../src/hiding-view.js');
+  const rects = [], ctx = { fillRect: (...args) => rects.push(args), fillText() {} };
+  drawHidingSpots(ctx, [{ id: 'barrel', x: 2.5, y: 2.5, occupantId: null }], null, {}, 0, 0);
+  for (const [x, y, w, h] of rects) {
+    assert.ok(x >= 2 * CONFIG.tile && y >= 2 * CONFIG.tile);
+    assert.ok(x + w <= 3 * CONFIG.tile && y + h <= 3 * CONFIG.tile);
+  }
+});

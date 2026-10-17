@@ -562,3 +562,8 @@ User accepted warm torch pools/gentle flicker/darker corners as a first visual p
 ## V48 — solid grid furniture
 
 User requested solid searchables, clear hallways, cupboards always on the top/back walls, and chests/crates within a32×32 ground tile. Searchable footprints now block movement for players/guards. Entire carved corridor footprints plus doorway-to-centre routes are reserved; placement rejects disconnected walkable floor. Cupboards skip placement if no back-wall slot is available. Compact chest/crate bodies/open lids/shadows fit one floor tile; tall cupboards retain wall height. Source art tile32px still scales into the existing24px display cell. Search loot spills at the accessible approach. Existing guard sight and lighting remain based on floor walls; furniture vision occlusion was not requested.
+
+
+## V49 — hiding spots and future scenery on the grid
+
+User requested solid hiding spots and established grid alignment for all future dungeon decor/placed scenery. Barrels now use the same solid tile movement rules as searchables and compact single-tile art. Existing half-second entry, single occupant, indicator and E exit remain; entry is a deliberate interaction into the solid barrel, exit returns to the legal outside position. Guards route around barrels and can still expose witnessed occupants. All new static scenery must declare whole-tile footprints using shared rules, preserve corridor routes and default to solid when floor-standing; explicitly wall-mounted/flat decorations may be non-solid. This governs scenery placement, not actor movement or loose loot. Larger art uses multiple tiles. No new scenery catalogue or cage rule change in this patch.

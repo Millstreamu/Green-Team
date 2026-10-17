@@ -38,7 +38,7 @@ function checkLayout(p) {
     assert.equal(prop.x % 1, .5); assert.equal(prop.y % 1, .5);
     const room = world.rooms.find(r => prop.tileX >= r.x && prop.tileX < r.x + r.w && prop.tileY >= r.y && prop.tileY < r.y + r.h);
     assert.ok(room);
-    if (objects.includes(prop)) {
+    if (objects.includes(prop) || hidingSpots.includes(prop)) {
       assert.equal(canStand(world, prop.x, prop.y), false);
       assert.equal(world.corridorTiles[prop.tileY * world.width + prop.tileX], 0);
       if (prop.type === 'cupboard') { assert.equal(prop.tileY, room.y); assert.equal(isFloor(world, prop.tileX, prop.tileY - 1), false); assert.equal(prop.facing, 'south'); }

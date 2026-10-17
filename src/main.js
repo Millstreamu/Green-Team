@@ -87,7 +87,7 @@ const launchRun = (selection) => {
   if (!bag) return false;
   world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = bag;
-  objects = createSearchables(world); guards = createGuards(world); hidingSpots = createHidingSpots(world, objects); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);

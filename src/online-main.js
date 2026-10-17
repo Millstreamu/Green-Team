@@ -131,7 +131,7 @@ function connect() {
     state = message;
     if (equipped) { sack.reset(); aimDirty = pointer.active && pointer.overGame; }
     if (changed) {
-      if (message.dungeon) { world = generateDungeon(message.dungeon.seed, message.dungeon.layout); world.job = message.dungeon.job; world.tuning = message.dungeon.tuning; setSolidObjects(world, message.dungeon.objects); }
+      if (message.dungeon) { world = generateDungeon(message.dungeon.seed, message.dungeon.layout); world.job = message.dungeon.job; world.tuning = message.dungeon.tuning; setSolidObjects(world, [...message.dungeon.objects, ...message.dungeon.hidingSpots]); }
       else world = createLairWorld();
       $('#lair-panel').close(); $('#map-planning').close(); input.clear(); sack.reset(); dragStart = null;
       pointer.active = false; previous = 0;

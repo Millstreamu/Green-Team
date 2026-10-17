@@ -1,14 +1,17 @@
+import { setSolidObjects } from './world.js';
 import { placeProp } from './prop-placement.js';
 import { HIDING, SEARCH } from './config.js';
 import { clearPath } from './loot.js';
 
 export function createHidingSpots(world, objects = []) {
+  setSolidObjects(world, objects);
   const spots = [];
   world.rooms.forEach((room, index) => {
     if (index % (world.layout?.hidingInterval ?? HIDING.roomInterval)) return;
     const point = placeProp(world, room, 'hiding', [...objects, ...spots]);
     if (point) spots.push({ id: `${world.seed}-hide-${index}`, ...point, occupantId: null });
   });
+  setSolidObjects(world, [...objects, ...spots]);
   return spots;
 }
 export function canHide(world, player, spot) {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateDungeon, canStand, movePlayer } from '../src/world.js';
+import { generateDungeon, canStand, movePlayer, setSolidObjects } from '../src/world.js';
 import { createSearchables, selectInteraction, canSearch } from '../src/search.js';
 import { createHidingSpots, canHide, enterHiding, leaveHiding, beginHiding, updateHiding } from '../src/hiding.js';
 import { createGuard, createVitality, seesPlayer, updateGuard, tickVitality, guardStrikeHits } from '../src/guard.js';
@@ -12,6 +12,7 @@ function scenario() {
   const world = { seed: 1, width: 20, height: 20, tiles: new Uint8Array(400).fill(1), spawn: { x: 4.5, y: 4.5 }, rooms: [{ x: 1, y: 1, w: 16, h: 16, cx: 8, cy: 8 }] };
   const player = { id: 'one', x: 7.5, y: 5.5, facing: 1, ...createVitality() };
   const spot = { id: 'barrel', x: 8.5, y: 5.5, occupantId: null };
+  setSolidObjects(world, [spot]);
   const guard = createGuard(world, { roomIndex: 0, behaviour: 'lookout' });
   Object.assign(guard, { x: 3.5, y: 5.5, angle: 0 });
   return { world, player, spot, guard };
@@ -23,8 +24,9 @@ test('hiding barrels are deterministic reachable non-overlapping furniture on 10
     assert.ok(spots.length >= 4); assert.deepEqual(spots, createHidingSpots(world, objects));
     assert.equal(new Set(spots.map(s => s.id)).size, spots.length);
     for (const spot of spots) {
-      assert.ok(canStand(world, spot.x, spot.y));
-      assert.ok(findPath(world, world.spawn, spot).length);
+      assert.equal(canStand(world, spot.x, spot.y), false);
+      assert.ok(canStand(world, spot.approach.x, spot.approach.y));
+      assert.ok(findPath(world, world.spawn, spot.approach).length);
       assert.ok(objects.every(o => Math.hypot(o.x - spot.x, o.y - spot.y) > 1));
     }
   }
@@ -144,4 +146,18 @@ test('occupied indicator is drawn for a different goblin and clears when the occ
   leaveHiding(player); labels.length = 0; colors.length = 0;
   drawHidingSpots(ctx, [spot], null, { id: 'other' }, 0, 0);
   assert.ok(!labels.includes('OCCUPIED')); assert.ok(!colors.includes('#91c66c'));
+});
+
+
+test('solid barrels stop walking; deliberate entry and exit preserve a safe outside position', () => {
+  const { world, player, spot } = scenario();
+  movePlayer(world, player, { x: 1, y: 0 }, 1);
+  assert.ok(player.x < 8 && canStand(world, player.x, player.y));
+  const outside = { x: player.x, y: player.y };
+  assert.ok(beginHiding(world, player, spot));
+  assert.equal(updateHiding(world, player, true, .5).type, 'hidden');
+  assert.equal(canStand(world, spot.x, spot.y), false);
+  assert.ok(leaveHiding(player));
+  assert.deepEqual({ x: player.x, y: player.y }, outside);
+  assert.ok(canStand(world, player.x, player.y));
 });
