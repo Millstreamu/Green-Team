@@ -1,6 +1,6 @@
 import { PROGRESSION } from './config.js';
 import { knowsRecipe } from './profile.js';
-import { LOOT_TYPES, itemSaleValue } from './loot.js';
+import { LOOT_TYPES, itemSaleValue, findSpace, fits } from './loot.js';
 import { buildTrapLoadout } from './loadout.js';
 import { clearPath } from './loot.js';
 
@@ -23,7 +23,7 @@ export function syncStashSlots(camp) {
   }
 }
 export function createCamp() {
-  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [] };
+  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [], preparedBag: [], nextItemId: 1 };
   syncStashSlots(camp); return camp;
 }
 export function moveStashStack(camp, type, target) {
@@ -42,6 +42,33 @@ export function craftRecipe(camp, type, profile) {
 }
 export function canCraftSnare(camp, profile) { return canCraftRecipe(camp, 'snare', profile); }
 export function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', profile); }
+// Local preparation transfers conserve stock immediately; launch moves the
+// already-paid bag without withdrawing stock a second time.
+export function takeStashItem(camp, loot, type, debug = false) {
+  if (!Object.hasOwn(LOOT_TYPES, type) || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
+  const item = findSpace(loot.bag, { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) });
+  if (!item) return null;
+  camp.nextItemId++; if (!debug) camp.counts[type]--;
+  loot.bag.push(item); camp.preparedBag = loot.bag; syncStashSlots(camp); return item;
+}
+export function returnStashItem(camp, loot, id) {
+  if (loot.held) return false;
+  const index = loot.bag.findIndex(item => item.id === id);
+  if (index < 0) return false;
+  const item = loot.bag[index];
+  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] >= Number.MAX_SAFE_INTEGER) return false;
+  loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type]++;
+  camp.preparedBag = loot.bag; syncStashSlots(camp); return true;
+}
+export function craftForSack(camp, loot, type, profile) {
+  if (loot.held || !craftRecipe(camp, type, profile)) return null;
+  const item = takeStashItem(camp, loot, type);
+  return { destination: item ? 'sack' : 'stash', item };
+}
+export function departWithSack(camp, loot) {
+  if (loot.held || loot.bag !== camp.preparedBag) return null;
+  const bag = loot.bag; camp.preparedBag = []; return bag;
+}
 export function takeSupplies(camp, quantities, seed, debug = false) {
   const loadout = buildTrapLoadout(quantities, seed);
   if (!loadout) return null;
@@ -66,7 +93,7 @@ const CAMP_SAVE_KEY = 'green-team-camp-v1';
 export function loadCamp(storage) {
   try {
     const saved = JSON.parse(storage?.getItem(CAMP_SAVE_KEY) ?? 'null');
-    if (![1, 2, 3].includes(saved?.version) || !saved.counts) return createCamp();
+    if (![1, 2, 3, 4].includes(saved?.version) || !saved.counts) return createCamp();
     const camp = createCamp();
     for (const type of Object.keys(LOOT_TYPES)) {
       const count = saved.counts[type] ?? 0;
@@ -80,19 +107,29 @@ export function loadCamp(storage) {
     // Retire the old shared smoke unlock and refund its one-time gold price.
     if (saved.version === 2 && saved.unlocked?.smoke === true) camp.counts.gold += 20;
     if (!Number.isSafeInteger(camp.counts.gold)) return createCamp();
+    if (saved.version === 4) {
+      if (!Number.isSafeInteger(saved.nextItemId) || saved.nextItemId < 1 || !Array.isArray(saved.preparedBag) || saved.preparedBag.length > 9) return createCamp();
+      const bag = [], ids = new Set();
+      for (const item of saved.preparedBag) {
+        if (!item || typeof item.id !== 'string' || !item.id || ids.has(item.id) || !Object.hasOwn(LOOT_TYPES, item.type)
+          || !Number.isInteger(item.rotation) || item.rotation < 0 || item.rotation > 3 || !Number.isInteger(item.x) || !Number.isInteger(item.y) || !fits(bag, item, item.x, item.y)) return createCamp();
+        bag.push({ ...item }); ids.add(item.id);
+      }
+      camp.preparedBag = bag; camp.nextItemId = saved.nextItemId;
+    }
     camp.slots = Array.isArray(saved.slots) ? saved.slots : [];
     syncStashSlots(camp); return camp;
   } catch { return createCamp(); }
 }
 export function saveCamp(camp, storage) {
-  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 3, counts: camp.counts, slots: camp.slots })); return !!storage; }
+  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 4, counts: camp.counts, slots: camp.slots, preparedBag: camp.preparedBag, nextItemId: camp.nextItemId })); return !!storage; }
   catch { return false; }
 }
 export function createLairWorld() {
   const width = 18, height = 14, tiles = new Uint8Array(width * height);
   for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) tiles[y * width + x] = 1;
   return { seed: 0, width, height, tiles, rooms: [{ x: 1, y: 1, w: 16, h: 12, cx: 9, cy: 7 }], shortcuts: [], spawn: { x: 9, y: 9.5 }, lair: true,
-    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'tunnel', name: 'Dungeon tunnel', x: 9, y: 2.5 }] };
+    stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
 }
 export function lairTarget(world, player) {
   return world.stations.filter(station => Math.hypot(station.x - player.x, station.y - player.y) <= 1.6 && clearPath(world, player, station))

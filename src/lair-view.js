@@ -1,14 +1,26 @@
 import { knowsRecipe } from './profile.js';
-import { RECIPES, canCraftRecipe, craftRecipe } from './lair.js';
-import { createStashGrid } from './stash-view.js';
+import { RECIPES, canCraftRecipe, craftForSack, takeStashItem, returnStashItem } from './lair.js';
+import { createStashGrid, createLairSackGrid } from './stash-view.js';
 
-export function createLairView(dialog, camp, profile, onChange, onClose) {
+export function createLairView(dialog, camp, profile, getLoot, onChange, onClose) {
   const title = document.querySelector('#lair-title'), description = document.querySelector('#lair-description');
   const status = document.querySelector('#craft-status'), recipePanel = document.querySelector('#recipes');
-  const grid = createStashGrid(document.querySelector('#stash-grid'), camp, onChange);
+  const grid = createStashGrid(document.querySelector('#stash-grid'), camp, onChange, type => {
+    if (!takeStashItem(camp, getLoot(), type)) { status.textContent = 'No room in your sack, or that stack is empty.'; return; }
+    onChange(); refresh(); status.textContent = 'One item packed. Shared stock updated.';
+  });
+  const sackGrid = createLairSackGrid(document.querySelector('#lair-sack-grid'), getLoot, item => {
+    if (!returnStashItem(camp, getLoot(), item.id)) return;
+    onChange(); refresh(); status.textContent = item.debugSupply ? 'Debug supply removed; shared stock unchanged.' : 'Item returned to the shared stash.';
+  });
+  document.querySelector('#stash-move').addEventListener('click', () => { grid.beginMove(); document.querySelector('#stash-grid').focus(); });
+  for (const type of ['snare', 'smoke']) document.querySelector(`#debug-pack-${type}`).addEventListener('click', () => {
+    if (!takeStashItem(camp, getLoot(), type, true)) { status.textContent = 'Your sack is full.'; return; }
+    onChange(); refresh(); status.textContent = 'Free debug supply packed. It never adds real stock.';
+  });
   let mode = 'stash';
   const refresh = () => {
-    grid.paint(); document.querySelector('#lair-gold').textContent = `${camp.counts.gold} shared gold`;
+    grid.paint(); sackGrid.paint(); document.querySelector('#lair-gold').textContent = `${camp.counts.gold} shared gold`;
     recipePanel.hidden = mode !== 'craft';
     for (const [type, recipe] of Object.entries(RECIPES)) {
       const button = document.querySelector(`#craft-${type}`), unlocked = knowsRecipe(profile, type);
@@ -19,18 +31,18 @@ export function createLairView(dialog, camp, profile, onChange, onClose) {
     }
   };
   const close = () => { grid.reset(); dialog.close(); onClose(); };
-  dialog.addEventListener('keydown', event => { if (event.code === 'Tab' && mode === 'stash') { event.preventDefault(); event.stopPropagation?.(); close(); } });
+  dialog.addEventListener('keydown', event => { if (event.code === 'KeyQ' && ['stash-grid', 'lair-sack-grid'].includes(event.target.id)) { event.preventDefault(); event.stopPropagation?.(); document.querySelector(event.target.id === 'stash-grid' ? '#lair-sack-grid' : '#stash-grid').focus(); } if (event.code === 'Tab' && mode === 'stash') { event.preventDefault(); event.stopPropagation?.(); close(); } });
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
   document.querySelector('#close-lair').addEventListener('click', close);
   for (const [type, recipe] of Object.entries(RECIPES)) document.querySelector(`#craft-${type}`).addEventListener('click', () => {
     if (mode !== 'craft') return;
-    if (!craftRecipe(camp, type, profile)) return;
-    onChange(); refresh(); status.textContent = `${recipe.name} crafted into the shared stash. Your XP and gold were not spent.`;
+    const crafted = craftForSack(camp, getLoot(), type, profile); if (!crafted) return;
+    onChange(); refresh(); status.textContent = `${recipe.name} crafted into ${crafted.destination === 'sack' ? 'your sack' : 'the shared stash (sack full)'}. Your XP and gold were not spent.`;
   });
   return { open(kind) {
     mode = kind; dialog.dataset.mode = kind; title.textContent = kind === 'craft' ? 'Workbench & recipes' : 'Central lair stash';
-    description.textContent = kind === 'craft' ? `Your goblin: ${profile.xp} XP. Recipes are learned automatically; crafting uses shared materials.` : 'Valuables sell on return. Gold, materials and crafted items stack here for the whole lair.';
-    status.textContent = ''; grid.reset(); refresh(); dialog.showModal();
+    description.textContent = kind === 'craft' ? `Your goblin: ${profile.xp} XP. Recipes are learned automatically; crafting uses shared materials.` : 'E or click takes one item. In your sack, E or click returns one. R moves a whole stash stack.';
+    status.textContent = ''; grid.reset(); sackGrid.reset(); refresh(); dialog.showModal();
     (kind === 'craft' ? !document.querySelector('#craft-smoke').disabled ? document.querySelector('#craft-smoke') : !document.querySelector('#craft-snare').disabled ? document.querySelector('#craft-snare') : document.querySelector('#close-lair') : document.querySelector('#stash-grid')).focus();
   } };
 }

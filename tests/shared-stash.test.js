@@ -51,7 +51,7 @@ test('old saves sell legacy loot once and new saves preserve stock and positions
   const camp = loadCamp(storage);
   assert.equal(camp.counts.gold, 53); assert.equal(camp.counts.ruby, 0); assert.equal(camp.counts.snare, 3);
   craftRecipe(camp, 'smoke', { xp: 50 }); moveStashStack(camp, 'gold', 35);
-  assert.ok(saveCamp(camp, storage)); assert.equal(JSON.parse(raw).version, 3);
+  assert.ok(saveCamp(camp, storage)); assert.equal(JSON.parse(raw).version, 4);
   const restored = loadCamp(storage); assert.deepEqual(restored, camp);
   assert.equal(restored.counts.gold, 53); assert.equal(restored.slots[35], 'gold'); assert.equal(restored.unlocked, undefined);
   assert.deepEqual(loadCamp(storage), restored);
@@ -62,7 +62,7 @@ test('retired shared smoke purchase refunds twenty gold once without granting pe
   const storage = { getItem: () => raw, setItem: (key, value) => { raw = value; } };
   const camp = loadCamp(storage); assert.equal(camp.counts.gold, 25); assert.equal(camp.counts.smoke, 2);
   assert.equal(craftRecipe(camp, 'smoke', { xp: 49 }), false);
-  saveCamp(camp, storage); assert.equal(JSON.parse(raw).version, 3); assert.equal(JSON.parse(raw).unlocked, undefined);
+  saveCamp(camp, storage); assert.equal(JSON.parse(raw).version, 4); assert.equal(JSON.parse(raw).unlocked, undefined);
   assert.equal(loadCamp(storage).counts.gold, 25); saveCamp(loadCamp(storage), storage);
   assert.equal(loadCamp(storage).counts.gold, 25);
   raw = JSON.stringify({ version: 2, counts: { gold: 5 }, unlocked: { smoke: false } });

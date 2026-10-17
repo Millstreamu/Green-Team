@@ -5,7 +5,7 @@ import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding
 import { seesPlayer } from './guard.js';
 import { selectJob } from './jobs.js';
 import { useSmoke, updateSmoke } from './smoke.js';
-import { loadCamp, saveCamp, createLairWorld, lairTarget, takeSupplies, bankEscape } from './lair.js';
+import { loadCamp, saveCamp, createLairWorld, lairTarget, departWithSack, bankEscape } from './lair.js';
 import { createLairView } from './lair-view.js';
 import { createLoadoutView } from './loadout-view.js';
 import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps, moveTrapAim } from './traps.js';
@@ -61,30 +61,31 @@ const enterLair = () => {
   results.close();
   world = createLairWorld(); pressure = createPressure(world);
   player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
-  guards = []; objects = []; hidingSpots = []; hideTarget = null; loot = createLoot(); traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  guards = []; objects = []; hidingSpots = []; hideTarget = null; loot = createLoot(); loot.bag = camp.preparedBag; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now()); run.phase = 'lair'; run.entrance = { ...world.stations.find(station => station.kind === 'tunnel') };
   input.clear(); sack.reset(); dragStart = null; previous = 0;
   pointer.active = false; pointer.overGame = false;
   document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = 'At home';
   document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
   persistCamp(); persistProfile(); canvas.focus(); updateTarget();
-  tell('Welcome home. WASD to walk. E at the stash, workbench or dungeon tunnel.');
+  tell('Welcome home. WASD to walk. E at the stash, workbench or departure minecart.');
 };
 const reset = () => {
   if (run?.phase === 'exploring' && !window.confirm('Abandon this run? Carried loot and traps will be lost. Your lair stash is safe.')) return;
   enterLair();
 };
 const closeLairPanel = () => { run.phase = 'lair'; input.clear(); canvas.focus(); };
-const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, persistCamp, closeLairPanel);
-const loadout = createLoadoutView(document.querySelector('#run-setup'), (quantities, debug, selection) => {
+const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, () => loot, persistCamp, closeLairPanel);
+const loadout = createLoadoutView(document.querySelector('#run-setup'), (selection) => {
   if (run.phase !== 'setup') return false;
   const job = selection && selectJob(selection.jobId, selection.difficultyId);
   if (!job) return false;
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];
-  const selected = takeSupplies(camp, quantities, seed, debug);
-  if (!selected) return false;
-  world = generateDungeon(seed); world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
-  loot = createLoot(); loot.bag = selected.bag;
+  const dungeon = generateDungeon(seed);
+  const bag = departWithSack(camp, loot);
+  if (!bag) return false;
+  world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
+  loot = createLoot(); loot.bag = bag;
   guards = createGuards(world); objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
@@ -94,10 +95,10 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), (quantit
   document.querySelector('#regenerate').hidden = false; document.querySelector('#sack-tab').hidden = false;
   tell(`${job.jobName} · ${job.difficultyName}. Search furniture, avoid guards, then escape through the tunnel.`);
   return true;
-}, () => camp.counts, closeLairPanel);
+}, () => loot.bag, closeLairPanel);
 const interactLair = () => {
   const station = lairTarget(world, player);
-  if (!station) { tell('Walk close to the stash, workbench or dungeon tunnel, then press E.'); return; }
+  if (!station) { tell('Walk close to the stash, workbench or departure minecart, then press E.'); return; }
   input.clear(); player.moving = false;
   if (station.kind === 'tunnel') { run.phase = 'setup'; loadout.open(); }
   else { run.phase = 'lair-panel'; lairView.open(station.kind); }

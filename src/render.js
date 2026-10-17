@@ -53,11 +53,19 @@ export async function createRenderer(canvas, mapCanvas) {
     for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy, clouds);
     const highlightTunnel = tunnelReady || world.lair && lairTarget(world, player)?.kind === 'tunnel';
     const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
-    rect(tx - 13, ty - 9, 26, 18, highlightTunnel ? '#d5c483' : '#8c805b');
-    rect(tx - 10, ty - 6, 20, 12, '#080f12');
-    for (let i = 0; i < 3; i++) rect(tx - 8 + i * 6, ty - 4, 3, 8, '#3a4036');
+    if (world.lair) {
+      rect(tx - 8, oy + CONFIG.tile, 2, Math.max(1, ty - oy - CONFIG.tile + 12), '#8b8a74');
+      rect(tx + 6, oy + CONFIG.tile, 2, Math.max(1, ty - oy - CONFIG.tile + 12), '#8b8a74');
+      for (let y = oy + CONFIG.tile; y < ty + 13; y += 9) rect(tx - 11, y, 22, 2, '#615443');
+      rect(tx - 14, ty - 16, 28, 18, '#6e7a74'); rect(tx - 11, ty - 13, 22, 10, '#26322f');
+      rect(tx - 12, ty + 1, 6, 5, '#1a2422'); rect(tx + 6, ty + 1, 6, 5, '#1a2422');
+    } else {
+      rect(tx - 13, ty - 9, 26, 18, highlightTunnel ? '#d5c483' : '#8c805b');
+      rect(tx - 10, ty - 6, 20, 12, '#080f12');
+      for (let i = 0; i < 3; i++) rect(tx - 8 + i * 6, ty - 4, 3, 8, '#3a4036');
+    }
     ctx.fillStyle = highlightTunnel ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText(world.lair ? 'DUNGEON TUNNEL' : 'SECRET TUNNEL', tx, ty - 30);
+    ctx.fillText(world.lair ? 'DEPARTURE CART' : 'SECRET TUNNEL', tx, ty - 30);
     if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots], placement, ox, oy);
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
