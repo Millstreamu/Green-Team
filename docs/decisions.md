@@ -340,3 +340,8 @@ Next pending question: exclude disconnected goblins from the group exit counter 
 ## Disconnected goblins excluded from departure — 17 October 2026
 
 User confirmed: a disconnected goblin does not count towards the group leaving check during its 60-second ghost grace period. Connected standing survivors may leave without waiting for it. Reconnecting during an ongoing run restores normal standing-player participation. Run ending during grace and handling retained sack/return destination remain pending; do not assume a ghost receives extraction rewards automatically. Documentation only, V24 unchanged.
+
+
+## Team leaves before disconnected player returns — 17 October 2026
+
+User confirmed: if the team leaves before a disconnected player reconnects, that player returns to the lair without their dungeon sack, like anyone left behind. No automatic sale or banking of ghost-held items. Reconnect after completion returns to the lair, not the closed dungeon. Preserve actual item ownership: loot already recovered and carried out by teammates settles normally. This resolves survivor extraction during disconnect grace; all-connected-player disconnect/failure policy remains pending. Documentation only; V24 unchanged.

@@ -309,3 +309,8 @@ Next ask whether disconnected goblins are excluded from the departure counter du
 ## Disconnect departure exception confirmed
 
 User approved excluding disconnected ghost goblins from departure checks during the 60-second grace period. Updated active review and decisions. Next settle what happens to a ghost and its sack if connected survivors finish the run before it reconnects; recommend returning it to the lair without its dungeon sack, pending acceptance. No runtime changes/tests; V24 stays current.
+
+
+## Run-end disconnect settlement confirmed
+
+User accepted returning a disconnected player to the lair without their dungeon sack if survivors depart before reconnection. Updated active review/decisions; no ghost extraction reward or closed-run resumption. Next propose no-connected-standing-player grace handling: if only disconnected standing goblins could still return, keep the run alive through their existing timers; fail when none reconnect before expiry. This is pending and must not silently override the agreed no-free-standing-player failure. V24 unchanged, documentation only, no tests rerun.
