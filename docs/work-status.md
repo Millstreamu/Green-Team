@@ -220,3 +220,10 @@ Documentation-only change: inspected coverage and proposal/agreement labels; no 
 ## Multiplayer review: first answers recorded
 
 User chose team vote, everyone marks Ready, and new arrivals wait until next run. Updated multiplayer-review.md batch1 and decisions.md. Host-selected jobs are not the agreed direction. Before escape/recovery, clarify two launch details: tied-vote resolution and automatic countdown versus organiser Start once everyone is ready. Ballot grouping/readiness-reset details remain proposed. Documentation only; V21 code/play.html unchanged, no runtime tests rerun. Continue small batches; no server/network implementation authorised by these design answers.
+
+
+## Multiplayer review correction: map station / departure cart
+
+User replaced team voting with an interactable map-planning station: anyone can change map/difficulty, latest confirmed selection persists. Everyone readies at a separate minecart departure point, with tracks into darkness. Updated review batch1 and marked original vote decision superseded. New arrivals still wait for next run. No tie-break decision needed.
+
+Next focused question: does changing destination/difficulty clear everyone’s Ready state? Recommend yes. Cart proximity/ready cancellation, departure countdown and packing-flow details remain open for the next short review. Keep reviewing rather than silently treating proposals as accepted. Documentation only; V21 executable unchanged, no runtime tests rerun.

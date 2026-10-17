@@ -232,8 +232,17 @@ Job/difficulty inputs and upfront risk/reward preview extend the existing tunnel
 Created multiplayer-review.md with current-source audit evidence and seven batches: job/readiness, escape/recovery, joining/leaving, searching/carrying, shared resources, guards/effects, persistence/difficulty/session operation. Existing agreed shared-lair/downing/trap principles are separated from new proposals. First proposal: organiser chooses job/difficulty, all participating players ready their own gear before organiser launches, new arrivals wait until next run. These are **not yet accepted**. “Host” here means organiser role, not a player's PC running the world/server.
 
 
-## Multiplayer batch 1 answers — 17 October 2026
+## Multiplayer batch 1 original answers — 17 October 2026 (job voting superseded below)
 
 **Agreed explicitly:** job/difficulty chosen by team vote; everyone marks Ready; new arrivals wait for the next run. This replaces the earlier proposed host-selected job. Reconnects are separate from new arrivals.
 
 **Still open:** vote ties, ballot grouping/timing, readiness invalidation on selection changes, and whether everyone-ready triggers a countdown or enables an organiser Start button. Proposed next follow-ups: random selection among tied options and a short automatic countdown after all are ready. Do not mark these details accepted until answered. No runtime change yet.
+
+
+## Revised job selection: planning station and minecart — 17 October 2026
+
+**Agreed correction:** user replaces team vote with an interactable map-planning spot in the lair, alongside existing stash/workbench. Anyone can select a map/difficulty there; the latest confirmed choice persists until another player changes it. Everyone readies at a separate departure minecart; the cart is on tracks leading into darkness. The selected destination is where the group goes once everyone is ready. New arrivals still wait for the next run.
+
+Do not retain voting/tie-break logic or restrict selection to an organiser. Keep the selected job/difficulty visible to teammates. Planning edits do not change an already-departed run.
+
+**Still open:** whether destination changes clear existing readiness (recommended yes), whether players must remain near the cart, countdown/cancellation details and where gear preparation fits. Record the user's design before implementation; the current local job/gear dialog is a prototype, not the final team flow. These are design documentation changes, not multiplayer or new station implementation yet.

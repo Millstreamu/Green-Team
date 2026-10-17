@@ -19,17 +19,20 @@ Accepted by the user, 17 October 2026:
 
 | ID | Decision | Agreed rule |
 |---|---|---|
-| A1 | Who chooses job and difficulty? | Team vote. |
-| A2 | Readiness | Everyone marks Ready before the run can launch. |
+| A1 | Who chooses job and difficulty? | Anyone can interact with a map-planning station in the lair. The latest confirmed selection stays selected until someone changes it. This replaces team voting. |
+| A2 | Readiness / departure | Everyone readies at a separate minecart departure point; the selected destination is used when the party departs. |
 | A3 | New arrivals during a run | Wait until the next run. Reconnecting an existing goblin is a separate question. |
+
+The lair has distinct functions: stash, workbench, map-planning station and departure minecart. The cart sits on tracks leading into darkness as the travel theme. Keep the selected destination/difficulty visible so teammates know what they are preparing for. Do not implement a vote or host-only selection gate. Tie-breaking is no longer relevant.
 
 Follow-ups still open:
 
-- A1a: How to break a tied vote? Proposed: random choice among the tied options. Alternative: revote until resolved.
-- A2a: Once everyone is ready, launch automatically after a short cancellable countdown, or require the organiser to press Start? Proposed: short automatic countdown.
-- Ballot details: proposed one vote per player for a job+difficulty pair; if the winning selection changes, clear readiness. Not yet accepted. Decide these details before implementation, rather than assuming the solo dropdown describes a team vote.
+- If someone changes the map/difficulty after others are ready, should everyone's readiness clear? Recommended: yes, so nobody launches into a different job than they agreed to.
+- Must goblins remain at/near the cart to stay ready, or does interacting there mark them ready until they cancel?
+- Exact departure timing/countdown after everyone is ready, and whether a ready player may walk away/cancel it.
+- Where the current gear-packing screen fits between stash preparation and cart readiness. The map station should not silently spend supplies or start the dungeon.
 
-One job profile/seed must be shared for the run; server coordination is still deferred. Everyone-ready does not by itself settle the launch-button/countdown behavior.
+One job profile/seed must be frozen for the departed run and shared by everyone. Subsequent edits at the planning station cannot alter a live dungeon. New arrivals still wait for the next run. Server implementation remains deferred.
 
 “Host” means the person organising the session. It does not mean their browser must simulate the game or their computer must host the server. An inexpensive shared server remains the intended hosting direction; technology/setup choices are not made by this review.
 
