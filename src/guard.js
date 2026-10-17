@@ -1,6 +1,7 @@
+import { leaveHiding } from './hiding.js';
 import { smokeBlocksSight } from './smoke.js';
 import { createRoamingRoute } from './guard-routes.js';
-import { CONFIG, COMBAT, GUARD_PATTERNS } from './config.js';
+import { CONFIG, COMBAT, GUARD_PATTERNS, HIDING } from './config.js';
 import { canStand, moveActor } from './world.js';
 import { clearPath } from './loot.js';
 import { findPath, followPath } from './navigation.js';
@@ -10,7 +11,7 @@ export function tickVitality(player, dt, world = null) {
   player.invulnerable = Math.max(0, player.invulnerable - dt);
   if (player.knockbackLeft > 0) {
     const step = Math.min(Math.max(0, dt), player.knockbackLeft);
-    if (world && player.state === 'active') moveActor(world, player, player.knockbackX * step, player.knockbackY * step);
+    if (world && !player.hiding && player.state === 'active') moveActor(world, player, player.knockbackX * step, player.knockbackY * step);
     player.knockbackLeft = Math.max(0, player.knockbackLeft - step);
   }
 }
@@ -84,6 +85,7 @@ function clearGuardTrail(guard) {
 }
 
 function recordGuardTrail(world, guard, player, dt) {
+  if (player.hiding) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
   if (guard.trailLeft <= 0) return;
   const previous = guard.trailSource;
   // Trace only continuous valid movement, never a teleport or an off-map target.
@@ -141,6 +143,7 @@ function updateRoamingRoutine(world, guard, dt) {
 }
 
 export function seesPlayer(world, guard, player, alerted = false, clouds = []) {
+  if (player.hiding) return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (alerted || distance < 1.2) return true;
@@ -161,6 +164,20 @@ export function updateGuard(world, guard, player, dt, clouds = []) {
   if (player.state !== 'active' || dt <= 0) return events;
   if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; guard.swing = 0; return events; }
   guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
+  if (guard.knownHiding) {
+    const known = guard.knownHiding;
+    if (player.id === known.playerId && player.hiding?.spot.id === known.spotId) {
+      guard.state = 'chase'; guard.windup = 0; guard.swing = 0;
+      setGuardGoal(world, guard, known, dt);
+      guard.moving = followPath(world, guard, guard.path, COMBAT.chaseSpeed * dt, COMBAT.guardRadius) > 0;
+      if (Math.hypot(guard.x - known.x, guard.y - known.y) <= HIDING.pullReach) {
+        leaveHiding(player); guard.knownHiding = null; guard.repath = 0;
+        guard.lastSeen = { x: player.x, y: player.y }; clearGuardTrail(guard); events.exposed = true;
+      }
+      return events;
+    }
+    guard.knownHiding = null;
+  }
   const alerted = guard.state === 'chase' || guard.state === 'search';
   const sees = seesPlayer(world, guard, player, alerted, clouds);
   if (sees) {
@@ -240,6 +257,7 @@ export function updateGuard(world, guard, player, dt, clouds = []) {
 }
 
 export function guardStrikeHits(world, guard, player) {
+  if (player.hiding) return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   const angle = guard.attackAngle ?? guard.angle;
   return distance <= COMBAT.attackReach && clearPath(world, guard, player)

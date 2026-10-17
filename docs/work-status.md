@@ -272,3 +272,12 @@ User accepted shared pursuit-driven heat and requested one additional persistent
 ## Per-guard reinforcement counting confirmed
 
 User rejected combining simultaneous detections into one team alert. Each alerted guard adds one count; two spotting together add two. Updated active review and decision log, preserving one persistent extra guard every three counts. Precise same-guard re-alert rules and reinforcement arrival details remain open. No runtime changes or tests rerun; V21 remains current.
+
+
+## V22 hiding barrels ready for playtest
+
+User approved the hiding readback. Added hiding.js/hiding-view.js; extended existing search targeting, renderer, main controls, movement, guard sight/trail/strike/navigation and gear restrictions; build includes new modules. Dedicated barrels appear about every second room. E enter/exit, goblin hidden/immobile, no search/gear/menu actions. Unseen entry stays safe while existing guard investigation finishes. Actual witnesses remember goblin/spot, walk over, pull out and resume pursuit; snares still delay them. Exit reuses the valid outside entry position. Heat/reinforcements remain documented follow-ups, not implemented.
+
+Verification: 91 tests pass (five hiding rule tests plus expanded real main event-flow test), standalone build and bundled syntax check pass. Tests cover 100 generated spot layouts, paths/non-overlap, unseen search completion, witness pullout then damage, snare interruption, blocked actions/stock conservation, occupancy/reach/walls and keyboard/mouse control gating. Browser rendering and feel still await user. Current review artifact green-team-hiding-v22.html and canonical play.html. Team capacity/reservations, disconnect/downing cleanup, multi-target guard priorities and shared heat interaction recorded as future work; no multiplayer test claim.
+
+Next: user tests hiding unseen versus witnessed. Adjust readability/placement as needed, then implement the agreed heat and per-guard every-third-alert reinforcements after arrival/re-alert details are settled. Continue remaining multiplayer questions in small batches.

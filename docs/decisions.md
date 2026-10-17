@@ -305,3 +305,12 @@ Counting clarification pending: recommend one separate team alert incident, even
 ## Reinforcement alerts count per guard — 17 October 2026
 
 User explicitly chose each guard alert as one count: getting caught by two guards adds two, intentionally making multiple-guard detection a bigger problem. This rejects the proposed combined team-incident count. Every three guard alerts bring one permanent-for-this-run extra guard; keep remainder counts and do not reset on heat cooling. Count events, not pursuit frames or one event per observing browser/player. Same-guard re-alert/reset details remain unspecified. Documentation only.
+
+
+## Hiding spots approved and implemented locally — 17 October 2026
+
+User accepted E enter/E exit, no movement/search/item use while hidden, guard pulls you out if it sees entry, unseen entry remains safe during nearby searching. Next playable slice is hiding before heat/reinforcements. Implemented dedicated temporary hiding barrels, separate from searchable furniture, with existing targeting/highlight and controls. No heat/reinforcement/capture runtime added.
+
+Prototype choices for testing: one barrel roughly every two rooms, including entrance; exit returns to collision-safe entry position; only actual sight at entry gives a guard knowledge, respecting walls/facing/smoke. Existing invisible clues can still be searched but hidden position produces no new trail samples. Witness walks to the entry point and pulls the goblin out before ordinary chase/attacks resume; snare delays it. No automatic exposure timer or bonus damage.
+
+Team behavior to confirm before networking: the local model reserves one occupant per barrel using player/spot IDs. Capacity and simultaneous-use/disconnect/downing cleanup are not accepted multiplayer policy yet. Future server must atomically reserve/release spots and store witness knowledge by pursued goblin; hidden players must not freeze other guards or reveal positions to them. Shared heat cooling still depends on the whole team's pursuit, not one player hiding.

@@ -23,7 +23,7 @@ export function validTrapPosition(world, player, point, traps, objects = []) {
 }
 export function updatePlacement(placement, world, player, loot, traps, objects, point, heldE, dt) {
   if (!placement.itemId) return null;
-  if (player.state === 'down' || !loot.bag.some(item => item.id === placement.itemId)) { cancelPlacement(placement); return null; }
+  if (player.hiding || player.state === 'down' || !loot.bag.some(item => item.id === placement.itemId)) { cancelPlacement(placement); return null; }
   if (placement.point && Math.hypot(placement.point.x - point.x, placement.point.y - point.y) > 0.1) { placement.elapsed = 0; placement.origin = null; }
   placement.point = { ...point };
   if (!heldE) { placement.ready = true; placement.elapsed = 0; placement.origin = null; return null; }
@@ -49,7 +49,7 @@ export function updateTraps(traps, goblins, guards, dt) {
       if (trap.armLeft > 0) continue;
       trap.phase = 'armed'; events.push({ type: 'armed', trap });
     }
-    const goblin = goblins.find(g => g.state !== 'down' && Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
+    const goblin = goblins.find(g => g.state !== 'down' && !g.hiding && Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
     const guard = guards.find(g => Math.hypot(g.x - trap.x, g.y - trap.y) <= TRAPS.triggerRadius + CONFIG.radius);
     if (!goblin && !guard) continue;
     trap.phase = 'spent'; trap.triggeredBy = goblin ? 'goblin' : 'guard';

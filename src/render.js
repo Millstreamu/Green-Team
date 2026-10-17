@@ -1,3 +1,4 @@
+import { drawHidingSpots } from './hiding-view.js';
 import { drawSmoke } from './smoke-view.js';
 import { drawLair } from './lair-drawing.js';
 import { lairTarget } from './lair.js';
@@ -28,7 +29,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = []) => {
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -56,8 +57,9 @@ export async function createRenderer(canvas, mapCanvas) {
     ctx.fillStyle = highlightTunnel ? '#f0dda3' : '#c4b98c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText(world.lair ? 'DUNGEON TUNNEL' : 'SECRET TUNNEL', tx, ty - 30);
     if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
-    drawTraps(ctx, world, player, traps, objects, placement, ox, oy);
+    drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots], placement, ox, oy);
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy);
+    drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy);
     for (const item of loot.ground) {
       const cells = itemCells(item), size = 7;
       const w = (Math.max(...cells.map(c => c[0])) + 1) * size, h = (Math.max(...cells.map(c => c[1])) + 1) * size;
@@ -75,15 +77,17 @@ export async function createRenderer(canvas, mapCanvas) {
     drawSmoke(ctx, world, clouds, ox, oy);
     for (const guard of guards) drawGuard(ctx, guard, ox, oy);
     // Feet and shadow stay on the floor; only the supplied sprite hops.
-    const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
-    const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
-    rect(sx - 7, sy - 2, 14, 4, '#182222');
-    ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
-    if (player.state === 'down') ctx.rotate(Math.PI / 2);
-    else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
-    const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
-    ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
-    ctx.restore();
+    if (!player.hiding) {
+      const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);
+      const hop = player.moving ? Math.round(Math.abs(Math.sin(player.phase)) * CONFIG.hopHeight) : 0;
+      rect(sx - 7, sy - 2, 14, 4, '#182222');
+      ctx.save(); ctx.translate(sx, sy - hop); ctx.scale(player.facing / GOBLIN_ART.faces, 1);
+      if (player.state === 'down') ctx.rotate(Math.PI / 2);
+      else if (player.invulnerable > 0 && Math.floor(player.invulnerable * 12) % 2 === 0) ctx.globalAlpha = 0.45;
+      const sw = GOBLIN_ART.width * GOBLIN_ART.scale, sh = GOBLIN_ART.height * GOBLIN_ART.scale;
+      ctx.drawImage(goblin, -sw / 2, -sh, sw, sh);
+      ctx.restore();
+    }
     mapCanvas.width = world.width * 2; mapCanvas.height = world.height * 2;
     map.fillStyle = '#151e20'; map.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
     map.fillStyle = '#667670';

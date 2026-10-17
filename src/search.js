@@ -1,3 +1,4 @@
+import { canHide } from './hiding.js';
 import { findPath } from './navigation.js';
 import { SEARCH, SEARCH_LOOT } from './config.js';
 import { canStand } from './world.js';
@@ -48,13 +49,15 @@ export function searchRewardProfile(depth) {
 }
 
 export function canSearch(world, player, object) {
-  return !object.searched && player.state !== 'down' && Math.hypot(player.x - object.x, player.y - object.y) <= SEARCH.reach && clearPath(world, player, object);
+  return !player.hiding && !object.searched && player.state !== 'down' && Math.hypot(player.x - object.x, player.y - object.y) <= SEARCH.reach && clearPath(world, player, object);
 }
 
-export function selectInteraction(world, player, ground, objects, pointer = null) {
+export function selectInteraction(world, player, ground, objects, pointer = null, hidingSpots = []) {
+  if (player.hiding) return null;
   const candidates = [
     ...ground.filter(item => reachable(world, player, item)).map(item => ({ kind: 'loot', item })),
-    ...objects.filter(item => canSearch(world, player, item)).map(item => ({ kind: 'search', item }))
+    ...objects.filter(item => canSearch(world, player, item)).map(item => ({ kind: 'search', item })),
+    ...hidingSpots.filter(item => canHide(world, player, item)).map(item => ({ kind: 'hide', item }))
   ];
   const distance = (candidate, point) => Math.hypot(candidate.item.x - point.x, candidate.item.y - point.y);
   if (pointer) {

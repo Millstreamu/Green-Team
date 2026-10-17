@@ -236,4 +236,30 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(elements.get('job-label').textContent, 'Human Manor · Hard');
   tap('KeyE');
   assert.equal(elements.get('result-job').textContent, 'Human Manor · Hard');
+  // Reach a real generated hiding barrel using the same movement/event loop.
+  elements.get('next-run').send('click'); tick(); prepareRun();
+  elements.get('difficulty-choice').value = 'normal';
+  elements.get('snare-count').value = '0'; elements.get('smoke-count').value = '0';
+  elements.get('start-run').send('click'); tick();
+  const { createHidingSpots } = await import('../src/hiding.js');
+  const { createSearchables } = await import('../src/search.js');
+  const hideWorld = generateDungeon(42), barrel = createHidingSpots(hideWorld, createSearchables(hideWorld))[0];
+  const hideRoute = findPath(hideWorld, hideWorld.spawn, barrel), position = { ...hideWorld.spawn };
+  for (const goal of hideRoute) {
+    for (let i = 0; i < 150 && Math.hypot(goal.x - position.x, goal.y - position.y) > 0.06; i++) {
+      const dx = goal.x - position.x, dy = goal.y - position.y, horizontal = Math.abs(dx) > 0.045;
+      const code = horizontal ? dx > 0 ? 'KeyD' : 'KeyA' : dy > 0 ? 'KeyS' : 'KeyW';
+      key(code); tick(); release(code);
+      if (horizontal) position.x += Math.sign(dx) * 4.5 * 0.016; else position.y += Math.sign(dy) * 4.5 * 0.016;
+    }
+  }
+  assert.match(elements.get('target-label').textContent, /Hiding barrel/);
+  tap('KeyE'); assert.match(elements.get('target-label').textContent, /Hidden in barrel/);
+  walk('KeyD', 80); tap('Tab'); tap('Space');
+  doc.send('pointerdown', { target: elements.get('game'), clientX: 450, clientY: 300 }); tick();
+  assert.match(elements.get('target-label').textContent, /Hidden in barrel/);
+  assert.equal(elements.get('sack-panel').dataset.open, 'false');
+  key('KeyE'); tick(); win.send('keydown', { code: 'KeyE', repeat: true, target: elements.get('game') }); tick(); release('KeyE');
+  assert.match(elements.get('target-label').textContent, /Hiding barrel/);
+
 });

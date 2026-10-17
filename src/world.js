@@ -46,6 +46,7 @@ export function canStand(world, x, y, radius = CONFIG.radius) {
 }
 
 export function movePlayer(world, player, input, dt, config = CONFIG) {
+  if (player.hiding) { player.moving = false; player.phase = 0; return; }
   const length = Math.hypot(input.x, input.y);
   if (!length) { player.moving = false; player.phase = 0; return; }
   const distance = config.speed * Math.max(0, dt);

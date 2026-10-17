@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: try V20’s economy loop: return valuables for gold, buy the smoke recipe, craft smoke bombs and equip/use them in a run. Inspect and rearrange the stackable central stash. Decorations, upgrades, building tables and multiplayer remain later work.
+Next: playtest V22 hiding barrels. Try entering unseen after breaking guard sight, then deliberately let a guard see you enter. Heat and accumulating reinforcements are agreed follow-ups; multiplayer remains deferred.
 
 
 ## V12: single-use snare
@@ -174,3 +174,14 @@ Jobs/difficulties live in jobs.js. Future job layouts can extend that registry w
 ## Multiplayer behavior review
 
 [Open questions and proposed defaults](docs/multiplayer-review.md) cover job choice/readiness, escape/recovery, joining/leaving, looting, shared spending, guard/team effects and save/session rules. Discuss these in small batches; proposed defaults are not user decisions. V21 is still the current playable local build. Hosting and multiplayer implementation remain deferred while behavior is clarified.
+
+
+## V22: hiding barrels
+
+Dedicated barrels labelled HIDE appear in roughly every other room, including a safe introduction in the entrance room. They are distinct from searchable cupboards/crates. Approach the existing green highlight and press E to enter; E again exits at the position you entered from. The goblin disappears and the barrel reads HIDDEN · E EXIT. Movement, searching, inventory interactions and gear use are blocked while hidden; the dungeon continues running.
+
+Entering unseen blocks guard sight, strikes and new invisible trail samples. Guards can follow existing clues and finish searching nearby, but do not discover a hidden goblin automatically. A guard with actual unobstructed sight when you enter remembers that spot, approaches using existing navigation and pulls you out, then resumes ordinary pursuit. Smoke can block that initial sight; snares delay the approaching guard normally. Leaving early clears the obsolete hide target on its next update. No extra damage, heat or reinforcements added in this slice.
+
+HIDING in src/config.js controls reach, room spacing and guard pull distance. src/hiding.js owns placement/entry/exit and src/hiding-view.js draws temporary barrels; existing interaction selection, collision, sight, navigation and HUD are reused. Spot IDs, occupant ID and guard knowledge tied to goblin ID prepare for shared state. The local prototype reserves one occupant per barrel; multiplayer capacity, disconnect/downing cleanup and target selection remain to confirm/implement on the server.
+
+Verified: 91 automated tests, including generated spot reachability, unseen searches, witnessed entry/pullout/attack, snare delay, occupancy and an actual keyboard/pointer event flow. Standalone build and bundled JavaScript syntax check pass. Rendered appearance and escape difficulty await user playtest. Review copy: green-team-hiding-v22.html.

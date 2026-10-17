@@ -1,0 +1,96 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { generateDungeon, canStand, movePlayer } from '../src/world.js';
+import { createSearchables, selectInteraction, canSearch } from '../src/search.js';
+import { createHidingSpots, canHide, enterHiding, leaveHiding } from '../src/hiding.js';
+import { createGuard, createVitality, seesPlayer, updateGuard, tickVitality, guardStrikeHits } from '../src/guard.js';
+import { useSmoke } from '../src/smoke.js';
+import { createPlacement, updatePlacement } from '../src/traps.js';
+import { findPath } from '../src/navigation.js';
+
+function scenario() {
+  const world = { seed: 1, width: 20, height: 20, tiles: new Uint8Array(400).fill(1), spawn: { x: 4.5, y: 4.5 }, rooms: [{ x: 1, y: 1, w: 16, h: 16, cx: 8, cy: 8 }] };
+  const player = { id: 'one', x: 7.5, y: 5.5, facing: 1, ...createVitality() };
+  const spot = { id: 'barrel', x: 8.5, y: 5.5, occupantId: null };
+  const guard = createGuard(world, { roomIndex: 0, behaviour: 'lookout' });
+  Object.assign(guard, { x: 3.5, y: 5.5, angle: 0 });
+  return { world, player, spot, guard };
+}
+
+test('hiding barrels are deterministic reachable non-overlapping furniture on 100 maps', () => {
+  for (let seed = 0; seed < 100; seed++) {
+    const world = generateDungeon(seed), objects = createSearchables(world), spots = createHidingSpots(world, objects);
+    assert.ok(spots.length >= 4); assert.deepEqual(spots, createHidingSpots(world, objects));
+    assert.equal(new Set(spots.map(s => s.id)).size, spots.length);
+    for (const spot of spots) {
+      assert.ok(canStand(world, spot.x, spot.y));
+      assert.ok(findPath(world, world.spawn, spot).length);
+      assert.ok(objects.every(o => Math.hypot(o.x - spot.x, o.y - spot.y) > 1));
+    }
+  }
+});
+
+test('unseen hiding defeats sight, strikes and new footprints while guards still finish searching', () => {
+  const { world, player, spot, guard } = scenario();
+  Object.assign(guard, { state: 'chase', lastSeen: { x: 6.5, y: 5.5 } });
+  assert.ok(enterHiding(world, player, spot));
+  assert.equal(seesPlayer(world, guard, player, true), false);
+  assert.equal(guardStrikeHits(world, guard, player), false);
+  let moved = false;
+  for (let i = 0; i < 300; i++) {
+    const before = guard.x;
+    const event = updateGuard(world, guard, player, 0.05);
+    moved ||= guard.x !== before;
+    assert.equal(event.hit, false); assert.ok(player.hiding);
+    assert.ok(guard.trail.every(p => p.x !== spot.x));
+  }
+  assert.ok(moved); assert.equal(guard.state, 'patrol'); assert.equal(player.health, 3);
+});
+
+test('a witnessing guard approaches and pulls the goblin out; an unwitnessing guard has no knowledge', () => {
+  const { world, player, spot, guard } = scenario();
+  const other = createGuard(world, { roomIndex: 0 });
+  assert.ok(seesPlayer(world, guard, player));
+  assert.ok(enterHiding(world, player, spot, [guard]));
+  assert.equal(other.knownHiding, undefined);
+  guard.snareLeft = 0.5;
+  for (let i = 0; i < 5; i++) updateGuard(world, guard, player, 0.05);
+  assert.equal(guard.x, 3.5); assert.ok(player.hiding);
+  let exposed = false;
+  for (let i = 0; i < 100 && player.hiding; i++) exposed ||= !!updateGuard(world, guard, player, 0.05).exposed;
+  assert.ok(exposed); assert.equal(player.hiding, null); assert.equal(spot.occupantId, null);
+  assert.equal(player.x, 7.5); assert.equal(player.health, 3);
+  for (let i = 0; i < 20; i++) { tickVitality(player, 0.05, world); updateGuard(world, guard, player, 0.05); }
+  assert.ok(player.health < 3, 'normal chase/attacks resume after being exposed');
+});
+
+test('hiding blocks movement, knockback, searches, smoke and placement without consuming items', () => {
+  const { world, player, spot } = scenario();
+  assert.ok(enterHiding(world, player, spot));
+  const before = { x: player.x, y: player.y };
+  movePlayer(world, player, { x: 1, y: 1 }, 1);
+  player.knockbackLeft = 0.1; player.knockbackX = 5;
+  tickVitality(player, 0.1, world);
+  assert.equal(player.x, before.x); assert.equal(player.y, before.y);
+  assert.equal(canSearch(world, player, { ...spot, searched: false }), false);
+  assert.equal(selectInteraction(world, player, [], [], null, [spot]), null);
+  const loot = { held: null, bag: [{ id: 'smoke', type: 'smoke' }, { id: 'snare', type: 'snare' }] }, clouds = [], traps = [];
+  assert.equal(useSmoke(loot, player, clouds), false);
+  const placement = { ...createPlacement(), itemId: 'snare', ready: true };
+  assert.equal(updatePlacement(placement, world, player, loot, traps, [], spot, true, 2), null);
+  assert.equal(loot.bag.length, 2); assert.equal(clouds.length, 0); assert.equal(traps.length, 0);
+  assert.ok(leaveHiding(player)); assert.equal(player.x, 7.5); assert.equal(player.y, 5.5);
+  assert.equal(leaveHiding(player), false);
+});
+
+test('spot occupancy, reach and walls prevent conflicting entry; leaving frees the same spot', () => {
+  const { world, player, spot } = scenario();
+  const other = { ...player, id: 'two' };
+  assert.equal(selectInteraction(world, player, [], [], null, [spot]).kind, 'hide');
+  assert.ok(enterHiding(world, player, spot));
+  assert.equal(enterHiding(world, other, spot), false);
+  leaveHiding(player); assert.ok(enterHiding(world, other, spot)); leaveHiding(other);
+  player.x = 1.5; assert.equal(canHide(world, player, spot), false);
+  player.x = 6.9; spot.x = 8.1; world.tiles[5 * 20 + 7] = 0;
+  assert.equal(canHide(world, player, spot), false);
+});

@@ -1,7 +1,7 @@
 import { SMOKE } from './config.js';
 
 export function useSmoke(loot, player, clouds) {
-  if (loot.held || player.state !== 'active') return false;
+  if (player.hiding || loot.held || player.state !== 'active') return false;
   const index = loot.bag.findIndex(item => item.type === 'smoke');
   if (index < 0) return false;
   const [item] = loot.bag.splice(index, 1);
