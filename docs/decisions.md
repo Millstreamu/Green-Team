@@ -391,3 +391,10 @@ User approved the proposal: all run participants earn the same personal XP based
 User approved personal XP display, XP on results and a separate personal save. Implemented without choosing level/unlock thresholds. Starting tuning is 1 XP per gold of recovered valuables; materials/gear/debug supplies do not generate XP in this test, empty/failed solo runs yield zero and earned XP is retained. Reuse existing sale values including Hard per-item rounding. Spending group gold cannot change personal XP.
 
 profile.js separates personal XP from existing camp save and credits each profile once per live team-haul result, allowing equal rewards to multiple profiles. This local single-profile prototype has no accounts, named group joining or server reward persistence. In-memory duplicate prevention must become durable run/profile transactions on the server. Final XP values, material/failure rewards, disconnect eligibility and recipe/level schedule remain to decide. Current gold-funded recipe UI is retained until a personal-recipe slice replaces it explicitly.
+
+
+## Personal smoke recipe at 50 XP approved and built — 17 October 2026
+
+User accepted snare known initially, smoke learned at 50 total personal XP, knowledge not spending XP, unchanged crafting material costs and workbench display of current/next knowledge. Implemented knowsRecipe(profile,type), configurable PROGRESSION.recipeXp, acting-profile craft checks and existing workbench cards. Gold is no longer used to learn recipes. Existing shared stock can be used without knowing its recipe; only crafting requires knowledge. Other goblins never inherit knowledge from the lair.
+
+Migration choice: schema2 purchased smoke unlock refunds its former 20 gold once when becoming schema3, preserving existing stock/layout and profile XP. No free personal XP/unlock granted. Schema1 sale migration retained. Sack-first crafting output/direct lair packing and group facility upgrades remain separate planned slices; this implementation changes recipe knowledge only.

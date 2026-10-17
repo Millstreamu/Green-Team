@@ -75,7 +75,7 @@ const reset = () => {
   enterLair();
 };
 const closeLairPanel = () => { run.phase = 'lair'; input.clear(); canvas.focus(); };
-const lairView = createLairView(document.querySelector('#lair-panel'), camp, persistCamp, closeLairPanel);
+const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, persistCamp, closeLairPanel);
 const loadout = createLoadoutView(document.querySelector('#run-setup'), (quantities, debug, selection) => {
   if (run.phase !== 'setup') return false;
   const job = selection && selectJob(selection.jobId, selection.difficultyId);

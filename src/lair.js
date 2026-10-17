@@ -1,11 +1,13 @@
+import { PROGRESSION } from './config.js';
+import { knowsRecipe } from './profile.js';
 import { LOOT_TYPES, itemSaleValue } from './loot.js';
 import { buildTrapLoadout } from './loadout.js';
 import { clearPath } from './loot.js';
 
 export const STASH = Object.freeze({ width: 6, height: 6 });
 export const RECIPES = Object.freeze({
-  snare: { name: 'Snare trap', unlockCost: 0, materials: { scrap: 2, cloth: 1 } },
-  smoke: { name: 'Smoke bomb', unlockCost: 20, materials: { scrap: 1, cloth: 2 } }
+  snare: { name: 'Snare trap', requiredXp: PROGRESSION.recipeXp.snare, materials: { scrap: 2, cloth: 1 } },
+  smoke: { name: 'Smoke bomb', requiredXp: PROGRESSION.recipeXp.smoke, materials: { scrap: 1, cloth: 2 } }
 });
 export const SNARE_RECIPE = RECIPES.snare.materials;
 export function syncStashSlots(camp) {
@@ -21,7 +23,7 @@ export function syncStashSlots(camp) {
   }
 }
 export function createCamp() {
-  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), unlocked: { snare: true, smoke: false }, slots: [] };
+  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [] };
   syncStashSlots(camp); return camp;
 }
 export function moveStashStack(camp, type, target) {
@@ -30,22 +32,16 @@ export function moveStashStack(camp, type, target) {
   if (origin < 0 || camp.slots[target] && camp.slots[target] !== type) return false;
   camp.slots[origin] = null; camp.slots[target] = type; return true;
 }
-export function unlockRecipe(camp, type) {
-  const recipe = RECIPES[type];
-  if (!Object.hasOwn(RECIPES, type) || camp.unlocked[type] || camp.counts.gold < recipe.unlockCost) return false;
-  camp.counts.gold -= recipe.unlockCost; camp.unlocked[type] = true;
-  syncStashSlots(camp); return true;
+export function canCraftRecipe(camp, type, profile) {
+  return Object.hasOwn(RECIPES, type) && knowsRecipe(profile, type) && Object.entries(RECIPES[type].materials).every(([material, count]) => camp.counts[material] >= count);
 }
-export function canCraftRecipe(camp, type) {
-  return Object.hasOwn(RECIPES, type) && !!camp.unlocked[type] && Object.entries(RECIPES[type].materials).every(([material, count]) => camp.counts[material] >= count);
-}
-export function craftRecipe(camp, type) {
-  if (!canCraftRecipe(camp, type)) return false;
+export function craftRecipe(camp, type, profile) {
+  if (!canCraftRecipe(camp, type, profile)) return false;
   for (const [material, count] of Object.entries(RECIPES[type].materials)) camp.counts[material] -= count;
   camp.counts[type]++; syncStashSlots(camp); return true;
 }
-export function canCraftSnare(camp) { return canCraftRecipe(camp, 'snare'); }
-export function craftSnare(camp) { return craftRecipe(camp, 'snare'); }
+export function canCraftSnare(camp, profile) { return canCraftRecipe(camp, 'snare', profile); }
+export function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', profile); }
 export function takeSupplies(camp, quantities, seed, debug = false) {
   const loadout = buildTrapLoadout(quantities, seed);
   if (!loadout) return null;
@@ -70,7 +66,7 @@ const CAMP_SAVE_KEY = 'green-team-camp-v1';
 export function loadCamp(storage) {
   try {
     const saved = JSON.parse(storage?.getItem(CAMP_SAVE_KEY) ?? 'null');
-    if (![1, 2].includes(saved?.version) || !saved.counts) return createCamp();
+    if (![1, 2, 3].includes(saved?.version) || !saved.counts) return createCamp();
     const camp = createCamp();
     for (const type of Object.keys(LOOT_TYPES)) {
       const count = saved.counts[type] ?? 0;
@@ -81,14 +77,15 @@ export function loadCamp(storage) {
     if (saved.version === 1) for (const [type, definition] of Object.entries(LOOT_TYPES)) if (definition.sellValue) {
       camp.counts.gold += camp.counts[type] * definition.sellValue; camp.counts[type] = 0;
     }
+    // Retire the old shared smoke unlock and refund its one-time gold price.
+    if (saved.version === 2 && saved.unlocked?.smoke === true) camp.counts.gold += 20;
     if (!Number.isSafeInteger(camp.counts.gold)) return createCamp();
-    camp.unlocked = { snare: true, smoke: saved.version === 2 && saved.unlocked?.smoke === true };
     camp.slots = Array.isArray(saved.slots) ? saved.slots : [];
     syncStashSlots(camp); return camp;
   } catch { return createCamp(); }
 }
 export function saveCamp(camp, storage) {
-  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 2, counts: camp.counts, unlocked: camp.unlocked, slots: camp.slots })); return !!storage; }
+  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 3, counts: camp.counts, slots: camp.slots })); return !!storage; }
   catch { return false; }
 }
 export function createLairWorld() {

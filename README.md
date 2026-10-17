@@ -12,7 +12,7 @@ Return to the secret tunnel where you started (gold marker on the map) and press
 
 **Return to lair** during a run abandons carried loot/traps after confirmation; stock already at home is safe. The small map shows your position. Lair stock carries between runs and saves locally in this browser when browser storage is available. The footer reports whether saving works. Active dungeon runs are not saved; reloading returns home with the supplies already spent when that run started.
 
-The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, gold-funded recipe unlocks and no multiplayer yet.
+The goblin uses your supplied 16×16 art; dungeon art is temporary. This version includes test loot, a 3×3 sack and two lookouts, one room patrol and one local roaming guard, with snare/smoke crafting, personal XP recipe unlocks and no multiplayer yet.
 
 ## Searching
 
@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V25 personal XP. Escape with valuables, check earned XP and the persistent personal total, then spend shared gold or try another run: personal XP stays yours. Multiplayer remains deferred.
+Next: playtest V26 personal recipes. Snares are known from the start. Reach 50 total personal XP to learn smoke automatically, then craft it at the workbench using shared materials. XP and gold are not spent. Multiplayer remains deferred.
 
 
 ## V12: single-use snare
@@ -218,3 +218,14 @@ profile.js stores a separate personal profile under green-team-goblin-v1; existi
 A team result can credit multiple distinct profiles equally, with per-profile receipts preventing repeated credit for that live result. The current playable build is solo; future server reward settlement must use durable run/profile IDs, eligibility and database transactions before claiming reconnect/crash-safe or actual team XP. Server accounts, group-lair joining, personal recipe unlock thresholds and a level tree are deferred. Existing prototype gold-funded recipes and shared-stock crafting remain until their replacement slice is specified.
 
 Verified: 107 automated tests, standalone build, bundled syntax and unique HTML IDs. New tests cover actual recovered Hard haul values, equal multi-profile rewards and duplicate prevention, loss/empty/material/debug exclusions, independent personal/lair saves, reload/corruption/blocked storage and integer-safe totals. Main event flow checks the XP HUD, results, save, gold-spend independence and later loss retention. No rendered browser or online team test; pacing/readability await playtest. Review copy: green-team-xp-v25.html.
+
+
+## V26: personal recipe knowledge
+
+Snares are known at zero XP. At 50 total personal XP, the goblin automatically learns smoke bombs; learning never spends XP or gold. The workbench reuses the existing recipe cards/buttons to show known recipes and locked recipes' current/required XP and amount remaining. A known recipe still requires its normal shared materials (snare: 2 scrap + 1 cloth; smoke: 1 scrap + 2 cloth). Having enough gold cannot bypass XP, and other goblins do not gain knowledge from a craft performed in their lair. Existing crafted stock can still be used by goblins who have not learned how to make it.
+
+PROGRESSION.recipeXp in config.js contains the provisional 0/50 thresholds. knowsRecipe in profile.js derives knowledge from personal XP; no shared recipe flags are saved. Crafting checks the acting profile as well as shared material stock. Knowledge therefore reloads with personal XP and works in another lair. No additional level tree or facility upgrades added. The current solo crafting output/pre-run stock setup is retained; sack-first output and direct lair stash-to-sack preparation remain separate planned work.
+
+Camp save schema3 preserves stock/layout and removes old shared recipe flags. A schema2 save with the purchased smoke recipe receives its old 20-gold price back once during migration; existing smoke bombs remain in stock. Reloading schema3 does not refund again. Personal XP is neither increased nor reset, so recipe knowledge follows the new XP rule. Schema1 valuable-to-gold migration is retained.
+
+Verified: 110 automated tests, standalone build, bundled syntax and unique HTML IDs. Tests cover exact XP boundary, personal knowledge across saves/lairs, novice access rejection, materials-only spending, no gold/XP spend, old-save stock/layout preservation and one-time refund. Real main flow starts a returning-goblin fixture at 25 XP, rejects locked crafting, earns 25 XP from an actual ruby escape, opens the known smoke recipe and crafts it once; remaining economy/gear/hiding/heat checks pass. Fresh production profiles still start at zero. No rendered browser or online team test. Review copy: green-team-recipes-v26.html.

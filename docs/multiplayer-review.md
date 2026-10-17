@@ -88,7 +88,7 @@ Engineering default to verify rather than ask as a game preference: two simultan
 
 | ID | Question | Recommended starting rule | Alternative |
 |---|---|---|---|
-| E1 | Can everyone spend shared gold/unlock recipes? | Everyone can; show the team what was purchased. | Host-only purchases or approval above a threshold. |
+| E1 | Can everyone spend shared gold on future lair improvements? | Everyone can; show the team what was purchased. Personal recipes now derive from each goblin’s XP, not shared gold. | Host-only group purchases or approval above a threshold. |
 | E2 | When are prepared supplies taken out of shared stock? | **Agreed:** transfer immediately from stash into personal sack; putting back restores stock. First successful transfer gets the last copy. | Launch-time reservation model superseded. |
 | E3 | What if two people rearrange the same stash stack? | Briefly reserve that stack for the mover; others can use the rest of the stash. | Allow moves to fail cleanly when another change wins. |
 
@@ -192,3 +192,10 @@ Still open: account/reconnect identity, creator/member permissions and invitatio
 User approved a bounded XP display/results/separate-save test. Provisional rate: one XP per gold of recovered valuables, reusing item sale values/Hard rounding. Materials, equipment/debug gear, empty escapes and solo losses produce no XP in this slice. Personal XP never decreases due to spending shared gold or losing a later run. No new level/unlock thresholds chosen. This is experimental pacing, not a final reward schedule.
 
 Implemented local personal profile separate from lair storage. Reward calculation accepts a team haul and can credit multiple distinct profile IDs equally once per live result; tests cover that shared-haul calculation, not online multiplayer. Current UI still plays one goblin. Future server must use durable identities/run IDs and transactional rewards, with disconnected eligibility and failure bonuses decided before team implementation. Named lairs/account login, gear portability, crafted-output transfer and personal recipe unlock conversion remain future slices; do not imply these are implemented by the separate local save.
+
+
+## V26 personal recipes implemented locally
+
+User approved starting snares, automatic smoke knowledge at 50 total personal XP, no XP spend, unchanged material costs and workbench progress. Replaces the old gold-bought shared smoke recipe. Each craft checks the acting goblin's profile and shared materials; recipe knowledge is not a lair flag and one goblin learning/crafting never unlocks another. Existing shared gear remains usable without recipe knowledge. Thresholds are editable starting balance.
+
+Camp schema3 removes shared unlock flags, preserves stock/layout and refunds the prior schema2 smoke purchase's 20 gold once. No XP granted for migration. Personal knowledge derives from the separate profile's saved XP. Crafted output is still the current solo shared-stash path; agreed sack-first crafting/direct transfer and named-home/server account UI remain planned, not implemented by this recipe slice. Server must eventually validate profile knowledge and spend shared materials/output once as one transaction.

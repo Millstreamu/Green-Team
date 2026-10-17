@@ -30,6 +30,8 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   const saved = new Map(); win.localStorage = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) };
   // A saved camp fixture has enough materials to test two actual recipes.
   saved.set('green-team-camp-v1', JSON.stringify({ version: 1, counts: { snare: 1, scrap: 3, cloth: 3 } }));
+  // Returning-goblin fixture reaches the personal smoke threshold on the ruby escape.
+  saved.set('green-team-goblin-v1', JSON.stringify({ version: 1, id: 'local-goblin', xp: 25 }));
   const campCounts = () => JSON.parse(saved.get('green-team-camp-v1')).counts;
   globalThis.HTMLElement = Surface; globalThis.document = doc; globalThis.window = win;
   globalThis.Image = class { async decode() {} };
@@ -50,7 +52,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   const prepareRun = () => { walk('KeyW', 80); tap('KeyE'); assert.equal(elements.get('run-setup').open, true); };
   tick();
   assert.match(elements.get('target-label').textContent, /Lair/);
-  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 0 XP');
+  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 25 XP');
   tap('Tab'); assert.equal(elements.get('lair-panel').open, true);
   elements.get('stash-grid').send('keydown', { code: 'KeyE' });
   elements.get('stash-grid').send('keydown', { code: 'KeyD' });
@@ -64,6 +66,9 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(elements.get('lair-panel').open, false);
   walk('KeyD', 56); walk('KeyW', 49); tap('KeyE');
   assert.equal(elements.get('lair-title').textContent, 'Workbench & recipes');
+  assert.equal(elements.get('craft-smoke').disabled, true);
+  assert.match(elements.get('recipe-smoke-state').textContent, /25\/50 XP/);
+  elements.get('craft-smoke').send('click'); assert.equal(campCounts().smoke, 0);
   elements.get('craft-snare').send('click'); tick();
   assert.equal(campCounts().snare, 2); assert.equal(campCounts().scrap, 1);
   assert.equal(elements.get('craft-snare').disabled, true);
@@ -140,21 +145,24 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   doc.send('pointerdown', { target: elements.get('sack-grid'), clientX: 770, clientY: 380 }); tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.equal(campCounts().ruby, 0); assert.equal(campCounts().gold, 25); assert.equal(campCounts().snare, 2);
-  assert.equal(elements.get('result-xp').textContent, 'Your goblin: +25 XP · Total 25 XP');
-  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 25 XP');
-  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 25);
+  assert.equal(elements.get('result-xp').textContent, 'Your goblin: +25 XP · Total 50 XP');
+  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 50 XP');
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 50);
   assert.equal(elements.get('haul-total').textContent, summary);
   assert.match(elements.get('target-label').textContent, /run complete/);
   elements.get('next-run').send('click'); tick();
   assert.match(elements.get('target-label').textContent, /Lair/);
   walk('KeyD', 56); walk('KeyW', 49); tap('KeyE');
-  assert.match(elements.get('craft-smoke').textContent, /Unlock/);
+  assert.match(elements.get('craft-smoke').textContent, /Craft Smoke bomb/);
+  assert.match(elements.get('recipe-smoke-state').textContent, /Known by your goblin/);
+  assert.equal(elements.get('craft-smoke').disabled, false);
   elements.get('craft-smoke').send('click'); tick();
-  assert.equal(campCounts().gold, 5);
-  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 25);
-  assert.equal(JSON.parse(saved.get('green-team-camp-v1')).unlocked.smoke, true);
-  elements.get('craft-smoke').send('click'); tick();
-  assert.equal(campCounts().smoke, 1); assert.equal(campCounts().gold, 5);
+  assert.equal(campCounts().gold, 25);
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 50);
+  assert.equal(JSON.parse(saved.get('green-team-camp-v1')).unlocked, undefined);
+  assert.equal(campCounts().smoke, 1);
+  assert.equal(elements.get('craft-smoke').disabled, true);
+  elements.get('craft-smoke').send('click'); tick(); assert.equal(campCounts().smoke, 1);
   elements.get('close-lair').send('click'); tick();
   // Go back to the usual home spawn so the next launch helper stays reusable.
   walk('KeyA', 56); walk('KeyS', 49);
@@ -189,10 +197,10 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   for (let i = 0; i < 4000 && !elements.get('run-results').open; i++) tick();
   assert.equal(elements.get('run-results').open, true);
   assert.equal(elements.get('results-title').textContent, 'You went down.');
-  assert.equal(elements.get('result-xp').textContent, 'Your goblin: +0 XP · Total 25 XP');
-  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 25);
+  assert.equal(elements.get('result-xp').textContent, 'Your goblin: +0 XP · Total 50 XP');
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 50);
   assert.match(elements.get('heat-label').textContent, /Heat [1-9][0-9]*%.*Alerts [1-9]/);
-  assert.equal(campCounts().ruby, 0); assert.equal(campCounts().gold, 5); assert.equal(campCounts().snare, 1);
+  assert.equal(campCounts().ruby, 0); assert.equal(campCounts().gold, 25); assert.equal(campCounts().snare, 1);
   assert.match(elements.get('haul-total').textContent, /^2 items lost/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.equal(elements.get('held-label').textContent, 'Click loot to lift · select gear, E equip');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PROFILE_SAVE_KEY, createProfile, loadProfile, saveProfile, teamHaulXp, awardPersonalXp } from '../src/profile.js';
-import { createCamp, saveCamp, loadCamp, bankEscape } from '../src/lair.js';
+import { PROFILE_SAVE_KEY, createProfile, loadProfile, saveProfile, knowsRecipe, teamHaulXp, awardPersonalXp } from '../src/profile.js';
+import { createCamp, saveCamp, loadCamp, bankEscape, craftRecipe } from '../src/lair.js';
 import { createLoot, autoPickup } from '../src/loot.js';
 import { generateDungeon } from '../src/world.js';
 import { createRun, finishRun, loseRun } from '../src/run.js';
@@ -68,4 +68,24 @@ test('each new run can reward XP, old receipts never recredit and total XP remai
   awardPersonalXp(profile, first); assert.equal(profile.xp, 6);
   profile.xp = Number.MAX_SAFE_INTEGER - 1;
   assert.deepEqual(awardPersonalXp(profile, haul([{ type: 'ruby' }])), { earned: 1, total: Number.MAX_SAFE_INTEGER });
+});
+
+test('recipes are known automatically at their exact personal XP thresholds without spending XP', () => {
+  const profile = createProfile();
+  assert.equal(knowsRecipe(profile, 'snare'), true); assert.equal(knowsRecipe(profile, 'smoke'), false);
+  profile.xp = 49; assert.equal(knowsRecipe(profile, 'smoke'), false);
+  awardPersonalXp(profile, haul([{ type: 'coin' }]));
+  assert.equal(profile.xp, 52); assert.equal(knowsRecipe(profile, 'smoke'), true);
+  profile.xp = 50; assert.equal(knowsRecipe(profile, 'smoke'), true); assert.equal(profile.xp, 50);
+  assert.equal(knowsRecipe(profile, 'constructor'), false);
+});
+test('learned recipes reload with personal XP and work in different lairs without sharing knowledge to a novice', () => {
+  const storage = memory(), experienced = createProfile('experienced'); experienced.xp = 50;
+  saveProfile(experienced, storage); const restored = loadProfile(storage), novice = createProfile('novice');
+  for (const camp of [createCamp(), createCamp()]) {
+    camp.counts.scrap = 4; camp.counts.cloth = 4;
+    assert.ok(craftRecipe(camp, 'smoke', restored));
+    assert.equal(craftRecipe(camp, 'smoke', novice), false);
+    assert.equal(restored.xp, 50); assert.equal(novice.xp, 0);
+  }
 });

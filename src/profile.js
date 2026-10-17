@@ -35,3 +35,7 @@ export function awardPersonalXp(profile, teamResult) {
   profile.xp = total; teamResult.xpAwards.set(profile.id, receipt);
   return receipt;
 }
+
+export function knowsRecipe(profile, type) {
+  return Object.hasOwn(PROGRESSION.recipeXp, type) && (profile?.xp ?? 0) >= PROGRESSION.recipeXp[type];
+}
