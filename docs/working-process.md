@@ -1,6 +1,6 @@
 # How we build this game together
 
-Status: agreed working method, version 1.
+Status: agreed working method; multiplayer review added 17 October 2026 at the user’s request.
 
 ## 1. Understand the intended experience
 
@@ -46,7 +46,11 @@ Before implementing a slice, establish:
 - The screens and feedback required.
 - The rules and editable values it needs.
 - What the server must coordinate between players.
+- For team play: who chooses/owns the action, what others see, what simultaneous use does, and what happens if someone joins/leaves or is downed. Do not silently turn a solo shortcut into a team rule.
+- For shared stock/rewards: when items are reserved, spent, returned or lost; who may spend; and how repeated actions avoid duplicate rewards.
 - Observable checks that tell us it works.
+
+Use [the multiplayer review](multiplayer-review.md) to track open team rules. Discuss a small batch at a time and distinguish user decisions from recommendations. Multiplayer implementation/testing can remain deferred while its behavior is clarified.
 
 Use temporary art where useful. Test the current slice before expanding. Multiplayer playtesting is deferred until the exploration milestone feels right. The builder grows to support this game; a general-purpose engine is outside the current goal.
 

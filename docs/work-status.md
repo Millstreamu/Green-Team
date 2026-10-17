@@ -1,6 +1,6 @@
 # Work status
 
-## Current task: V21 Human Manor / Normal and Hard jobs, awaiting playtest
+## Current task: multiplayer behavior review; V21 is current playable build
 
 The user approved movement/art in V2 and the sack in V3. They agreed to return to the entrance via a secret tunnel and see the haul before starting the next run. V4 implements that loop. The user then clarified guard pressure and the downed-player rule, gave V5 positive feedback, and approved V6's looped routes. They requested timed searching before adding a builder/balance panel. The user approved V7 searching and requested a sliding sack; The user approved V8 and requested a small pixel search bar over the searched object; V9 implements that display. The user then agreed to predictable local guard patterns before adding traps; The user reported V10 works pretty well but identified the corner-to-room investigation gap. V11 added the brief invisible trail, which the user approved. V12 implements the approved sack-to-ground snare controls and awaits playtesting.
 
@@ -206,3 +206,12 @@ User approved tunnel job selection with one job/two difficulties. New jobs.js re
 Normal exactly preserves current generation/routines. Hard retains the original four guards and adds two in otherwise uncovered rooms (lookout deep, room patrol nearer middle). Extra IDs/homes unique and exclude entrance/roamer territory; still leaves quiet rooms. Guard logic/combat/smoke unchanged. Search rewards retain sparse item counts/empty/material odds while adding .15 rare probability among valuables. Spilled valuables carry saleMultiplier1.5; new loot.itemSaleValue supplies rounded price to floor target, result grouping and bankEscape. Per-item rounding is intentional and stated upfront.
 
 Verification: all86 automated tests pass. Four jobs tests verify profile validation/Normal equivalence, 100-map Hard extra coverage and routine preservation, 100-map increased rarity without more items, and a Hard search→pack→escape→bank sale with profile snapshot/duplicate prevention. Existing full event loop now checks invalid selection leaves supplies safe and Hard launch/sidebar/result metadata. Build, bundled syntax and unique HTML IDs pass. No rendered browser QA; user should compare risk/reward of both difficulties. Current download green-team-jobs-v21.html; canonical play.html. No new job art, XP/unlock gates, server, timed trap or dart added. Same feature branch/draft PR #2.
+
+
+## Multiplayer review handoff
+
+User raised who chooses the map in a party and asked for a pass over similar unanswered questions. Added docs/multiplayer-review.md covering all currently implemented systems in seven short discussion batches, with recommendations explicitly pending approval. Updated working-process.md to require group ownership/simultaneous-use/join-leave/downing/shared-stock checks before feature implementation. First batch asks job/difficulty chooser, readiness/launch and new arrivals during a run. Host is an organiser role, distinct from the planned shared server.
+
+Read actual run/main/loadout/lair/loot/search/guard/trap/smoke/UI flows for the audit. Main gaps: local launch selects/spends/creates world; solo extraction/down ends entire run; one guard target/trail; browser-local lair/effect timers; single search/selection; fixed goblin ID. Existing solo checks do not establish co-op correctness. Review document supplies future co-op checks and outlines server responsibility without implementing it.
+
+Documentation-only change: inspected coverage and proposal/agreement labels; no runtime code or generated play build changed, so no game tests rerun. V21 remains playable. Continue by resolving batch1 with user, record accepted answers, then present the next small batch. Do not treat recommendations as accepted. Keep multiplayer server setup deferred until separately authorised.

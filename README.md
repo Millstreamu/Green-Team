@@ -169,3 +169,8 @@ The tunnel opens the existing preparation screen with a job/difficulty choice ab
 The menu previews risk/reward before launch; selected job/difficulty stays visible in the sidebar and haul screen. Job selection is validated before shared supplies are spent. Run metadata snapshots the selected profile. Valuable saleMultiplier is attached when loot spills and travels with inventory transfers, so floor hints, grouped haul prices and actual banked gold use the same itemSaleValue helper.
 
 Jobs/difficulties live in jobs.js. Future job layouts can extend that registry without replacing the preparation UI. This slice adds no job unlocking, XP, new art theme or server. Verified: 86 automated tests, including 100-map Hard coverage, normal backwards compatibility, sparse reward comparisons and a complete Hard-priced loot sale. Existing real-event smoke/economy loop now checks invalid selection without spending and launching/extracting on Hard. Build, bundled syntax and unique HTML IDs pass. Browser difficulty balance needs user playtest. Download green-team-jobs-v21.html.
+
+
+## Multiplayer behavior review
+
+[Open questions and proposed defaults](docs/multiplayer-review.md) cover job choice/readiness, escape/recovery, joining/leaving, looting, shared spending, guard/team effects and save/session rules. Discuss these in small batches; proposed defaults are not user decisions. V21 is still the current playable local build. Hosting and multiplayer implementation remain deferred while behavior is clarified.
