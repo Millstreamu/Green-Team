@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -107,6 +108,13 @@ test('two real WebSocket clients share stock and see server movement; static rou
   const html = await (await fetch(address)).text(); assert.ok(html.includes('src/online-main.js'));
   assert.equal((await fetch(address + '/package.json')).status, 404);
   assert.equal((await fetch(address + '/src/online-main.js')).status, 200);
+  const tiles = await fetch(address + '/assets/human/GreenTeam-tileset.json');
+  assert.equal(tiles.status, 200); assert.match(tiles.headers.get('content-type'), /application[/]json/);
+  assert.equal((await tiles.json()).tiles.wall_bottom_horz.index, 4);
+  const sheet = await fetch(address + '/assets/human/GreenTeam-tileset.png');
+  assert.equal(sheet.status, 200); assert.equal(sheet.headers.get('content-type'), 'image/png');
+  assert.deepEqual(Buffer.from(await sheet.arrayBuffer()), readFileSync(new URL('../assets/human/GreenTeam-tileset.png', import.meta.url)));
+
 });
 
 test('map edits are authoritative and preserve already boarded goblins; disconnect cancels countdown', () => {

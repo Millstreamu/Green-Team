@@ -1,3 +1,4 @@
+import { loadHumanTerrain, drawTerrainTile } from './terrain-art.js';
 import { drawCages, drawRescues } from './rescue-view.js';
 import { drawReinforcementDoors } from './pressure-view.js';
 import { drawHidingSpots } from './hiding-view.js';
@@ -22,6 +23,7 @@ export async function createRenderer(canvas, mapCanvas) {
   const goblin = new Image();
   goblin.src = GOBLIN_ART.src;
   await goblin.decode();
+  const humanTerrain = await loadHumanTerrain().catch(error => { console.warn('Human tiles unavailable; using temporary art.', error.message); return null; });
   const ctx = canvas.getContext('2d');
   const map = mapCanvas.getContext('2d');
   let width = 0, height = 0;
@@ -34,12 +36,15 @@ export async function createRenderer(canvas, mapCanvas) {
   return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null, pressure = null, teammates = [], rescueTarget = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
+    const terrainArt = !world.lair && world.job?.jobId === 'manor' ? humanTerrain : null;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
     const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
     for (let y = Math.max(0, Math.floor(-oy / t) - 1); y < Math.min(world.height, Math.ceil((height - oy) / t) + 1); y++) {
       for (let x = Math.max(0, Math.floor(-ox / t) - 1); x < Math.min(world.width, Math.ceil((width - ox) / t) + 1); x++) {
         const px = x * t + ox, py = y * t + oy;
-        if (isFloor(world, x, y)) {
+        if (terrainArt) {
+          drawTerrainTile(ctx, terrainArt, world, x, y, px, py, t);
+        } else if (isFloor(world, x, y)) {
           rect(px, py, t, t, (x * 13 + y * 7) % 5 === 0 ? '#333c3a' : '#2d3635');
           rect(px, py, t, 1, '#404743'); rect(px, py, 1, t, '#252f2e');
           if ((x * 7 + y * 19) % 17 === 0) rect(px + 7, py + 15, 3, 1, '#596050');

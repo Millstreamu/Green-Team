@@ -542,3 +542,8 @@ User asked to add the proposed one-file export immediately. Export settings in p
 ## Approved Moss defaults — 17 October2026
 
 User supplied green-team-settings-moss.json after requesting export-to-GitHub promotion and confirmed everything works. Validated format/version and complete settings. Promoted Human Manor to50×40, requested15 rooms, room width5–8/height5–8,6 attempted loops,4 searchables per room. Other Human fields, all Dwarf/Elf fields and gameplay tuning match prior defaults. Architecture presets now each specify their full values, preventing a changed Human base from accidentally changing another culture. Existing lairs keep overrides; new groups/reset-defaults use these code defaults. No stock/progress migration or auto-merge to main.
+
+
+## V45 — supplied Human tile sheet
+
+User supplied a five-tile Proplet32×32 PNG/JSON pair. Accepted mapping: top-right mirrors top-left, bottom-left and bottom-right both reuse wall_bottom_horz, side walls mirror as needed. Integrated Human Manor only in existing renderer, preserving source files/metadata and gameplay geometry. Dwarf/Elf/lair retain placeholders. Standalone embeds both files. No general upload UI, new inner-corner art, collisions or camera zoom added; current tile selection uses deterministic adjacency. See terrain-art.md.

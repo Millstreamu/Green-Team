@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createLairSession } from '../server/lair-session.js';
@@ -26,7 +27,13 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   doc.querySelector = selector => element(selector.slice(1));
   doc.createElement = tag => new Surface(tag);
   globalThis.HTMLElement = Surface; globalThis.document = doc; globalThis.window = win;
-  globalThis.Image = class { async decode() {} };
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    assert.equal(url, 'assets/human/GreenTeam-tileset.json');
+    return { ok: true, json: async () => JSON.parse(readFileSync(new URL('../assets/human/GreenTeam-tileset.json', import.meta.url), 'utf8')) };
+  };
+  test.after(() => { globalThis.fetch = previousFetch; });
+  globalThis.Image = class { naturalWidth = 128; naturalHeight = 64; async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
   globalThis.requestAnimationFrame = callback => frames.push(callback);
   const realInterval = globalThis.setInterval;

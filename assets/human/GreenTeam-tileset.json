@@ -1,0 +1,49 @@
+{
+  "image": "GreenTeam-tileset.png",
+  "tileWidth": 32,
+  "tileHeight": 32,
+  "count": 5,
+  "columns": 4,
+  "spacing": 0,
+  "padding": 0,
+  "terrains": [
+    "dungeon"
+  ],
+  "tiles": {
+    "floor": {
+      "index": 0,
+      "kind": "ground",
+      "tags": [
+        "human"
+      ]
+    },
+    "wall_top_horz": {
+      "index": 1,
+      "kind": "collision",
+      "tags": [
+        "human"
+      ]
+    },
+    "wall_vert": {
+      "index": 2,
+      "kind": "collision",
+      "tags": [
+        "human"
+      ]
+    },
+    "wall_corner_top_left": {
+      "index": 3,
+      "kind": "collision",
+      "tags": [
+        "human"
+      ]
+    },
+    "wall_bottom_horz": {
+      "index": 4,
+      "kind": "collision",
+      "tags": [
+        "human"
+      ]
+    }
+  }
+}

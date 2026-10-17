@@ -1,11 +1,11 @@
-GREEN TEAM V43 — MAC TEST
+GREEN TEAM V45 — MAC TEST
 
 Node is already installed if you ran V31. You do not need to install it again.
 
 1. In the old Terminal window, press Control+C to stop the old game.
-2. Unzip this download. The new folder is green-team-v43.
-3. If you played V36, V37, V38, V39, V40, V41 or V42, copy its whole data folder into green-team-v43 BEFORE starting. This keeps your home and goblins.
-4. In Terminal type cd followed by a space. Drag green-team-v43 into Terminal and press Return.
+2. Unzip this download. The new folder is green-team-v45.
+3. If you played V36, V37, V38, V39, V40, V41, V42 or V43, copy its whole data folder into green-team-v45 BEFORE starting. This keeps your home and goblins.
+4. In Terminal type cd followed by a space. Drag green-team-v45 into Terminal and press Return.
 5. Type npm ci and press Return. Wait for it to finish.
 6. Type npm start and press Return.
 7. Open http://localhost:8080. You start on the HOME SCREEN, with your goblin and level.
@@ -32,7 +32,7 @@ SAVE TEST: put supplies in the stash and pack a real item into a goblin’s sack
 
 Restarting during a dungeon run loses that run’s carried supplies and loot. Lair stock stays safe. Earned XP and unlocks save with your shared home.
 
-IMPORTANT FOR FUTURE UPDATES: stop the server, then copy the whole data folder from this game folder into the next version’s folder before starting it. Do not throw away data: it contains your shared home. Back it up with the server stopped. V36/V37/V38 saves work directly in V43. No new database software needs installing.
+IMPORTANT FOR FUTURE UPDATES: stop the server, then copy the whole data folder from this game folder into the next version’s folder before starting it. Do not throw away data: it contains your shared home. Back it up with the server stopped. V36/V37/V38 saves work directly in V45. No new database software needs installing.
 
 XP TEST: escape with valuables. Each departed goblin gets the same XP:1XP per gold from recovered valuables. Waiting arrivals get none. Downed/caged/offline teammates still receive the team reward. Failed or empty runs give no XP; materials, gear and debug supplies give none.
 
@@ -78,3 +78,12 @@ V43 EXPORT SETTINGS
 4. Attach that file in our chat and ask to make those the permanent GitHub defaults. No need to copy the numbers yourself.
 
 Unsaved edits and preview layout numbers are not included. This settings file leaves out invite codes, goblin keys, sacks, gold and XP. It is separate from a full server backup. Exporting does not automatically update GitHub or change existing games.
+
+V45 HUMAN TILE ART
+1. Update as above, keeping the old data folder.
+2. Join your lair, go to the map table and choose Human Manor (Normal or Hard).
+3. Board the minecart. Floors and walls now use your Proplet art.
+4. Check wall joins while walking between rooms: top-right is mirrored top-left; bottom-left and bottom-right both reuse wall_bottom_horz; side walls mirror as needed.
+5. Furniture, hiding, doors, guards and movement still work as before. Dwarf/Elf and lair art are unchanged. Builder preview remains a coloured floor plan.
+
+The 32x32 source tiles fit the existing display grid; this is an art change, not new collision/room geometry. If the sheet cannot load, the game reports a warning in the browser console and uses temporary terrain so it remains playable. Opening play.html directly also includes the new Human terrain, with image/JSON embedded.

@@ -17,10 +17,10 @@ export function createGameServer({ session = createHubSession(), admin = null } 
       const path = new URL(req.url, 'http://localhost').pathname;
       if (admin && await admin.handle(req, res, path)) return;
       const relative = path === '/' ? 'index.html' : path.slice(1);
-      if (!(relative === 'index.html' || relative.startsWith('src/') || relative === 'assets/goblin.png') || relative.includes('..')) { res.writeHead(404).end(); return; }
+      if (!(relative === 'index.html' || relative.startsWith('src/') || ['assets/goblin.png', 'assets/human/GreenTeam-tileset.png', 'assets/human/GreenTeam-tileset.json'].includes(relative)) || relative.includes('..')) { res.writeHead(404).end(); return; }
       let data = await readFile(resolve(root, relative));
-      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Export settings · V43'));
-      res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
+      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Human dungeon art · V45'));
+      res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.json': 'application/json' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
     } catch { res.writeHead(404).end(); }
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 2048 });

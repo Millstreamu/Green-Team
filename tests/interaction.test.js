@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -33,7 +34,13 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   saved.set('green-team-goblin-v1', JSON.stringify({ version: 2, id: 'local-goblin', xp: 55, earnedXp: 55, purchases: [] }));
   const campCounts = () => JSON.parse(saved.get('green-team-camp-v1')).counts;
   globalThis.HTMLElement = Surface; globalThis.document = doc; globalThis.window = win;
-  globalThis.Image = class { async decode() {} };
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    assert.equal(url, 'assets/human/GreenTeam-tileset.json');
+    return { ok: true, json: async () => JSON.parse(readFileSync(new URL('../assets/human/GreenTeam-tileset.json', import.meta.url), 'utf8')) };
+  };
+  test.after(() => { globalThis.fetch = previousFetch; });
+  globalThis.Image = class { naturalWidth = 128; naturalHeight = 64; async decode() {} };
   globalThis.ResizeObserver = class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } };
   globalThis.requestAnimationFrame = callback => frames.push(callback);
   let generatedRuns = 0;

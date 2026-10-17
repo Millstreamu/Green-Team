@@ -2055,6 +2055,70 @@ function drawRescues(ctx, players, cages, rescues, target, ox, oy) {
 }
 
 
+const HUMAN_TERRAIN_SOURCE = Object.freeze({
+  manifest: 'data:application/json;base64,ewogICJpbWFnZSI6ICJHcmVlblRlYW0tdGlsZXNldC5wbmciLAogICJ0aWxlV2lkdGgiOiAzMiwKICAidGlsZUhlaWdodCI6IDMyLAogICJjb3VudCI6IDUsCiAgImNvbHVtbnMiOiA0LAogICJzcGFjaW5nIjogMCwKICAicGFkZGluZyI6IDAsCiAgInRlcnJhaW5zIjogWwogICAgImR1bmdlb24iCiAgXSwKICAidGlsZXMiOiB7CiAgICAiZmxvb3IiOiB7CiAgICAgICJpbmRleCI6IDAsCiAgICAgICJraW5kIjogImdyb3VuZCIsCiAgICAgICJ0YWdzIjogWwogICAgICAgICJodW1hbiIKICAgICAgXQogICAgfSwKICAgICJ3YWxsX3RvcF9ob3J6IjogewogICAgICAiaW5kZXgiOiAxLAogICAgICAia2luZCI6ICJjb2xsaXNpb24iLAogICAgICAidGFncyI6IFsKICAgICAgICAiaHVtYW4iCiAgICAgIF0KICAgIH0sCiAgICAid2FsbF92ZXJ0IjogewogICAgICAiaW5kZXgiOiAyLAogICAgICAia2luZCI6ICJjb2xsaXNpb24iLAogICAgICAidGFncyI6IFsKICAgICAgICAiaHVtYW4iCiAgICAgIF0KICAgIH0sCiAgICAid2FsbF9jb3JuZXJfdG9wX2xlZnQiOiB7CiAgICAgICJpbmRleCI6IDMsCiAgICAgICJraW5kIjogImNvbGxpc2lvbiIsCiAgICAgICJ0YWdzIjogWwogICAgICAgICJodW1hbiIKICAgICAgXQogICAgfSwKICAgICJ3YWxsX2JvdHRvbV9ob3J6IjogewogICAgICAiaW5kZXgiOiA0LAogICAgICAia2luZCI6ICJjb2xsaXNpb24iLAogICAgICAidGFncyI6IFsKICAgICAgICAiaHVtYW4iCiAgICAgIF0KICAgIH0KICB9Cn0=', image: 'data:image/png;base64,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'
+});
+const terrainTileNames = ['floor', 'wall_top_horz', 'wall_vert', 'wall_corner_top_left', 'wall_bottom_horz'];
+
+function terrainFrames(metadata, imageWidth, imageHeight) {
+  const integer = n => Number.isSafeInteger(n) && n > 0;
+  const spacing = metadata?.spacing ?? 0, padding = metadata?.padding ?? 0;
+  if (!metadata || !integer(metadata.tileWidth) || !integer(metadata.tileHeight) || !integer(metadata.columns) || !integer(metadata.count)
+    || !Number.isSafeInteger(spacing) || spacing < 0 || !Number.isSafeInteger(padding) || padding < 0 || !metadata.tiles
+    || !integer(imageWidth) || !integer(imageHeight)) throw Error('Invalid tile-sheet dimensions.');
+  const { tileWidth: width, tileHeight: height, columns, count } = metadata;
+  if (padding * 2 + columns * width + (columns - 1) * spacing > imageWidth) throw Error('Tile-sheet columns exceed the image.');
+  if (padding + Math.floor((count - 1) / columns) * (height + spacing) + height > imageHeight - padding) throw Error('Tile-sheet count exceeds the image.');
+  const frames = {};
+  for (const name of terrainTileNames) {
+    const tile = metadata.tiles[name], index = tile?.index;
+    if (!Number.isInteger(index) || index < 0 || index >= count || tile.kind !== (name === 'floor' ? 'ground' : 'collision') || !tile.tags?.includes('human')) throw Error(`Missing or invalid Human tile: ${name}`);
+    const x = padding + index % columns * (width + spacing), y = padding + Math.floor(index / columns) * (height + spacing);
+    if (x + width > imageWidth - padding || y + height > imageHeight - padding) throw Error(`Tile exceeds the image: ${name}`);
+    frames[name] = { x, y, width, height };
+  }
+  return frames;
+}
+
+async function loadHumanTerrain(fetchData = fetch, makeImage = () => new Image()) {
+  const response = await fetchData(HUMAN_TERRAIN_SOURCE.manifest);
+  if (!response.ok) throw Error('Could not load the Human tile-sheet JSON.');
+  const metadata = await response.json();
+  if (metadata.image !== 'GreenTeam-tileset.png') throw Error('Human tile-sheet JSON names an unexpected image.');
+  const image = makeImage(); image.src = HUMAN_TERRAIN_SOURCE.image;
+  await image.decode();
+  return { image, frames: terrainFrames(metadata, image.naturalWidth ?? image.width, image.naturalHeight ?? image.height) };
+}
+
+// Wall art follows the walkable floor. These choices never modify collision tiles.
+function terrainTile(world, x, y) {
+  if (isFloor(world, x, y)) return { name: 'floor', flipX: false };
+  const north = isFloor(world, x, y - 1), south = isFloor(world, x, y + 1);
+  const east = isFloor(world, x + 1, y), west = isFloor(world, x - 1, y);
+  if (south) {
+    if (east !== west && !north) return { name: 'wall_corner_top_left', flipX: west };
+    return { name: 'wall_top_horz', flipX: false };
+  }
+  if (north) return { name: 'wall_bottom_horz', flipX: false };
+  if (east || west) return { name: 'wall_vert', flipX: west };
+  const belowRight = isFloor(world, x + 1, y + 1), belowLeft = isFloor(world, x - 1, y + 1);
+  if (belowRight || belowLeft) return { name: 'wall_corner_top_left', flipX: !belowRight };
+  if (isFloor(world, x + 1, y - 1) || isFloor(world, x - 1, y - 1)) return { name: 'wall_bottom_horz', flipX: false };
+  return null;
+}
+
+function drawTerrainTile(ctx, art, world, x, y, px, py, size) {
+  const tile = terrainTile(world, x, y);
+  if (!tile) return false;
+  const frame = art.frames[tile.name];
+  if (tile.flipX) {
+    ctx.save(); ctx.translate(px + size, py); ctx.scale(-1, 1);
+    ctx.drawImage(art.image, frame.x, frame.y, frame.width, frame.height, 0, 0, size, size); ctx.restore();
+  } else ctx.drawImage(art.image, frame.x, frame.y, frame.width, frame.height, px, py, size, size);
+  return true;
+}
+
+
 function screenToWorld(canvas, player, pointer) {
   const bounds = canvas.getBoundingClientRect();
   const ox = Math.round(canvas.width / 2 - player.x * CONFIG.tile), oy = Math.round(canvas.height / 2 - player.y * CONFIG.tile);
@@ -2065,6 +2129,7 @@ async function createRenderer(canvas, mapCanvas) {
   const goblin = new Image();
   goblin.src = GOBLIN_ART.src;
   await goblin.decode();
+  const humanTerrain = await loadHumanTerrain().catch(error => { console.warn('Human tiles unavailable; using temporary art.', error.message); return null; });
   const ctx = canvas.getContext('2d');
   const map = mapCanvas.getContext('2d');
   let width = 0, height = 0;
@@ -2077,12 +2142,15 @@ async function createRenderer(canvas, mapCanvas) {
   return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null, pressure = null, teammates = [], rescueTarget = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
+    const terrainArt = !world.lair && world.job?.jobId === 'manor' ? humanTerrain : null;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
     const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(Math.round(x), Math.round(y), w, h); };
     for (let y = Math.max(0, Math.floor(-oy / t) - 1); y < Math.min(world.height, Math.ceil((height - oy) / t) + 1); y++) {
       for (let x = Math.max(0, Math.floor(-ox / t) - 1); x < Math.min(world.width, Math.ceil((width - ox) / t) + 1); x++) {
         const px = x * t + ox, py = y * t + oy;
-        if (isFloor(world, x, y)) {
+        if (terrainArt) {
+          drawTerrainTile(ctx, terrainArt, world, x, y, px, py, t);
+        } else if (isFloor(world, x, y)) {
           rect(px, py, t, t, (x * 13 + y * 7) % 5 === 0 ? '#333c3a' : '#2d3635');
           rect(px, py, t, 1, '#404743'); rect(px, py, 1, t, '#252f2e');
           if ((x * 7 + y * 19) % 17 === 0) rect(px + 7, py + 15, 3, 1, '#596050');
