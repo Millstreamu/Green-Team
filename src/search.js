@@ -1,3 +1,4 @@
+import { placeProp } from './prop-placement.js';
 import { canHide } from './hiding.js';
 import { findPath } from './navigation.js';
 import { SEARCH, SEARCH_LOOT } from './config.js';
@@ -14,16 +15,15 @@ export function createSearchables(world) {
   let state = (world.seed ^ 0x9e3779b9) >>> 0;
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const objects = [];
-  const add = (type, x, y) => {
-    if (!canStand(world, x, y, 0.2) || objects.some(o => Math.hypot(o.x - x, o.y - y) < 0.8)) return;
-    objects.push({ id: `${world.seed}-search-${objects.length}`, type, x, y, contents: [], searched: false });
-  };
-  const first = world.rooms[0];
-  add('chest', world.spawn.x + 1.5, world.spawn.y);
-  add('cupboard', first.x + 1.5, first.y + 1.5);
-  add('crate', first.x + first.w - 1.5, first.y + first.h - 1.5);
   const types = Object.keys(SEARCHABLE_TYPES);
-  world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], i % 2 ? room.x + room.w - 1.5 : room.x + 1.5, room.cy + 0.5));
+  world.rooms.forEach((room, index) => {
+    const count = index === 0 ? Math.max(3, world.layout?.searchablesPerRoom ?? 1) : world.layout?.searchablesPerRoom ?? 1;
+    for (let i = 0; i < count; i++) {
+      const type = types[(index === 0 ? i : index - 1 + i) % types.length];
+      const point = placeProp(world, room, type, objects);
+      if (point) objects.push({ id: `${world.seed}-search-${objects.length}`, type, ...point, contents: [], searched: false });
+    }
+  });
   const depths = searchRewardDepths(world, objects);
   objects.forEach((object, index) => {
     Object.assign(object, depths[index]);

@@ -1,3 +1,4 @@
+import { dungeonConfig, GENERATOR_PRESETS } from '../src/generator-settings.js';
 import { runTuning } from '../src/tuning.js';
 import { tickVitality } from '../src/guard.js';
 import { createDanger } from './danger.js';
@@ -10,7 +11,7 @@ import { bankEscape } from '../src/lair.js';
 
 // The same single-player rules operate on one shared dungeon and separate sacks.
 export function createDungeonSession(launch, participants, camp) {
-  const world = generateDungeon(launch.seed); world.job = launch.job; world.tuning = runTuning(launch.tuning);
+  const world = generateDungeon(launch.seed, launch.layout ?? dungeonConfig(GENERATOR_PRESETS[launch.job.jobId])); world.job = launch.job; world.tuning = runTuning(launch.tuning);
   const run = createRun(world), objects = createSearchables(world), ground = [];
   let elapsed = 0, settled = false, noticeSerial = 0;
   for (const p of participants) {
@@ -135,10 +136,10 @@ export function createDungeonSession(launch, participants, camp) {
       return null;
     },
     snapshot() {
-      return { ...danger.snapshot(), id: launch.id, seed: launch.seed, tuning: world.tuning, job: launch.job, entrance: run.entrance,
+      return { ...danger.snapshot(), id: launch.id, seed: launch.seed, layout: world.layout, tuning: world.tuning, job: launch.job, entrance: run.entrance,
         objects: objects.map(o => {
           const searcher = participants.find(p => p.inRun && p.connected && p.search?.active?.id === o.id);
-          return { id: o.id, type: o.type, x: o.x, y: o.y, searched: o.searched,
+          return { id: o.id, type: o.type, x: o.x, y: o.y, tileX: o.tileX, tileY: o.tileY, width: o.width, height: o.height, facing: o.facing, approach: o.approach, searched: o.searched,
             ...(searcher ? { searcherId: searcher.id, searcherName: searcher.name, elapsed: searcher.search.elapsed, duration: searcher.search.duration } : {}) };
         }), ground };
     }

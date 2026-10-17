@@ -46,3 +46,6 @@ Save edits/restores apply coherent new home snapshots: connected goblins stay in
 ## V41 game builder
 
 The selected lair now has a Game builder run-settings form with Save settings for next run and Reset settings to defaults. Changes are allowed during active runs and do not alter them; every edit backs up first and saves for the next departure. See game-builder.md for values, defaults and scope. Other stock/progress edits/restores still require no active runs. Reset lair/goblin/all progress keeps run settings; use the dedicated defaults button to reset balance. Full restore includes backed-up tuning, with defaults for pre-V41 backups.
+
+
+V42 adds a Dungeon generator section. Choose architecture, edit parameters, preview the same example number or Generate another, then save for the next matching run. Reset this architecture to defaults changes only the selected type/lair. Generator edits, like V41 tuning, are allowed while runs are active and take effect only on a future departure; stock/progress/restore locks remain. Choose the saved type and difficulty at the in-game map table. See dungeon-builder.md for preview legend and placement rules.

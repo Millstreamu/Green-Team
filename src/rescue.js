@@ -1,5 +1,5 @@
+import { placeProp } from './prop-placement.js';
 import { RESCUE } from './config.js';
-import { canStand } from './world.js';
 import { findPath } from './navigation.js';
 import { clearPath } from './loot.js';
 
@@ -9,14 +9,9 @@ export function createCages(world, obstacles = []) {
   const cages = [];
   for (const room of [...selected, ...rooms.filter(r => !selected.includes(r))]) {
     if (cages.length >= RESCUE.cages) break;
-    const points = [{ x: room.cx + .5, y: room.y + 1.5 }, { x: room.cx + .5, y: room.cy + .5 },
-      { x: room.x + 1.5, y: room.y + 1.5 }, { x: room.x + room.w - 1.5, y: room.y + 1.5 }];
-    for (let y = room.y + 1.5; y < room.y + room.h - 1.5; y++) for (let x = room.x + 1.5; x < room.x + room.w - .5; x++) points.push({ x, y });
-    const point = points.find(p => canStand(world, p.x, p.y, .4) && canStand(world, p.x, p.y + 1.3)
-      && obstacles.every(o => Math.hypot(o.x - p.x, o.y - p.y) > 1.15 && Math.hypot(o.x - p.x, o.y - p.y - 1.3) > .75)
-      && findPath(world, world.spawn, { x: p.x, y: p.y + 1 }).length);
-    if (point) cages.push({ id: `${world.seed}-cage-${room.index}`, ...point, roomIndex: room.index,
-      entry: { x: point.x, y: point.y + 1 }, post: { x: point.x, y: point.y + 1.3 }, prisoners: [] });
+    const point = placeProp(world, room, 'cage', [...obstacles, ...cages, ...cages.map(c => c.post)]);
+    if (point && findPath(world, world.spawn, point.approach).length) cages.push({ id: `${world.seed}-cage-${room.index}`, ...point, roomIndex: room.index,
+      entry: { ...point.approach }, post: { ...point.approach }, prisoners: [] });
   }
   return cages;
 }

@@ -9,6 +9,7 @@ import { loadCamp, saveCamp, createLairWorld, lairTarget, departWithSack, bankEs
 import { createLairView } from './lair-view.js';
 import { createMapPlanningView } from './loadout-view.js';
 import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps, moveTrapAim } from './traps.js';
+import { dungeonConfig, GENERATOR_PRESETS } from './generator-settings.js';
 import { generateDungeon, movePlayer } from './world.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
@@ -81,7 +82,7 @@ const launchRun = (selection) => {
   const job = selection && selectJob(selection.jobId, selection.difficultyId);
   if (!job) return false;
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];
-  const dungeon = generateDungeon(seed);
+  const dungeon = generateDungeon(seed, dungeonConfig(GENERATOR_PRESETS[job.jobId]));
   const bag = departWithSack(camp, loot);
   if (!bag) return false;
   world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };

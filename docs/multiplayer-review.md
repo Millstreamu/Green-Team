@@ -316,3 +316,6 @@ Saved ownerId validates against canonical profile IDs. Before-upgrade backup gat
 
 
 V41 implementation: run tuning belongs to the selected lair, modified only through existing private local admin access. Saves during a run affect the next departure; the current whole team shares the original snapshot. Other groups are independent. Personal bonuses/difficulty remain layered onto base rules. No player/owner admin privileges added.
+
+
+V42: dungeon architecture remains a map-table team destination, independent of difficulty. Each lair saves three architecture presets via private admin; settings changed mid-run affect only future departures. Team snapshots contain the immutable launched layout config/seed so joining/reconnecting browsers regenerate identical tiles. Group resource/readiness/recovery rules are unchanged.

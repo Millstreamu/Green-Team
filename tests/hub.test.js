@@ -1,3 +1,4 @@
+import { GENERATOR_PRESETS } from '../src/generator-settings.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
@@ -185,6 +186,11 @@ test('real socket clients start at menu, create/join by code, isolate lairs and 
   a.ws.send(JSON.stringify(tuningCommand)); await until(() => a.messages.filter(m => m.type === 'rejected').length > rejections);
   assert.equal(controller.summary(a.state.lair.id).tuning.sight, 2);
   assert.equal((await fetch(origin + '/src/tuning-view.js')).status, 200);
+  const layoutEdit = await fetch(origin + '/admin/api', { method: 'POST', headers, body: JSON.stringify({ type: 'set-generator', lairId: a.state.lair.id, jobId: 'sanctuary', values: { ...GENERATOR_PRESETS.sanctuary, rooms: 16 } }) });
+  assert.equal(layoutEdit.status, 200); assert.equal((await layoutEdit.json()).state.generator.sanctuary.rooms, 16);
+  assert.equal(controller.summary(lair.id).generator.sanctuary.rooms, 18);
+  assert.equal((await fetch(origin + '/src/generator-view.js')).status, 200);
+
 
   const edited = await fetch(origin + '/admin/api', { method: 'POST', headers, body: JSON.stringify({ type: 'set-stock', lairId: a.state.lair.id, item: 'gold', amount: 77 }) });
   assert.equal(edited.status, 200); await until(() => a.state.camp.counts.gold === 77);
@@ -217,6 +223,8 @@ test('browser admin lair selector sends scoped requests and shows the selected j
     addEventListener(type, fn) { this.listeners[type] = fn; }
     replaceChildren(...nodes) { this.children = nodes; }
     appendChild(node) { (this.children ??= []).push(node); }
+    getContext() { return { fillRect() {} }; }
+    setAttribute(key, value) { this[key] = value; }
     send(type) { this.listeners[type]?.({ preventDefault() {} }); }
   }
   const nodes = new Map(), get = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
@@ -233,6 +241,7 @@ test('browser admin lair selector sends scoped requests and shows the selected j
     else { const command = JSON.parse(options.body); commands.push(command); result = { ...admin.command(command), state: admin.summary(command.lairId) }; }
     return { ok: true, json: async () => result };
   };
+  get('generator-seed').value = '42'; get('generator-grid').checked = true;
   await import('../src/admin-main.js'); assert.equal(get('admin-lair').value, lairA.id);
   get('admin-lair').value = lairB.id; get('admin-lair').send('change'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(get('admin-lair-code').textContent, lairB.code);
@@ -255,6 +264,19 @@ test('browser admin lair selector sends scoped requests and shows the selected j
   // Reset also clears an unsaved draft when the saved settings already equal defaults.
   input('sight').value = '4'; get('reset-tuning').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(input('sight').value, 7);
+  assert.match(get('generator-summary').textContent, /rooms.*hiding spots/);
+  get('generator-job').value = 'hold'; get('generator-job').send('change');
+  const layoutInput = id => get('generator-fields').children.map(label => label.children[1]).find(node => node.id === 'generator-' + id);
+  assert.equal(layoutInput('corridorWidth').value, 3);
+  layoutInput('width').value = '80'; get('generator-preview').send('click');
+  assert.equal(get('generator-seed').value, '42'); assert.equal(get('generator-map').width, 640);
+  get('admin-lair').send('change'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(layoutInput('width').value, '80');
+  get('generator-form').send('submit'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(commands.at(-1).type, 'set-generator'); assert.equal(commands.at(-1).jobId, 'hold');
+  assert.equal(admin.summary(lairB.id).generator.hold.width, 80); assert.equal(admin.summary(lairA.id).generator.hold.width, 88);
+  get('generator-reset').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(layoutInput('width').value, 88); assert.equal(get('generator-save').disabled, false);
 
 });
 
@@ -361,4 +383,45 @@ test('failed tuning checkpoint keeps its before-change backup and blocks further
   assert.deepEqual(last.lairs[0].tuning, defaults); assert.deepEqual(copies[0].lairs[0].tuning, defaults);
   assert.equal(h.adminInfo().saveFailed, true);
   assert.throws(() => admin.command({ type: 'reset-tuning', lairId: lair.id }), /Saving failed/);
+});
+
+
+test('generator presets persist per lair/architecture and only apply at the next matching map departure', t => {
+  const { hub: h, a, b, store, admin, backups } = fixture(t), lair = create(h, a, 'Architecture'), other = create(h, b, 'Other');
+  const values = { ...GENERATOR_PRESETS.hold, width: 80, rooms: 10, searchablesPerRoom: 3 };
+  const edit = admin.command({ type: 'set-generator', lairId: lair.id, jobId: 'hold', values });
+  assert.deepEqual(backups.read(edit.backupId).state.lairs.find(l => l.id === lair.id).generator.hold, GENERATOR_PRESETS.hold);
+  assert.deepEqual(admin.summary(other.id).generator, GENERATOR_PRESETS);
+  a.actor.x = 5; a.actor.y = 2.5;
+  assert.equal(h.action(a, { type: 'destination', job: 'hold', difficulty: 'hard' }), true);
+  launch(h, [a]);
+  const before = h.snapshot(a).dungeon; assert.equal(before.job.jobId, 'hold'); assert.equal(before.job.difficultyId, 'hard');
+  assert.equal(before.layout.width, 80); assert.equal(before.layout.searchablesPerRoom, 3);
+  admin.command({ type: 'reset-generator', lairId: lair.id, jobId: 'hold' });
+  assert.equal(h.snapshot(a).dungeon.id, before.id); assert.equal(h.snapshot(a).dungeon.layout.width, 80);
+  admin.command({ type: 'end-run', lairId: lair.id }); h.action(a, { type: 'dismiss-result' }); launch(h, [a]);
+  assert.equal(h.snapshot(a).dungeon.layout.width, 88);
+  admin.command({ type: 'set-generator', lairId: lair.id, jobId: 'hold', values });
+  const restored = createHubSession({ store }); assert.deepEqual(restored.adminInfo(lair.id).generator.hold, values);
+  const restoredAdmin = createHubAdminController(restored, backups), backup = restoredAdmin.command({ type: 'backup' });
+  restoredAdmin.command({ type: 'reset-generator', lairId: lair.id, jobId: 'hold' });
+  restoredAdmin.command({ type: 'restore', backupId: backup.backupId });
+  assert.deepEqual(restored.adminInfo(lair.id).generator.hold, values);
+});
+
+test('generator edits validate before backup, reject player access and preserve legacy saves', t => {
+  const { hub: h, a, admin, backups } = fixture(t), lair = create(h, a, 'Invalid layout');
+  const count = backups.list().length;
+  assert.throws(() => admin.command({ type: 'set-generator', lairId: lair.id, jobId: 'unknown', values: GENERATOR_PRESETS.manor }), /dungeon type/);
+  assert.throws(() => admin.command({ type: 'set-generator', lairId: lair.id, jobId: 'manor', values: { ...GENERATOR_PRESETS.manor, rooms: 10000 } }), /Invalid dungeon/);
+  assert.equal(backups.list().length, count);
+  assert.equal(h.action(a, { type: 'set-generator', jobId: 'manor', values: GENERATOR_PRESETS.manor }), false);
+  const saved = h.adminState(); delete saved.lairs[0].generator;
+  const old = createHubSession({ store: { load: () => saved, save() {} } });
+  assert.deepEqual(old.adminInfo(lair.id).generator, GENERATOR_PRESETS);
+  saved.lairs[0].generator = { manor: GENERATOR_PRESETS.manor };
+  assert.throws(() => validateSave(saved), /Invalid dungeon/);
+  const blocked = createHubAdminController(h, { list: () => [], create() { throw Error('Backup blocked'); } });
+  assert.throws(() => blocked.command({ type: 'reset-generator', lairId: lair.id, jobId: 'manor' }), /Backup blocked/);
+  assert.deepEqual(h.adminInfo(lair.id).generator, GENERATOR_PRESETS);
 });

@@ -22,7 +22,7 @@ function step(d, players, seconds, held = false) {
   }
 }
 function quiet(d) { d.danger.guards.length = 0; }
-function atSpot(p, spot) { p.x = spot.x + .7; p.y = spot.y; p.input = { x: 0, y: 0 }; }
+function atSpot(p, spot) { Object.assign(p, spot.approach); p.input = { x: 0, y: 0 }; }
 function snare(p, id = 'test-snare') { p.bag.push({ id, type: 'snare', rotation: 0, x: 0, y: 0 }); return id; }
 function smoke(p) { p.bag.push({ id: 'test-smoke', type: 'smoke', rotation: 0, x: 0, y: 0 }); }
 function guardNear(d, p, distance = .7) {

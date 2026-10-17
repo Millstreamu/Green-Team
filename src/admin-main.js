@@ -1,8 +1,10 @@
+import { createGeneratorView } from './generator-view.js';
 import { createTuningView } from './tuning-view.js';
 import { LOOT_TYPES } from './loot.js';
 const $ = selector => document.querySelector(selector);
 const key = location.hash.slice(1);
 let state = null, busy = false, access = !!key;
+const generatorView = createGeneratorView(command => run(command));
 const tuningView = createTuningView(command => run(command));
 const status = (text, error = false) => { $('#admin-status').textContent = text; $('#admin-status').dataset.error = String(error); };
 function options(select, entries) {
@@ -26,6 +28,7 @@ function controls() {
   $('#set-xp').disabled ||= !selectedGoblin(); $('#reset-goblin').disabled ||= !selectedGoblin();
   $('#admin-lair').disabled = locked;
   tuningView.paint(state, locked);
+  generatorView.paint(state, locked);
   $('#restore-backup').disabled ||= !state?.backups.some(b => b.id === $('#admin-backup').value && b.valid);
 }
 function details() {
@@ -64,7 +67,7 @@ async function run(command, confirmation) {
   if (busy || !access || !state) return;
   if (confirmation && !window.confirm(confirmation)) return;
   busy = true; controls(); status('Working…');
-  try { const result = await request(command); if (['set-tuning', 'reset-tuning'].includes(command.type)) tuningView.saved(); paint(result.state); if (result.backupId) $('#admin-backup').value = result.backupId; status(result.message); }
+  try { const result = await request(command); if (['set-tuning', 'reset-tuning'].includes(command.type)) tuningView.saved(); if (['set-generator', 'reset-generator'].includes(command.type)) generatorView.saved(); paint(result.state); if (result.backupId) $('#admin-backup').value = result.backupId; status(result.message); }
   catch (error) { status(error.message, true); }
   finally { busy = false; controls(); }
 }

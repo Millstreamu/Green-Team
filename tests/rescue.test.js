@@ -27,7 +27,7 @@ function step(d, players, seconds, held = true) {
 }
 function lunch(p, id = 'lunch') { p.bag.push({ id, type: 'lunch', rotation: 0, x: p.bag.length % 3, y: Math.floor(p.bag.length / 3) }); }
 function down(d, p) { p.state = 'down'; p.health = 0; d.tick(.05); }
-function hideHelper(d, p) { const spot = d.danger.hidingSpots[0]; p.x = spot.x + .7; p.y = spot.y; assert.ok(enterHiding(d.world, p, spot)); }
+function hideHelper(d, p) { const spot = d.danger.hidingSpots[0]; Object.assign(p, spot.approach); assert.ok(enterHiding(d.world, p, spot)); }
 function carrier(d, p) {
   const g = createGuard(d.world, { roomIndex: 0, behaviour: 'lookout', patrol: [{ x: p.x - .3, y: p.y }] });
   Object.assign(g, { id: 'carrier', x: p.x - .3, y: p.y, angle: 0 }); d.danger.guards.push(g); return g;

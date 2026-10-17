@@ -8,7 +8,7 @@ import { createSearchables, createSearchSession, canSearch, selectInteraction, b
 
 const setup = (seed = 42) => {
   const world = generateDungeon(seed), loot = createLoot(), objects = createSearchables(world), object = objects[0];
-  const player = { x: world.spawn.x + 1, y: world.spawn.y, state: 'active' }, session = createSearchSession();
+  const player = { x: object.approach.x, y: object.approach.y, state: 'active' }, session = createSearchSession();
   return { world, loot, objects, object, player, session };
 };
 

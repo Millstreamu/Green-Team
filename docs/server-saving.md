@@ -58,3 +58,6 @@ Payload2 lair metadata now includes nullable ownerId, checked against known glob
 
 
 V41 adds optional per-lair tuning metadata to payload2; missing fields use the previous balance defaults, and present objects must pass the shared tuning validator. The SQLite table stays unchanged. Each next-run settings update commits through the hub checkpoint, including during a live dungeon; the current run keeps its independent launch copy. Full backups/restores include settings. Old backups reset missing settings to defaults; progress resets retain tuning.
+
+
+V42 optional per-lair generator metadata stores validated Human/Dwarf/Elf field sets. Missing metadata in old saves/backups uses architecture defaults; invalid present values stop load/restore. Existing data payload2/table stays unchanged. Next-run edits checkpoint atomically and back up first; current live layouts remain independent. Reset progress retains presets, dedicated architecture reset restores defaults, full backups/restores include them.

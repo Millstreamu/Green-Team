@@ -527,3 +527,8 @@ Compatibility default: V39 had no creator field, but inserted its creator as the
 User accepted the proposed first builder: guard speeds/vision/attack timing, reinforcement frequency, loot amounts and search time; saved settings for the next run and reset to defaults. Existing shared functions are reused. Sprite import/room editing remain later. Implementation defaults: per-lair settings in private server admin, editable during live play but copied only on the next departure; backup before each save/reset; progress resets retain settings, full backup restores include them. See game-builder.md for exact scope and checks.
 
 V40 owner re-entry was playtested and approved. Deferred UI note: after a goblin creates a lair, remove Create lair from primary home controls; secondary creation/settings/reset organisation waits for a later UI/UX pass. Not implemented in V41.
+
+
+## V42 — dungeon preview and tile-grid furnishing
+
+User accepted saved generator parameters and a small preview with Human/Dwarf/Elf architecture presets, independent difficulty, and shared tile-grid placement for furniture/hiding/future decor. Implemented per-lair, per-architecture settings; example number retained during edits; Generate another samples again; actual next runs choose fresh numbers using the saved type. Map table now offers all three types. Shared wall/corner/footprint rules protect doorway lanes; cages also use them. Art remains temporary. Fourteen editor fields and initial architecture numbers are experimental. See dungeon-builder.md for parameter meanings and limits. V41 was user-playtested/tweaked and approved. Deferred home/settings UI pass stays deferred.

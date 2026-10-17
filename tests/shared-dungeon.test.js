@@ -10,7 +10,10 @@ import { generateDungeon } from '../src/world.js';
 function fixture(difficulty = 'normal') {
   const camp = createCamp(), a = { id: 'a', name: 'A', connected: true, bag: [], profile: createProfile('a') }, b = { id: 'b', name: 'B', connected: true, bag: [], profile: createProfile('b') };
   const launch = { id: 'test-run', seed: 978983017, job: selectJob('manor', difficulty), participants: [a.id, b.id] };
-  return { a, b, camp, d: createDungeonSession(launch, [a, b], camp) };
+  const d = createDungeonSession(launch, [a, b], camp);
+  Object.assign(a, d.objects[0].approach); Object.assign(b, d.objects[0].approach);
+  d.objects[0].contents = ['ruby']; // This fixture tests transactions, independent of loot balance.
+  return { a, b, camp, d };
 }
 function hold(d, p, seconds) {
   for (let t = 0; t < seconds - .001; t += .05) { p.inputAge = 0; p.searchHeld = true; d.tick(.05); }
@@ -87,6 +90,7 @@ test('full sacks leave loot on floor; rearranging then retrying works; distance 
 test('all active goblins gather to extract; bank shared haul once and preserve unused gear', () => {
   const { d, a, b, camp } = fixture('hard');
   const item = searchRuby(d, a); d.action(a, { type: 'pickup', id: item.id });
+  Object.assign(a, d.run.entrance); Object.assign(b, d.run.entrance);
   b.bag.push({ id: 'packed', type: 'snare', rotation: 0, x: 0, y: 0 });
   b.x += 2; assert.equal(d.action(a, { type: 'extract' }), false);
   b.x -= 2;
@@ -115,6 +119,7 @@ test('dungeon ghost lasts sixty seconds, retains sack on return, and spills once
 test('a survivor can extract without a ghost but its sack never banks; all ghosts keep run open until expiry', () => {
   const { d, a, b, camp } = fixture(); const item = searchRuby(d, a); d.action(a, { type: 'pickup', id: item.id });
   a.connected = false; d.disconnect(a);
+  Object.assign(b, d.run.entrance);
   const result = d.action(b, { type: 'extract' });
   assert.equal(result.soldGold, 0); assert.equal(camp.counts.gold, 0); assert.equal(a.bag.length, 0);
   const f = fixture(); f.a.connected = false; f.b.connected = false; f.d.disconnect(f.a); f.d.disconnect(f.b);

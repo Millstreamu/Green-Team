@@ -9,7 +9,8 @@ export function createRescue(world, participants, guards, obstacles) {
   for (const p of participants) { p.rescueAttempt = null; p.carrierId = null; p.cageId = null; }
   for (const cage of cages) {
     const g = createGuard(world, { roomIndex: cage.roomIndex, behaviour: 'lookout', patrol: [{ ...cage.post }] });
-    Object.assign(g, { id: `${cage.id}-jailer`, stationary: true, jailer: true, angle: Math.PI / 2, watchAngles: [Math.PI / 2, 0] });
+    const facing = { south: Math.PI / 2, north: -Math.PI / 2, east: 0, west: Math.PI }[cage.facing] ?? Math.PI / 2;
+    Object.assign(g, { id: `${cage.id}-jailer`, stationary: true, jailer: true, angle: facing, watchAngles: [facing, facing + Math.PI / 2] });
     guards.push(g);
   }
   const cancel = p => {

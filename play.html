@@ -42,7 +42,7 @@
 <div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><div id="target-label"></div><div id="quick-label" hidden role="status"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
         <span id="heat-label" hidden></span></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section></div><aside class="sidebar"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl><dt>Movement</dt><dd><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></dd><dt>Job</dt><dd id="job-label">At home</dd><dt>Dungeon</dt><dd id="rooms"></dd><dt>Layout seed</dt><dd id="seed"></dd></dl><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></aside></div>
 <div class="footer"><span id="status" role="status"></span><span id="save-status">LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div>
-</main><dialog id="lair-panel" class="results lair-dialog" aria-labelledby="lair-title"><div class="eyebrow" id="lair-eyebrow">LAIR PREPARATION</div><h2 id="lair-title">Central lair stash</h2><p id="lair-description"></p><p id="lair-gold"></p><div class="lair-workspace"><section id="stash-section"><div class="sack-title"><h2>SHARED STASH</h2><span id="stash-used"></span></div><canvas id="stash-grid" tabindex="0" aria-label="Six by six shared stash. WASD selects, E or click lifts and places whole stacks. Escape cancels a move."></canvas><p id="stash-selection" role="status"></p><button id="stash-move" class="secondary">Move whole stack · R</button></section><section id="sack-section"><div class="sack-title"><h2>YOUR SACK</h2><span id="lair-sack-used"></span></div><canvas id="lair-sack-grid" tabindex="0" aria-label="Your three by three prepared sack. WASD selects; E or click returns one item to the stash."></canvas><p id="lair-sack-selection" role="status"></p><p class="note">WASD selects · E transfers one · Q switches grids. Tab closes the stash; Esc closes either panel.</p><details><summary>Debug supplies</summary><button id="debug-pack-snare" class="secondary">Add free test snare</button><button id="debug-pack-smoke" class="secondary">Add free test smoke</button><button id="debug-pack-lunch" class="secondary">Add free Packed Lunch</button></details></section><section id="recipes"><h2>YOUR RECIPES</h2><p id="personal-xp"></p><div class="recipe-card"><h3>Snare trap</h3><p>Place it to hold a guard for three seconds.</p><p id="recipe-snare-state"></p><button id="craft-snare">Craft snare</button></div><div class="recipe-card"><h3>Smoke bomb</h3><p>Equip from the sack; Space drops smoke that blocks guard sight for five seconds.</p><p id="recipe-smoke-state"></p><button id="buy-smoke">Buy smoke recipe · 50 XP</button><button id="craft-smoke">Craft smoke bomb</button></div></section><section id="passives" hidden><h2>PERSONAL PASSIVES</h2><p id="campfire-xp"></p><div class="recipe-card"><h3>Quick fingers</h3><p id="passive-search-state">Permanent passive · 10% faster searching.</p><button id="buy-quick-search">Buy Quick fingers · 30 XP</button></div></section></div><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="map-planning" class="results" aria-labelledby="setup-title"><div class="eyebrow">AT THE MAP TABLE</div><h2 id="setup-title">Plan the next run</h2><label class="loadout-row" for="job-choice"><span>Job</span><select id="job-choice"><option value="manor">Human Manor</option></select></label><label class="loadout-row" for="difficulty-choice"><span>Difficulty</span><select id="difficulty-choice"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><p id="job-preview" role="status"></p><p>This sets the route. Board the separate minecart when you are ready to leave.</p><p id="planning-sack" role="status"></p><button id="confirm-job">Set destination</button><button id="close-map" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="result-job"></p><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><p id="result-xp"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
+</main><dialog id="lair-panel" class="results lair-dialog" aria-labelledby="lair-title"><div class="eyebrow" id="lair-eyebrow">LAIR PREPARATION</div><h2 id="lair-title">Central lair stash</h2><p id="lair-description"></p><p id="lair-gold"></p><div class="lair-workspace"><section id="stash-section"><div class="sack-title"><h2>SHARED STASH</h2><span id="stash-used"></span></div><canvas id="stash-grid" tabindex="0" aria-label="Six by six shared stash. WASD selects, E or click lifts and places whole stacks. Escape cancels a move."></canvas><p id="stash-selection" role="status"></p><button id="stash-move" class="secondary">Move whole stack · R</button></section><section id="sack-section"><div class="sack-title"><h2>YOUR SACK</h2><span id="lair-sack-used"></span></div><canvas id="lair-sack-grid" tabindex="0" aria-label="Your three by three prepared sack. WASD selects; E or click returns one item to the stash."></canvas><p id="lair-sack-selection" role="status"></p><p class="note">WASD selects · E transfers one · Q switches grids. Tab closes the stash; Esc closes either panel.</p><details><summary>Debug supplies</summary><button id="debug-pack-snare" class="secondary">Add free test snare</button><button id="debug-pack-smoke" class="secondary">Add free test smoke</button><button id="debug-pack-lunch" class="secondary">Add free Packed Lunch</button></details></section><section id="recipes"><h2>YOUR RECIPES</h2><p id="personal-xp"></p><div class="recipe-card"><h3>Snare trap</h3><p>Place it to hold a guard for three seconds.</p><p id="recipe-snare-state"></p><button id="craft-snare">Craft snare</button></div><div class="recipe-card"><h3>Smoke bomb</h3><p>Equip from the sack; Space drops smoke that blocks guard sight for five seconds.</p><p id="recipe-smoke-state"></p><button id="buy-smoke">Buy smoke recipe · 50 XP</button><button id="craft-smoke">Craft smoke bomb</button></div></section><section id="passives" hidden><h2>PERSONAL PASSIVES</h2><p id="campfire-xp"></p><div class="recipe-card"><h3>Quick fingers</h3><p id="passive-search-state">Permanent passive · 10% faster searching.</p><button id="buy-quick-search">Buy Quick fingers · 30 XP</button></div></section></div><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="map-planning" class="results" aria-labelledby="setup-title"><div class="eyebrow">AT THE MAP TABLE</div><h2 id="setup-title">Plan the next run</h2><label class="loadout-row" for="job-choice"><span>Job</span><select id="job-choice"><option value="manor">Human Manor</option><option value="hold">Dwarf Hold</option><option value="sanctuary">Elf Sanctuary</option></select></label><label class="loadout-row" for="difficulty-choice"><span>Difficulty</span><select id="difficulty-choice"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><p id="job-preview" role="status"></p><p>This sets the route. Board the separate minecart when you are ready to leave.</p><p id="planning-sack" role="status"></p><button id="confirm-job">Set destination</button><button id="close-map" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="result-job"></p><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><p id="result-xp"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
 const CONFIG = Object.freeze({ width: 76, height: 56, rooms: 14, extraConnections: 3, preserveDeadEnds: 2, minLoopDetour: 8, maxLoopLength: 40, tile: 24, speed: 4.5, radius: 0.26, hopHeight: 6, hopRate: 12 });
 
@@ -75,8 +75,40 @@ const SMOKE = Object.freeze({ radius: 2, duration: 5 });
 // Rescue timings/capacity are playtest values; recipe cost remains undecided.
 const RESCUE = Object.freeze({ reach: 1.6, reviveSeconds: 2, cageSeconds: 3, pickupSeconds: 1, carrySpeed: 1.6, cages: 3 });
 
-// First contract reuses the current room generator; more job layouts can follow.
-const JOBS = Object.freeze({ manor: Object.freeze({ name: 'Human Manor', description: 'Search the rooms, evade the guards and bring the haul home.' }) });
+
+const GENERATOR_FIELDS = Object.freeze([
+  ['width', 'Map width', 40, 120], ['height', 'Map height', 32, 90], ['rooms', 'Requested rooms', 4, 24],
+  ['minRoomWidth', 'Smallest room width', 5, 16], ['maxRoomWidth', 'Largest room width', 5, 16],
+  ['minRoomHeight', 'Smallest room height', 5, 14], ['maxRoomHeight', 'Largest room height', 5, 14],
+  ['corridorWidth', 'Corridor width', 1, 3], ['corridorBends', 'Extra corridor bends', 0, 1],
+  ['maxCorridorLength', 'Maximum direct room connection', 8, 100],
+  ['extraConnections', 'Extra looping routes to try', 0, 8], ['preserveDeadEnds', 'Dead ends to protect', 0, 4],
+  ['searchablesPerRoom', 'Furniture per room (entrance minimum 3)', 1, 4], ['hidingInterval', 'One hiding spot every N rooms', 1, 6]
+].map(([id, label, min, max]) => Object.freeze({ id, label, min, max })));
+const human = { width: 76, height: 56, rooms: 14, minRoomWidth: 6, maxRoomWidth: 12, minRoomHeight: 5, maxRoomHeight: 9,
+  corridorWidth: 1, corridorBends: 0, maxCorridorLength: 100, extraConnections: 3, preserveDeadEnds: 2, searchablesPerRoom: 1, hidingInterval: 2 };
+const GENERATOR_PRESETS = Object.freeze({
+  manor: Object.freeze({ ...human }),
+  hold: Object.freeze({ ...human, width: 88, height: 64, rooms: 12, minRoomWidth: 9, maxRoomWidth: 14, minRoomHeight: 7, maxRoomHeight: 10, corridorWidth: 3, extraConnections: 2 }),
+  sanctuary: Object.freeze({ ...human, width: 72, height: 64, rooms: 18, minRoomWidth: 5, maxRoomWidth: 8, minRoomHeight: 5, maxRoomHeight: 7, corridorBends: 1, extraConnections: 5, preserveDeadEnds: 1 })
+});
+function validateGenerator(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== GENERATOR_FIELDS.length
+    || GENERATOR_FIELDS.some(f => !Object.hasOwn(value, f.id) || !Number.isInteger(value[f.id]) || value[f.id] < f.min || value[f.id] > f.max)
+    || value.minRoomWidth > value.maxRoomWidth || value.minRoomHeight > value.maxRoomHeight || value.preserveDeadEnds >= value.rooms) throw Error('Invalid dungeon settings. Use whole numbers within the limits; smallest rooms cannot exceed largest rooms, and protected dead ends must be fewer than rooms.');
+  return { ...value };
+}
+function generatorSettings(saved) {
+  if (saved === undefined) return structuredClone(GENERATOR_PRESETS);
+  if (!saved || Array.isArray(saved) || Object.keys(saved).length !== Object.keys(GENERATOR_PRESETS).length) throw Error('Invalid dungeon presets.');
+  return Object.fromEntries(Object.keys(GENERATOR_PRESETS).map(id => [id, validateGenerator(saved[id])]));
+}
+function dungeonConfig(values = GENERATOR_PRESETS.manor) {
+  return { ...CONFIG, ...validateGenerator(values) };
+}
+
+// Architecture selects layout; difficulty independently sets danger/rewards.
+const JOBS = Object.freeze({ manor: Object.freeze({ name: 'Human Manor', description: 'Varied rooms and branching halls.' }), hold: Object.freeze({ name: 'Dwarf Hold', description: 'Large rectangular halls and wide passages.' }), sanctuary: Object.freeze({ name: 'Elf Sanctuary', description: 'Small connected chambers and winding routes.' }) });
 const DIFFICULTIES = Object.freeze({
   normal: Object.freeze({ name: 'Normal', extraGuards: 0, rareBonus: 0, goldMultiplier: 1 }),
   hard: Object.freeze({ name: 'Hard', extraGuards: 2, rareBonus: .15, goldMultiplier: 1.5 })
@@ -243,14 +275,20 @@ function addRoomLoops(world, config, random) {
         if (protectedSet.has(j)) continue;
         const a = rooms[i], b = rooms[j];
         const direct = Math.abs(a.cx - b.cx) + Math.abs(a.cy - b.cy), oldDistance = distances[b.cy * width + b.cx];
-        if (direct > (config.maxLoopLength ?? 40) || oldDistance - direct < (config.minLoopDetour ?? 8)) continue;
+        if (direct > Math.min(config.maxLoopLength ?? 40, config.maxCorridorLength ?? 1000) || oldDistance - direct < (config.minLoopDetour ?? 8)) continue;
         for (const horizontalFirst of [true, false]) {
-          const path = corridorRoute(a, b, horizontalFirst), newCells = path.filter(p => !floorAt(world, p.x, p.y));
+          const path = corridorRoute(a, b, horizontalFirst), wide = new Map();
+          const size = config.corridorWidth ?? 1, offset = Math.floor(size / 2);
+          for (const p of path) for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) {
+            const x = p.x + dx - offset, y = p.y + dy - offset;
+            if (x > 0 && y > 0 && x < width - 1 && y < world.height - 1) wide.set(y * width + x, { x, y });
+          }
+          const newCells = [...wide.values()].filter(p => !floorAt(world, p.x, p.y));
           if (newCells.length < 3) continue;
           if (newCells.some(p => preservedDeadEnds.some(index => {
             const r = rooms[index]; return p.x >= r.x - 1 && p.x <= r.x + r.w && p.y >= r.y - 1 && p.y <= r.y + r.h;
           }))) continue;
-          const added = new Set(path.map(p => p.y * width + p.x));
+          const added = new Set([...wide.keys()]);
           const entryGain = roomEntrances(world, a, added).length + roomEntrances(world, b, added).length - roomEntrances(world, a).length - roomEntrances(world, b).length;
           if (entryGain < 1) continue;
           const score = (oldDistance - direct) / newCells.length + entryGain * 0.1 + random() * 0.01;
@@ -275,25 +313,41 @@ function generateDungeon(seed, config = CONFIG) {
   const { width, height } = config;
   const tiles = new Uint8Array(width * height);
   const rooms = [];
-  const carve = (x, y) => { tiles[y * width + x] = 1; };
+  const carve = (x, y) => { if (x > 0 && y > 0 && x < width - 1 && y < height - 1) tiles[y * width + x] = 1; };
+  const corridor = (x, y) => {
+    const size = config.corridorWidth ?? 1, offset = Math.floor(size / 2);
+    for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) carve(x + dx - offset, y + dy - offset);
+  };
   // Every accepted room connects to a previous one, so all floor is reachable.
   for (let attempt = 0; attempt < 600 && rooms.length < config.rooms; attempt++) {
-    const w = integer(6, 12), h = integer(5, 9);
+    const w = integer(config.minRoomWidth ?? 6, config.maxRoomWidth ?? 12), h = integer(config.minRoomHeight ?? 5, config.maxRoomHeight ?? 9);
     const x = integer(2, width - w - 3), y = integer(2, height - h - 3);
     if (rooms.some(r => x < r.x + r.w + 2 && x + w + 2 > r.x && y < r.y + r.h + 2 && y + h + 2 > r.y)) continue;
+    const nearest = rooms.length ? rooms.reduce((best, r) => Math.hypot(r.cx - (x + Math.floor(w / 2)), r.cy - (y + Math.floor(h / 2))) < Math.hypot(best.cx - (x + Math.floor(w / 2)), best.cy - (y + Math.floor(h / 2))) ? r : best) : null;
+    if (nearest && Math.abs(nearest.cx - x - Math.floor(w / 2)) + Math.abs(nearest.cy - y - Math.floor(h / 2)) > (config.maxCorridorLength ?? 1000)) continue;
     const room = { x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) };
     for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) carve(i, j);
     if (rooms.length) {
-      const previous = rooms.reduce((best, r) => Math.hypot(r.cx - room.cx, r.cy - room.cy) < Math.hypot(best.cx - room.cx, best.cy - room.cy) ? r : best);
+      const previous = nearest;
       let px = previous.cx, py = previous.cy;
       const horizontalFirst = random() < 0.5;
-      const horizontal = () => { while (px !== room.cx) { carve(px, py); px += Math.sign(room.cx - px); } carve(px, py); };
-      const vertical = () => { while (py !== room.cy) { carve(px, py); py += Math.sign(room.cy - py); } carve(px, py); };
-      if (horizontalFirst) { horizontal(); vertical(); } else { vertical(); horizontal(); }
+      const horizontal = () => { while (px !== room.cx) { corridor(px, py); px += Math.sign(room.cx - px); } corridor(px, py); };
+      const vertical = () => { while (py !== room.cy) { corridor(px, py); py += Math.sign(room.cy - py); } corridor(px, py); };
+      if (config.corridorBends) {
+        if (horizontalFirst) {
+          const mid = Math.floor((px + room.cx) / 2);
+          while (px !== mid) { corridor(px, py); px += Math.sign(mid - px); }
+          vertical(); horizontal();
+        } else {
+          const mid = Math.floor((py + room.cy) / 2);
+          while (py !== mid) { corridor(px, py); py += Math.sign(mid - py); }
+          horizontal(); vertical();
+        }
+      } else if (horizontalFirst) { horizontal(); vertical(); } else { vertical(); horizontal(); }
     }
     rooms.push(room);
   }
-  return addRoomLoops({ seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
+  return addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
 }
 
 function isFloor(world, x, y) {
@@ -331,6 +385,59 @@ function moveActor(world, actor, dx, dy, radius = CONFIG.radius) {
     if (canStand(world, actor.x, actor.y + dy / steps, radius)) actor.y += dy / steps;
   }
   return Math.hypot(actor.x - startX, actor.y - startY) > .00001;
+}
+
+
+// Shared by furniture, hiding spots and future decor. Dimensions are floor tiles.
+const PROP_RULES = Object.freeze({
+  chest: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
+  cupboard: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
+  crate: Object.freeze({ width: 1, height: 1, placement: 'corner' }),
+  cage: Object.freeze({ width: 1, height: 1, placement: 'wall' }),
+  hiding: Object.freeze({ width: 1, height: 1, placement: 'wall' })
+});
+function propCells(prop) {
+  const x = prop.tileX ?? Math.floor(prop.x), y = prop.tileY ?? Math.floor(prop.y);
+  return Array.from({ length: (prop.width ?? 1) * (prop.height ?? 1) }, (_, i) => ({ x: x + i % (prop.width ?? 1), y: y + Math.floor(i / (prop.width ?? 1)) }));
+}
+function reservedRoomTiles(world, room) {
+  const reserved = new Set(), add = (x, y) => reserved.add(y * world.width + x);
+  // Reserve an inside-to-centre lane for every doorway, including wide ones.
+  for (const entrance of room.entrances ?? []) for (const cell of entrance.cells) {
+    let x = Math.max(room.x, Math.min(room.x + room.w - 1, cell.x));
+    let y = Math.max(room.y, Math.min(room.y + room.h - 1, cell.y));
+    add(x, y);
+    while (x !== room.cx) { x += Math.sign(room.cx - x); add(x, y); }
+    while (y !== room.cy) { y += Math.sign(room.cy - y); add(x, y); }
+  }
+  add(room.cx, room.cy);
+  return reserved;
+}
+function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[kind]) {
+  if (!rule) return null;
+  const { width, height, placement } = rule, reserved = reservedRoomTiles(world, room);
+  const used = new Set(occupied.flatMap(propCells).map(p => p.y * world.width + p.x));
+  const points = [];
+  for (let y = room.y; y <= room.y + room.h - height; y++) for (let x = room.x; x <= room.x + room.w - width; x++) {
+    const cells = propCells({ tileX: x, tileY: y, width, height });
+    if (cells.some(p => !isFloor(world, p.x, p.y) || used.has(p.y * world.width + p.x) || reserved.has(p.y * world.width + p.x))
+      || Math.hypot(x + width / 2 - world.spawn.x, y + height / 2 - world.spawn.y) < 2) continue;
+    const north = cells.filter(p => p.y === y).every(p => !isFloor(world, p.x, p.y - 1));
+    const south = cells.filter(p => p.y === y + height - 1).every(p => !isFloor(world, p.x, p.y + 1));
+    const west = cells.filter(p => p.x === x).every(p => !isFloor(world, p.x - 1, p.y));
+    const east = cells.filter(p => p.x === x + width - 1).every(p => !isFloor(world, p.x + 1, p.y));
+    if (placement !== 'free' && !north && !south && !west && !east) continue;
+    const facing = north ? 'south' : south ? 'north' : west ? 'east' : 'west';
+    const approach = north ? { x: x + width / 2, y: y + height + .5 } : south ? { x: x + width / 2, y: y - .5 } : west ? { x: x + width + .5, y: y + height / 2 } : { x: x - .5, y: y + height / 2 };
+    if (!canStand(world, approach.x, approach.y) || used.has(Math.floor(approach.y) * world.width + Math.floor(approach.x))) continue;
+    if (occupied.some(p => Math.hypot(p.x - x - width / 2, p.y - y - height / 2) <= 1)) continue;
+    const corner = (north || south) && (west || east);
+    points.push({ x: x + width / 2, y: y + height / 2, tileX: x, tileY: y, width, height, facing, placement, approach,
+      score: (placement === 'corner' && corner ? -100 : 0) + Math.abs(x - room.cx) + Math.abs(y - room.cy) });
+  }
+  points.sort((a, b) => a.score - b.score || a.y - b.y || a.x - b.x);
+  const point = points[0]; if (!point) return null;
+  delete point.score; return point;
 }
 
 function createInput(target, inventoryOpen = () => false) {
@@ -729,9 +836,8 @@ function createMapPlanningView(dialog, onConfirm, getCurrent, getBag = () => [],
 function createHidingSpots(world, objects = []) {
   const spots = [];
   world.rooms.forEach((room, index) => {
-    if (index % HIDING.roomInterval) return;
-    const points = [[room.x + 1.5, room.y + room.h - 1.5], [room.x + room.w - 1.5, room.y + 1.5], [room.x + 1.5, room.y + 1.5]];
-    const point = points.map(([x, y]) => ({ x, y })).find(p => canStand(world, p.x, p.y) && Math.hypot(p.x - world.spawn.x, p.y - world.spawn.y) > 2 && objects.every(o => Math.hypot(p.x - o.x, p.y - o.y) > 1));
+    if (index % (world.layout?.hidingInterval ?? HIDING.roomInterval)) return;
+    const point = placeProp(world, room, 'hiding', [...objects, ...spots]);
     if (point) spots.push({ id: `${world.seed}-hide-${index}`, ...point, occupantId: null });
   });
   return spots;
@@ -793,16 +899,15 @@ function createSearchables(world) {
   let state = (world.seed ^ 0x9e3779b9) >>> 0;
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const objects = [];
-  const add = (type, x, y) => {
-    if (!canStand(world, x, y, 0.2) || objects.some(o => Math.hypot(o.x - x, o.y - y) < 0.8)) return;
-    objects.push({ id: `${world.seed}-search-${objects.length}`, type, x, y, contents: [], searched: false });
-  };
-  const first = world.rooms[0];
-  add('chest', world.spawn.x + 1.5, world.spawn.y);
-  add('cupboard', first.x + 1.5, first.y + 1.5);
-  add('crate', first.x + first.w - 1.5, first.y + first.h - 1.5);
   const types = Object.keys(SEARCHABLE_TYPES);
-  world.rooms.slice(1).forEach((room, i) => add(types[i % types.length], i % 2 ? room.x + room.w - 1.5 : room.x + 1.5, room.cy + 0.5));
+  world.rooms.forEach((room, index) => {
+    const count = index === 0 ? Math.max(3, world.layout?.searchablesPerRoom ?? 1) : world.layout?.searchablesPerRoom ?? 1;
+    for (let i = 0; i < count; i++) {
+      const type = types[(index === 0 ? i : index - 1 + i) % types.length];
+      const point = placeProp(world, room, type, objects);
+      if (point) objects.push({ id: `${world.seed}-search-${objects.length}`, type, ...point, contents: [], searched: false });
+    }
+  });
   const depths = searchRewardDepths(world, objects);
   objects.forEach((object, index) => {
     Object.assign(object, depths[index]);
@@ -927,14 +1032,9 @@ function createCages(world, obstacles = []) {
   const cages = [];
   for (const room of [...selected, ...rooms.filter(r => !selected.includes(r))]) {
     if (cages.length >= RESCUE.cages) break;
-    const points = [{ x: room.cx + .5, y: room.y + 1.5 }, { x: room.cx + .5, y: room.cy + .5 },
-      { x: room.x + 1.5, y: room.y + 1.5 }, { x: room.x + room.w - 1.5, y: room.y + 1.5 }];
-    for (let y = room.y + 1.5; y < room.y + room.h - 1.5; y++) for (let x = room.x + 1.5; x < room.x + room.w - .5; x++) points.push({ x, y });
-    const point = points.find(p => canStand(world, p.x, p.y, .4) && canStand(world, p.x, p.y + 1.3)
-      && obstacles.every(o => Math.hypot(o.x - p.x, o.y - p.y) > 1.15 && Math.hypot(o.x - p.x, o.y - p.y - 1.3) > .75)
-      && findPath(world, world.spawn, { x: p.x, y: p.y + 1 }).length);
-    if (point) cages.push({ id: `${world.seed}-cage-${room.index}`, ...point, roomIndex: room.index,
-      entry: { x: point.x, y: point.y + 1 }, post: { x: point.x, y: point.y + 1.3 }, prisoners: [] });
+    const point = placeProp(world, room, 'cage', [...obstacles, ...cages, ...cages.map(c => c.post)]);
+    if (point && findPath(world, world.spawn, point.approach).length) cages.push({ id: `${world.seed}-cage-${room.index}`, ...point, roomIndex: room.index,
+      entry: { ...point.approach }, post: { ...point.approach }, prisoners: [] });
   }
   return cages;
 }
@@ -2123,7 +2223,7 @@ const launchRun = (selection) => {
   const job = selection && selectJob(selection.jobId, selection.difficultyId);
   if (!job) return false;
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];
-  const dungeon = generateDungeon(seed);
+  const dungeon = generateDungeon(seed, dungeonConfig(GENERATOR_PRESETS[job.jobId]));
   const bag = departWithSack(camp, loot);
   if (!bag) return false;
   world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };

@@ -159,7 +159,7 @@ test('two socket clients share a dungeon search, race for its loot, and bank it 
   // Select a deterministic searchable from this real generated map, with a test-fixture
   // position change on the server only. No browser protocol permits this teleport.
   const target = a.state.dungeon.objects[0];
-  for (const p of [actorA, actorB]) { p.x = target.x; p.y = target.y + .8; }
+  for (const p of [actorA, actorB]) { Object.assign(p, target.approach); }
   send(a, { type: 'search', id: target.id }); send(b, { type: 'search', id: target.id });
   await until(() => a.state.dungeon.objects[0].searcherId || b.state.dungeon.objects[0].searcherId);
   assert.ok([...a.messages, ...b.messages].some(m => m.type === 'rejected'));

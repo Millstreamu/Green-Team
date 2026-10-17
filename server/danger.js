@@ -13,7 +13,7 @@ export function createDanger(world, participants, objects) {
     Object.assign(p, createVitality()); p.hiding = null; p.enteringHide = null;
     p.placement = createPlacement(); p.quickType = null; p.downSpilled = false; p.downItems = [];
   }
-  const rescue = createRescue(world, participants, guards, obstacles);
+  const rescue = createRescue(world, participants, guards, [...obstacles, ...pressure.doors.map(d => d.spawn)]);
   obstacles.push(...rescue.cages.map(c => ({ x: c.x, y: c.y })));
   const witnesses = p => guards.filter(g => seesPlayer(world, g, p, ['chase', 'search'].includes(g.state), clouds));
   return {

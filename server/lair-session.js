@@ -8,7 +8,7 @@ import { createDeparture, setDestination, toggleCartSeat, tickDeparture } from '
 import { movePlayer } from '../src/world.js';
 
 // One shared home. The browser never supplies stock, profiles or saved state.
-export function createLairSession({ store = null, getTuning = () => undefined } = {}) {
+export function createLairSession({ store = null, getTuning = () => undefined, getLayout = () => undefined } = {}) {
   const restored = restoreSave(store?.load() ?? null);
   const world = createLairWorld(), camp = restored.camp, players = new Map();
   function actor(saved) {
@@ -161,7 +161,7 @@ export function createLairSession({ store = null, getTuning = () => undefined } 
       }
       const job = tickDeparture(cart, dt);
       if (job) {
-        launched = { id: randomUUID(), seed: randomInt(0, 2 ** 32), tuning: getTuning(), job, participants: [...cart.participants] };
+        launched = { id: randomUUID(), seed: randomInt(0, 2 ** 32), tuning: getTuning(), layout: getLayout(job.jobId), job, participants: [...cart.participants] };
         dungeon = createDungeonSession(launched, [...players.values()].filter(p => launched.participants.includes(p.id)), camp);
       }
     },

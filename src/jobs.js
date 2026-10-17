@@ -1,6 +1,6 @@
 import { DEPARTURE } from './config.js';
-// First contract reuses the current room generator; more job layouts can follow.
-export const JOBS = Object.freeze({ manor: Object.freeze({ name: 'Human Manor', description: 'Search the rooms, evade the guards and bring the haul home.' }) });
+// Architecture selects layout; difficulty independently sets danger/rewards.
+export const JOBS = Object.freeze({ manor: Object.freeze({ name: 'Human Manor', description: 'Varied rooms and branching halls.' }), hold: Object.freeze({ name: 'Dwarf Hold', description: 'Large rectangular halls and wide passages.' }), sanctuary: Object.freeze({ name: 'Elf Sanctuary', description: 'Small connected chambers and winding routes.' }) });
 export const DIFFICULTIES = Object.freeze({
   normal: Object.freeze({ name: 'Normal', extraGuards: 0, rareBonus: 0, goldMultiplier: 1 }),
   hard: Object.freeze({ name: 'Hard', extraGuards: 2, rareBonus: .15, goldMultiplier: 1.5 })

@@ -62,14 +62,20 @@ export function addRoomLoops(world, config, random) {
         if (protectedSet.has(j)) continue;
         const a = rooms[i], b = rooms[j];
         const direct = Math.abs(a.cx - b.cx) + Math.abs(a.cy - b.cy), oldDistance = distances[b.cy * width + b.cx];
-        if (direct > (config.maxLoopLength ?? 40) || oldDistance - direct < (config.minLoopDetour ?? 8)) continue;
+        if (direct > Math.min(config.maxLoopLength ?? 40, config.maxCorridorLength ?? 1000) || oldDistance - direct < (config.minLoopDetour ?? 8)) continue;
         for (const horizontalFirst of [true, false]) {
-          const path = corridorRoute(a, b, horizontalFirst), newCells = path.filter(p => !floorAt(world, p.x, p.y));
+          const path = corridorRoute(a, b, horizontalFirst), wide = new Map();
+          const size = config.corridorWidth ?? 1, offset = Math.floor(size / 2);
+          for (const p of path) for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) {
+            const x = p.x + dx - offset, y = p.y + dy - offset;
+            if (x > 0 && y > 0 && x < width - 1 && y < world.height - 1) wide.set(y * width + x, { x, y });
+          }
+          const newCells = [...wide.values()].filter(p => !floorAt(world, p.x, p.y));
           if (newCells.length < 3) continue;
           if (newCells.some(p => preservedDeadEnds.some(index => {
             const r = rooms[index]; return p.x >= r.x - 1 && p.x <= r.x + r.w && p.y >= r.y - 1 && p.y <= r.y + r.h;
           }))) continue;
-          const added = new Set(path.map(p => p.y * width + p.x));
+          const added = new Set([...wide.keys()]);
           const entryGain = roomEntrances(world, a, added).length + roomEntrances(world, b, added).length - roomEntrances(world, a).length - roomEntrances(world, b).length;
           if (entryGain < 1) continue;
           const score = (oldDistance - direct) / newCells.length + entryGain * 0.1 + random() * 0.01;

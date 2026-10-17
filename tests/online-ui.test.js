@@ -103,8 +103,8 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.equal(element('sack-tab').hidden, false);
   assert.match(element('rooms').textContent, /rooms/);
   const dungeon = session.snapshot(player).dungeon, chest = dungeon.objects[0];
-  player.x = chest.x; player.y = chest.y + .8; sync();
-  doc.send('pointermove', { target: element('game'), clientX: 450, clientY: 300 - .8 * 24 * 2 });
+  Object.assign(player, chest.approach); sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450 + (chest.x - player.x) * 48, clientY: 300 + (chest.y - player.y) * 48 });
   key('KeyE'); assert.equal(sent.at(-1).type, 'search'); assert.equal(sent.at(-1).id, chest.id);
   assert.equal(session.action(player, sent.at(-1)), true);
   for (let i = 0; i < 80; i++) {
@@ -192,8 +192,8 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.equal(session.snapshot(other).dungeon.clouds.length, 1);
   assert.ok(!player.bag.some(i => i.type === 'smoke'));
   const spot = session.snapshot(player).dungeon.hidingSpots[0];
-  player.x = spot.x + .7; player.y = spot.y; sync();
-  doc.send('pointermove', { target: element('game'), clientX: 450 - .7 * 24 * 2, clientY: 300 });
+  Object.assign(player, spot.approach); sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450 + (spot.x - player.x) * 48, clientY: 300 + (spot.y - player.y) * 48 });
   key('KeyE'); assert.equal(sent.at(-1).type, 'hide'); flush();
   for (let i = 0; i < 10; i++) { intervals[0](); flush(); session.tick(.05); }
   sync(); frames.shift()(176); assert.ok(player.hiding);

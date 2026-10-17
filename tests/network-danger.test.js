@@ -51,7 +51,7 @@ test('real sockets share guard danger, hiding occupancy, traps, smoke and preser
   await until(() => a.state.dungeon.clouds.length === 1 && b.state.dungeon.clouds.length === 1);
   assert.equal(b.state.bag.length, 0);
   const spot = a.state.dungeon.hidingSpots[0];
-  for (const p of actors) { p.x = spot.x + .7; p.y = spot.y; }
+  for (const p of actors) { Object.assign(p, spot.approach); }
   send(a, { type: 'hide', id: spot.id }); send(b, { type: 'hide', id: spot.id });
   await until(() => pa.enteringHide && pb.enteringHide);
   for (let i = 0; i < 10; i++) {

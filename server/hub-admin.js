@@ -1,3 +1,4 @@
+import { GENERATOR_PRESETS, validateGenerator } from '../src/generator-settings.js';
 import { DEFAULT_TUNING, validateTuning } from '../src/tuning.js';
 import { createProfile } from '../src/profile.js';
 import { LOOT_TYPES } from '../src/loot.js';
@@ -14,15 +15,18 @@ export function createHubAdminController(session, backups) {
       if (info.saveFailed) throw new AdminError('Saving failed. Fix the disk error and restart the server.', 409);
       if (!info.saved) throw new AdminError('Admin edits need a saved server.', 409);
       const kind = command?.type;
-      if (!['backup', 'restore', 'reset-all', 'reset-lair', 'reset-goblin', 'set-stock', 'set-xp', 'end-run', 'set-tuning', 'reset-tuning'].includes(kind)) throw new AdminError('Unknown admin action.');
+      if (!['backup', 'restore', 'reset-all', 'reset-lair', 'reset-goblin', 'set-stock', 'set-xp', 'end-run', 'set-tuning', 'reset-tuning', 'set-generator', 'reset-generator'].includes(kind)) throw new AdminError('Unknown admin action.');
       const state = session.adminState();
       if (kind === 'backup') return { backupId: backups.create(state, 'Manual server backup'), message: 'All lairs and goblins backed up.' };
-      if (['set-tuning', 'reset-tuning'].includes(kind)) {
+      if (['set-tuning', 'reset-tuning', 'set-generator', 'reset-generator'].includes(kind)) {
         if (!state.lairs.some(l => l.id === command.lairId)) throw new AdminError('Choose a lair.');
+        const generator = kind.endsWith('generator');
+        if (generator && (typeof command.jobId !== 'string' || !Object.hasOwn(GENERATOR_PRESETS, command.jobId))) throw new AdminError('Choose a dungeon type.');
         let values;
-        try { values = validateTuning(kind === 'reset-tuning' ? DEFAULT_TUNING : command.values); } catch (error) { throw new AdminError(error.message); }
+        try { values = generator ? validateGenerator(kind === 'reset-generator' ? GENERATOR_PRESETS[command.jobId] : command.values) : validateTuning(kind === 'reset-tuning' ? DEFAULT_TUNING : command.values); } catch (error) { throw new AdminError(error.message); }
         const id = backups.create(state, `Before ${kind}`);
-        session.adminSetTuning(command.lairId, values);
+        if (generator) session.adminSetGenerator(command.lairId, command.jobId, values);
+        else session.adminSetTuning(command.lairId, values);
         return { backupId: id, message: 'Settings saved for the selected lair. They apply to its next run.' };
       }
       if (kind !== 'end-run' && info.runActive) throw new AdminError('End all active runs before changing saved data.', 409);

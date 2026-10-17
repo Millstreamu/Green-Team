@@ -132,7 +132,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   tap('Tab'); tap('Tab'); assert.equal(elements.get('sack-panel').dataset.open, 'false');
   elements.get('sack-tab').send('click'); tick(); assert.equal(elements.get('sack-panel').dataset.open, 'true');
   tap('Tab');
-  key('KeyD'); for (let i = 0; i < 14; i++) tick(); win.send('keyup', { code: 'KeyD' });
+  key('KeyW'); for (let i = 0; i < 42; i++) tick(); win.send('keyup', { code: 'KeyW' });
   assert.equal(elements.get('sack-panel').dataset.open, 'false');
   assert.match(elements.get('target-label').textContent, /Chest.*hold E/);
   key('KeyE'); for (let i = 0; i < 30; i++) tick();
@@ -161,7 +161,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   tap('KeyE');
   assert.equal(elements.get('sack-used').textContent, '2 / 9');
   tap('Tab');
-  key('KeyA'); for (let i = 0; i < 14; i++) tick(); win.send('keyup', { code: 'KeyA' });
+  key('KeyS'); for (let i = 0; i < 42; i++) tick(); win.send('keyup', { code: 'KeyS' });
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
   tap('KeyE');
   assert.equal(elements.get('run-results').open, true);
@@ -223,11 +223,11 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
   // Search again, lift actual spilled loot and deliberately approach a lookout.
   // Guards no longer wander into the starting room on their normal routine.
-  key('KeyD'); for (let i = 0; i < 14; i++) tick(); release('KeyD');
+  key('KeyW'); for (let i = 0; i < 42; i++) tick(); release('KeyW');
   key('KeyE'); for (let i = 0; i < 145; i++) tick(); release('KeyE'); tick();
-  doc.send('pointerdown', { target: elements.get('game'), clientX: 445, clientY: 324 }); tick();
+  doc.send('pointerdown', { target: elements.get('game'), clientX: 421, clientY: 253 }); tick();
   assert.match(elements.get('held-label').textContent, /Holding Ruby/);
-  key('KeyA'); for (let i = 0; i < 14; i++) tick(); release('KeyA');
+  key('KeyS'); for (let i = 0; i < 42; i++) tick(); release('KeyS');
   const { generateDungeon } = await import('../src/world.js');
   const { createGuards } = await import('../src/guard.js');
   const { findPath } = await import('../src/navigation.js');
@@ -275,7 +275,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(elements.get('sack-used').textContent, '9 / 9');
   elements.get('regenerate').send('click'); tick(); dungeonSeed = 42; prepareRun();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
-  walk('KeyD', 14); key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
+  walk('KeyD', 14); walk('KeyW', 14); key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
   assert.match(elements.get('status').textContent, /Nothing worth taking/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   elements.get('regenerate').send('click'); tick(); packAtHome('smoke'); prepareRun();

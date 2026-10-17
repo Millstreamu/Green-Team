@@ -1,13 +1,12 @@
+import { placeProp } from './prop-placement.js';
 import { HIDING, SEARCH } from './config.js';
-import { canStand } from './world.js';
 import { clearPath } from './loot.js';
 
 export function createHidingSpots(world, objects = []) {
   const spots = [];
   world.rooms.forEach((room, index) => {
-    if (index % HIDING.roomInterval) return;
-    const points = [[room.x + 1.5, room.y + room.h - 1.5], [room.x + room.w - 1.5, room.y + 1.5], [room.x + 1.5, room.y + 1.5]];
-    const point = points.map(([x, y]) => ({ x, y })).find(p => canStand(world, p.x, p.y) && Math.hypot(p.x - world.spawn.x, p.y - world.spawn.y) > 2 && objects.every(o => Math.hypot(p.x - o.x, p.y - o.y) > 1));
+    if (index % (world.layout?.hidingInterval ?? HIDING.roomInterval)) return;
+    const point = placeProp(world, room, 'hiding', [...objects, ...spots]);
     if (point) spots.push({ id: `${world.seed}-hide-${index}`, ...point, occupantId: null });
   });
   return spots;

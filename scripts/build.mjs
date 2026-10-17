@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 // Ship a double-clickable copy without a build dependency or local web server.
-const modules = ['config', 'jobs', 'profile', 'dungeon-layout', 'world', 'input', 'loot', 'traps', 'smoke', 'loadout', 'lair', 'loadout-view', 'hiding', 'search', 'navigation', 'rescue', 'guard-routes', 'guard', 'pressure', 'run', 'item-view', 'inventory-grid', 'item-list', 'stash-view', 'lair-view', 'lair-drawing', 'sack-panel', 'sack-view', 'results-view', 'guard-view', 'world-ui', 'pressure-view', 'search-view', 'hiding-view', 'trap-view', 'smoke-view', 'rescue-view', 'render', 'main'];
+const modules = ['config', 'generator-settings', 'jobs', 'profile', 'dungeon-layout', 'world', 'prop-placement', 'input', 'loot', 'traps', 'smoke', 'loadout', 'lair', 'loadout-view', 'hiding', 'search', 'navigation', 'rescue', 'guard-routes', 'guard', 'pressure', 'run', 'item-view', 'inventory-grid', 'item-list', 'stash-view', 'lair-view', 'lair-drawing', 'sack-panel', 'sack-view', 'results-view', 'guard-view', 'world-ui', 'pressure-view', 'search-view', 'hiding-view', 'trap-view', 'smoke-view', 'rescue-view', 'render', 'main'];
 let code = (await Promise.all(modules.map(name => readFile(new URL(`../src/${name}.js`, import.meta.url), 'utf8'))))
   .map(source => source.replace(/^import .*;\n/gm, '').replace(/^export /gm, '')).join('\n');
 const sprite = await readFile(new URL('../assets/goblin.png', import.meta.url));
