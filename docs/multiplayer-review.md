@@ -89,10 +89,12 @@ Engineering default to verify rather than ask as a game preference: two simultan
 | ID | Question | Recommended starting rule | Alternative |
 |---|---|---|---|
 | E1 | Can everyone spend shared gold/unlock recipes? | Everyone can; show the team what was purchased. | Host-only purchases or approval above a threshold. |
-| E2 | When are prepared supplies taken out of shared stock? | Reserve copies while preparing; commit at launch, release on cancel/unready/timeout. | Spend immediately while packing and explicitly refund on cancellation. |
+| E2 | When are prepared supplies taken out of shared stock? | **Agreed:** transfer immediately from stash into personal sack; putting back restores stock. First successful transfer gets the last copy. | Launch-time reservation model superseded. |
 | E3 | What if two people rearrange the same stash stack? | Briefly reserve that stack for the mover; others can use the rest of the stash. | Allow moves to fail cleanly when another change wins. |
 
 Crafting, purchases and withdrawals must validate against the same shared quantities in one operation. Agree whether a moving stack also blocks crafting with its materials. Whole-stack movement cannot hide available stock forever if its player closes the panel or disconnects. One gold stack and its displayed balance remain the same quantity.
+
+Agreed preparation flow: each goblin packs its own sack at the shared stash before boarding the departure minecart. Taking an item transfers that actual copy immediately out of shared stock into the goblin's sack; putting it back reverses the transfer. If two players try to take the last copy, only the first successful transfer gets it. A full sack rejects the transfer without spending stock. Departure must not deduct packed supplies again. This replaces reservation-only preparation as the chosen flow; the current solo setup dialog remains until this team flow is implemented.
 
 ## Batch 6 — guards, traps and team information
 

@@ -362,3 +362,8 @@ User asked what backend is needed for dedicated server versus P2P. Added a pendi
 ## Server-based multiplayer selected — 17 October 2026
 
 User accepted the recommendation: a small rented server runs shared game state independently of browsers. Starting backend is Node.js, secure WebSockets, HTTPS and SQLite for durable shared-lair storage. P2P is not the current plan. Colyseus is still only a candidate framework; no provider, machine size, price, party cap or deployment selected. No server/network implementation or paid provisioning started. Continue remaining multiplayer behavior review, next shared stash/crafting and supply preparation.
+
+
+## Shared stash-to-sack gear preparation approved — 17 October 2026
+
+User confirmed: taking gear from shared stash immediately transfers it to that goblin's sack and removes it from shared stock. Returning gear restores stock. Each goblin packs before boarding the minecart. Simultaneous attempts on the last copy resolve to the first successful transfer, with no duplicates. Full sack cannot consume stock, and departure must not spend those supplies a second time. Reuse existing item footprints/fit checks and actual item identity. This is the agreed future team preparation flow; the solo setup dialog is not replaced yet. No runtime changes.
