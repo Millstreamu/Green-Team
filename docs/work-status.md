@@ -314,3 +314,8 @@ User approved excluding disconnected ghost goblins from departure checks during 
 ## Run-end disconnect settlement confirmed
 
 User accepted returning a disconnected player to the lair without their dungeon sack if survivors depart before reconnection. Updated active review/decisions; no ghost extraction reward or closed-run resumption. Next propose no-connected-standing-player grace handling: if only disconnected standing goblins could still return, keep the run alive through their existing timers; fail when none reconnect before expiry. This is pending and must not silently override the agreed no-free-standing-player failure. V24 unchanged, documentation only, no tests rerun.
+
+
+## Last-standing disconnect grace accepted
+
+User accepted keeping the run alive for the existing remaining grace of the last disconnected standing goblin. Return resumes play; expiry with no eligible standing rescuer fails the run. Recorded this as an explicit exception to immediate no-free-standing failure, without resetting timers or treating zero-player departure as success. Review/decision docs updated. V24 remains approved playable baseline; no runtime changes/tests. Next move to the shared search/loot rules in a small batch; do not expand disconnect edge cases indefinitely. Special downed/carried/caged/hidden cleanup and repeated disconnect policy stay flagged for implementation review.

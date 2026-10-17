@@ -345,3 +345,8 @@ User confirmed: a disconnected goblin does not count towards the group leaving c
 ## Team leaves before disconnected player returns — 17 October 2026
 
 User confirmed: if the team leaves before a disconnected player reconnects, that player returns to the lair without their dungeon sack, like anyone left behind. No automatic sale or banking of ghost-held items. Reconnect after completion returns to the lair, not the closed dungeon. Preserve actual item ownership: loot already recovered and carried out by teammates settles normally. This resolves survivor extraction during disconnect grace; all-connected-player disconnect/failure policy remains pending. Documentation only; V24 unchanged.
+
+
+## Last standing goblin disconnected — 17 October 2026
+
+User confirmed the explicit failure exception: if the only standing goblin is disconnected, the run remains open for the remainder of its existing 60-second grace. Reconnecting resumes play; expiry without a standing rescuer ends the run as a loss. Do not restart the timer or grant successful zero-player extraction. If multiple standing goblins disconnect, honor each existing timer and fail once none can still return. This exception does not revive downed/carried/caged goblins. Special disconnect-state cleanup and repeated disconnections remain pending. Documentation only; V24 unchanged.
