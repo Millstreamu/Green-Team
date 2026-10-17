@@ -53,11 +53,12 @@ export function validateSave(saved) {
   const blank = createCamp();
   restoreSave({ version: 1, camp: blank, players: saved.profiles.map(p => ({ ...p, bag: [], interrupted: false })) });
   const identities = new Map(saved.profiles.map(p => [p.token, p]));
-  const ids = new Set(), names = new Set();
+  const ids = new Set(), names = new Set(), ownerIds = new Set(saved.profiles.map(p => p.id));
   for (const lair of saved.lairs) {
     requireSave(validId(lair?.id) && !ids.has(lair.id) && typeof lair.name === 'string'
       && lair.name === lair.name.trim() && lair.name.length >= 1 && lair.name.length <= 32
       && !/\p{C}/u.test(lair.name) && !names.has(lair.name.toLowerCase())
+      && (lair.ownerId == null || typeof lair.ownerId === 'string' && ownerIds.has(lair.ownerId))
       && typeof lair.code === 'string' && /^[A-Z2-9]{6}$/.test(lair.code));
     ids.add(lair.id); names.add(lair.name.toLowerCase());
     restoreSave(lair.state);

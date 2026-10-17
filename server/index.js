@@ -19,7 +19,7 @@ export function createGameServer({ session = createHubSession(), admin = null } 
       const relative = path === '/' ? 'index.html' : path.slice(1);
       if (!(relative === 'index.html' || relative.startsWith('src/') || relative === 'assets/goblin.png') || relative.includes('..')) { res.writeHead(404).end(); return; }
       let data = await readFile(resolve(root, relative));
-      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Choose your lair · V39'));
+      if (relative === 'index.html') data = Buffer.from(data.toString().replace('src/main.js', 'src/online-main.js').replace('Plan and board · V30', 'Your lairs · V40'));
       res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png' })[extname(relative)], 'Cache-Control': 'no-store' }); res.end(data);
     } catch { res.writeHead(404).end(); }
   });
@@ -82,7 +82,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const filename = resolve(process.env.GREEN_TEAM_SAVE_FILE || resolve(root, 'data/home.sqlite'));
   const store = openSaveStore(filename);
   const backups = createBackupStore(resolve(dirname(filename), 'backups'));
-  const session = createHubSession({ store, beforeMigration: state => backups.create(state, 'Before named-lair migration') });
+  const session = createHubSession({ store, beforeMigration: state => backups.create(state, 'Before lair save update') });
   const admin = createAdminHttp(createHubAdminController(session, backups));
   const { server, wss } = createGameServer({ session, admin });
   let stopping = false;

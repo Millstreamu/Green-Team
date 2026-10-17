@@ -9,9 +9,15 @@ const code = () => Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.l
 export function migrateHubSave(saved) {
   if (!saved) return { version: 2, profiles: [], lairs: [] };
   validateSave(saved);
-  if (saved.version === 2) return structuredClone(saved);
+  if (saved.version === 2) {
+    const next = structuredClone(saved);
+    // V39 inserted the creator as the first lair member before acknowledging
+    // creation. Older empty groups have no identifiable creator to grant access.
+    for (const lair of next.lairs) if (lair.ownerId === undefined) lair.ownerId = lair.state.players[0]?.id ?? null;
+    return next;
+  }
   return { version: 2, profiles: saved.players.map(({ token, id, name, profile }) => ({ token, id, name, profile })),
-    lairs: [{ id: randomUUID(), name: 'Original Lair', code: code(), state: structuredClone(saved) }] };
+    lairs: [{ id: randomUUID(), name: 'Original Lair', code: code(), ownerId: saved.players[0]?.id ?? null, state: structuredClone(saved) }] };
 }
 export function freshLairState() {
   const { counts, slots, destination, nextItemId } = createCamp();
@@ -21,7 +27,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
   const profiles = new Map(), lairs = new Map();
   let failure = null;
   const loaded = store?.load() ?? null;
-  if (loaded?.version === 1) beforeMigration(loaded);
+  if (loaded?.version === 1 || loaded?.version === 2 && loaded.lairs.some(l => l.ownerId === undefined)) beforeMigration(loaded);
   function install(saved) {
     const oldViews = new Map([...profiles].map(([token, p]) => [token, { lairId: p.lairId, connected: p.connected }]));
     lairs.clear();
@@ -33,7 +39,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
     for (const record of saved.lairs) {
       const savedState = structuredClone(record.state);
       const engine = createLairSession({ store: { load: () => savedState, save() {} } });
-      const lair = { id: record.id, name: record.name, code: record.code, engine };
+      const lair = { id: record.id, name: record.name, code: record.code, ownerId: record.ownerId ?? null, engine };
       lairs.set(lair.id, lair);
       for (const p of profiles.values()) engine.bindIdentity(p);
     }
@@ -45,7 +51,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
   function durableState() {
     return { version: 2,
       profiles: [...profiles.values()].map(({ token, id, name, profile }) => ({ token, id, name, profile })),
-      lairs: [...lairs.values()].map(({ id, name, code, engine }) => ({ id, name, code, state: engine.exportState() })) };
+      lairs: [...lairs.values()].map(({ id, name, code, ownerId, engine }) => ({ id, name, code, ownerId, state: engine.exportState() })) };
   }
   function checkpoint() { if (store) store.save(durableState()); }
   function reject(p, text) { p.error = text; return false; }
@@ -87,6 +93,11 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
         leave(p); return true;
       }
       if (p.lairId) return lairs.get(p.lairId).engine.action(p.actor, message);
+      if (message.type === 'enter-owned-lair') {
+        const lair = lairs.get(message.id);
+        if (!lair || lair.ownerId !== p.id) return reject(p, 'That lair belongs to another goblin. Join with its name and code.');
+        return attach(p, lair);
+      }
       if (!['create-lair', 'join-lair'].includes(message.type)) return reject(p, 'Join a lair before playing.');
       if (typeof message.name !== 'string') return reject(p, 'Enter a lair name.');
       const name = message.name.trim();
@@ -94,10 +105,11 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
       const existing = [...lairs.values()].find(l => l.name.toLowerCase() === name.toLowerCase());
       if (message.type === 'create-lair') {
         if (existing) return reject(p, 'That lair name is already in use. Join it with its code, or choose another name.');
-        const record = { id: randomUUID(), name, code: code() };
+        const record = { id: randomUUID(), name, code: code(), ownerId: p.id };
         record.engine = createLairSession({ store: { load: freshLairState, save() {} } });
         lairs.set(record.id, record); return attach(p, record);
       }
+      if (existing?.ownerId === p.id) return attach(p, existing);
       p.joinFailures ??= 0; p.joinCooldown ??= 0;
       if (p.joinCooldown > 0) return reject(p, 'Too many incorrect codes. Wait a few seconds, then try again.');
       const supplied = typeof message.code === 'string' ? message.code.trim().toUpperCase() : '';
@@ -121,7 +133,8 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
         return { ...lair.engine.snapshot(p.actor), ...meta, screen: 'game', lair: { id: lair.id, name: lair.name, code: lair.code } };
       }
       return { type: 'state', ...meta, screen: 'home', location: 'menu', players: [], bag: [], held: null, result: null,
-        recentLairs: [...lairs.values()].filter(l => l.engine.hasIdentity(p.token)).map(l => ({ id: l.id, name: l.name })) };
+        ownedLairs: [...lairs.values()].filter(l => l.ownerId === p.id).map(l => ({ id: l.id, name: l.name })),
+        recentLairs: [...lairs.values()].filter(l => l.ownerId !== p.id && l.engine.hasIdentity(p.token)).map(l => ({ id: l.id, name: l.name })) };
     },
     adminState() { return structuredClone(durableState()); },
     adminInfo(lairId) {

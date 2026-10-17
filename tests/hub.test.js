@@ -107,7 +107,8 @@ test('whole-server save restores lair codes/sacks/profiles, and old single-lair 
   h.action(a, { type: 'take', item: 'snare' }); h.action(b, { type: 'take', item: 'cloth' });
   const restored = createHubSession({ store }), ra = restored.connect(a.token), rb = restored.connect(b.token);
   assert.equal(restored.snapshot(ra).screen, 'home'); enter(restored, ra, lairA); enter(restored, rb, lairB);
-  assert.equal(ra.actor.bag[0].type, 'snare'); assert.equal(rb.actor.bag[0].type, 'cloth'); validateSave(store.load());
+  assert.equal(ra.actor.bag[0].type, 'snare'); assert.equal(rb.actor.bag[0].type, 'cloth');
+  assert.equal(restored.snapshot(ra).lair.code, lairA.code); assert.equal(restored.snapshot(rb).lair.code, lairB.code); validateSave(store.load());
   const old = createLairSession(), p = old.connect(); old.action(p, { type: 'take', item: 'snare' });
   let saved = old.adminState(), calls = 0;
   const migrated = createHubSession({ store: { load: () => saved, save: v => { saved = structuredClone(v); } }, beforeMigration(state) { backups.create(state, 'Before migration'); calls++; } });
@@ -179,6 +180,11 @@ test('real socket clients start at menu, create/join by code, isolate lairs and 
   assert.equal(edited.status, 200); await until(() => a.state.camp.counts.gold === 77);
   assert.equal(b.state.camp.counts.gold, 0);
   assert.ok(!b.state.players.some(p => p.id === a.state.selfId)); assert.ok(!JSON.stringify(b.state).includes(a.state.lair.code));
+  a.ws.send(JSON.stringify({ type: 'leave-lair' })); await until(() => a.state.screen === 'home');
+  assert.equal(a.state.ownedLairs.length, 2);
+  a.ws.send(JSON.stringify({ type: 'enter-owned-lair', id: lair.id })); await until(() => a.state.lair?.id === lair.id);
+  assert.equal(a.state.bag.length, 1); // Own sack restored without submitting a code.
+
 });
 
 test('old single-lair backups restore into Original Lair without changing its join code or losing newer identities', t => {
@@ -221,4 +227,41 @@ test('browser admin lair selector sends scoped requests and shows the selected j
   assert.equal(get('admin-lair-code').textContent, lairB.code);
   get('admin-item').value = 'gold'; get('stock-amount').value = '777'; get('stock-form').send('submit'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(commands.at(-1).lairId, lairB.id); assert.equal(hub.snapshot(b).camp.counts.gold, 777); assert.equal(hub.snapshot(a).camp.counts.gold, 0);
+});
+
+test('creator re-enters without a code after restart; friends and forged owners still need the join code', t => {
+  const { hub: h, a, b, store, admin } = fixture(t), lair = create(h, a, 'My Home');
+  h.action(a, { type: 'take', item: 'snare' }); leave(h, a);
+  assert.deepEqual(h.snapshot(a).ownedLairs, [{ id: lair.id, name: lair.name }]); assert.deepEqual(h.snapshot(b).ownedLairs, []);
+  assert.equal(h.action(b, { type: 'enter-owned-lair', id: lair.id, ownerId: b.id }), false);
+  assert.equal(h.action(b, { type: 'join-lair', name: lair.name, ownerId: b.id }), false);
+  enter(h, b, lair); leave(h, b); assert.equal(h.action(b, { type: 'enter-owned-lair', id: lair.id }), false);
+  assert.equal(h.action(a, { type: 'enter-owned-lair', id: lair.id }), true); assert.equal(a.actor.bag.length, 1);
+  leave(h, a); assert.equal(h.action(a, { type: 'join-lair', name: lair.name }), true); leave(h, a);
+  const restored = createHubSession({ store }), ra = restored.connect(a.token), rb = restored.connect(b.token);
+  assert.deepEqual(restored.snapshot(ra).ownedLairs, [{ id: lair.id, name: lair.name }]);
+  assert.equal(restored.action(ra, { type: 'enter-owned-lair', id: lair.id }), true); assert.equal(ra.actor.bag.length, 1);
+  assert.equal(restored.action(rb, { type: 'enter-owned-lair', id: lair.id }), false);
+  const point = admin.command({ type: 'backup' }).backupId;
+  admin.command({ type: 'reset-all' }); assert.equal(h.adminState().lairs[0].ownerId, a.id);
+  admin.command({ type: 'restore', backupId: point }); assert.equal(h.adminState().lairs[0].ownerId, a.id);
+  assert.equal(h.action(a, { type: 'enter-owned-lair', id: lair.id }), true); assert.equal(a.actor.bag.length, 1);
+  const bad = h.adminState(); bad.lairs[0].ownerId = 'unknown-goblin'; assert.throws(() => validateSave(bad), /Invalid/);
+});
+
+test('V39 ownership backfill is backed up and durable, while ownerless lairs cannot be claimed by first visitors', t => {
+  const { hub: h, a, b, backups, admin } = fixture(t), lair = create(h, a, 'Older'); enter(h, b, lair);
+  const old = h.adminState(); delete old.lairs[0].ownerId; let saved = old, count = 0;
+  const migrated = createHubSession({ store: { load: () => saved, save: state => { saved = structuredClone(state); } }, beforeMigration(state) { count++; backups.create(state, 'Before ownership update'); } });
+  const ma = migrated.connect(a.token); assert.equal(count, 1); assert.equal(saved.lairs[0].ownerId, a.id);
+  assert.equal(migrated.action(ma, { type: 'enter-owned-lair', id: lair.id }), true);
+  const reordered = structuredClone(old); reordered.lairs[0].state.players.reverse();
+  const oldPoint = backups.create(reordered, 'Old backup without ownership');
+  admin.command({ type: 'restore', backupId: oldPoint }); assert.equal(h.adminState().lairs[0].ownerId, a.id);
+  const none = structuredClone(saved); none.lairs[0].ownerId = null;
+  const ownerless = createHubSession({ store: { load: () => none, save() {} } }), visitor = ownerless.connect(b.token);
+  assert.deepEqual(ownerless.snapshot(visitor).ownedLairs, []); assert.equal(ownerless.action(visitor, { type: 'enter-owned-lair', id: lair.id }), false);
+  enter(ownerless, visitor, lair);
+  const restarted = createHubSession({ store: { load: () => ownerless.adminState(), save() {} } });
+  assert.equal(restarted.adminState().lairs[0].ownerId, null);
 });

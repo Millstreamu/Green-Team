@@ -30,7 +30,13 @@ export function createHubAdminController(session, backups) {
         next = migrateHubSave(saved);
         if (saved.version === 1) {
           const original = state.lairs.find(l => l.name === 'Original Lair');
-          if (original) Object.assign(next.lairs[0], { id: original.id, name: original.name, code: original.code });
+          if (original) Object.assign(next.lairs[0], { id: original.id, name: original.name, code: original.code, ownerId: original.ownerId });
+        }
+        if (saved.version === 2) for (const lair of next.lairs) {
+          if (saved.lairs.find(l => l.id === lair.id)?.ownerId === undefined) {
+            const current = state.lairs.find(l => l.id === lair.id);
+            if (current) lair.ownerId = current.ownerId;
+          }
         }
         for (const p of state.profiles) if (!next.profiles.some(q => q.token === p.token)) next.profiles.push({ ...p, profile: createProfile(p.id) });
         for (const l of state.lairs) if (!next.lairs.some(q => q.id === l.id)) next.lairs.push({ ...l, state: freshLairState() });

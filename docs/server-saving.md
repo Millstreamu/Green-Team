@@ -1,4 +1,4 @@
-# Server saving — V39
+# Server saving — V40
 
 Run `npm ci`, then `npm start` as before. Node 22.13+ includes the SQLite database used here; no database download is needed. Existing Node24 works.
 
@@ -51,3 +51,7 @@ The private browser admin tool adds manual backups plus an automatic before-chan
 The same database row now holds payload version2: canonical global personal profiles and named lairs with six-character codes and separate version1 durable home states. Membership bags stay lair-specific; profile references are bound to the canonical identity, including offline departed participants who later earn XP. A single server checkpoint commits all lairs and global profiles together. The original per-lair domain engine still owns gameplay; a hub routes each connection exclusively to its joined lair. Nonmembers cannot route actions by supplying another lair ID.
 
 V36–V38 payloads are backed up before CLI migration, then preserved as Original Lair. Its code is in admin. Old single-home backup restore maps into Original Lair, retaining its current code when it exists. V39 backups cover the entire server. Newer identities/lairs survive restoration with reset progression/stock as described in lair-entry.md. Do not open the new payload with older game versions. Browser identity keys remain unchanged. Prepared sacks and active runs retain all existing spend/loss/reward/reconnect rules, now within their own lair. Fresh launch and ordinary home reload lead to the home screen; live in-run reconnect still resumes its actor within grace.
+
+## V40 creator ownership
+
+Payload2 lair metadata now includes nullable ownerId, checked against known global profile IDs. Newly created lairs record the creator on the server before acknowledgement. V39 records missing that field are backed up, then backfilled from their first saved member; empty groups get explicit null. Explicit null is preserved across later restarts. Canonical personal identities retain their ownership even when progression is reset. Owned-lair entry authenticates the current socket's goblin ID rather than accepting a client-supplied owner. Friends still need valid codes. Backup/restore preserves recorded ownership; restoring older metadata does not overwrite a known owner. No lair economy or level/XP rules change.

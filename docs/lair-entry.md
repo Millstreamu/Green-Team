@@ -1,8 +1,14 @@
-# Home screen and named lairs — V39
+# Home screen and named lairs — V40
 
 Start the server as usual and open http://localhost:8080. You now begin on a home screen with your existing goblin, displayed level and XP. There are no recipe/passive controls there. Use **Create lair** with a name, or **Join lair** with a name and six-character code from a friend. Newly created lairs start with the normal starter stock. The server generates the code; it appears beside the lair name above the game after joining. Everyone in that lair can share it.
 
-Names are unique on this server,1–32 characters, trimmed and matched without case sensitivity. Codes are also matched without case sensitivity and must be supplied each time you join from the home screen. Five wrong-code attempts temporarily pause that goblin's attempts for10seconds. Previous lairs show names only and prefill the join name; they do not reveal or bypass codes. There is no public directory of other groups' lairs.
+Names are unique on this server,1–32 characters, trimmed and matched without case sensitivity. Codes are matched without case sensitivity. Friends supply them when joining; creators can use Your lairs to enter without a code. Five wrong-code attempts temporarily pause that goblin's attempts for10seconds. Previously visited friends’ lairs show names only and prefill the join name; they do not reveal or bypass codes. There is no public directory of other groups' lairs.
+
+## Your lairs
+
+The server records the creating goblin's ID. That goblin sees the lair in **Your lairs** and can enter with a dedicated button, without supplying the code. The friend join form stays separate. Knowing a lair ID or having visited before does not make another goblin the creator. Normal name-based join also recognises the owner. Ownership survives restart, personal/all-progress reset and backup/restore, and gives no server-admin powers.
+
+V39 did not store a separate creator field, but normally saved the creator as its first lair member. V40 backs up and uses that first saved member for old groups; older empty groups remain unowned and still require their code. Existing explicit unowned records never become owned merely because someone visits. Restoring an old backup without ownership metadata preserves a known current owner where possible. Keep using the same goblin identity to see its lairs.
 
 ## What travels with the goblin
 

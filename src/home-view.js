@@ -1,7 +1,11 @@
 import { PROGRESSION } from './config.js';
 export function createHomeView(send) {
   const $ = selector => document.querySelector(selector);
-  let recent = [];
+  let recent = [], owned = [];
+  $('#enter-owned-lair').addEventListener('click', () => {
+    $('#home-message').textContent = 'Entering your lair…';
+    send({ type: 'enter-owned-lair', id: $('#owned-lairs').value });
+  });
   $('#join-lair-form').addEventListener('submit', event => {
     event.preventDefault(); $('#home-message').textContent = 'Joining lair…';
     send({ type: 'join-lair', name: $('#join-lair-name').value, code: $('#join-lair-code').value });
@@ -25,6 +29,17 @@ export function createHomeView(send) {
       $('#home-level-progress').max = PROGRESSION.levelXp; $('#home-level-progress').value = progress;
       $('#home-level-detail').textContent = `${progress} / ${PROGRESSION.levelXp} XP toward next level`;
       $('#join-lair').disabled = !connected; $('#create-lair').disabled = !connected;
+      const nextOwned = state.ownedLairs ?? [];
+      if (JSON.stringify(owned) !== JSON.stringify(nextOwned)) {
+        const previous = $('#owned-lairs').value;
+        owned = nextOwned;
+        $('#owned-lairs').replaceChildren(...owned.map(l => {
+          const option = document.createElement('option'); option.value = l.id; option.textContent = l.name; return option;
+        }));
+        $('#owned-lairs').value = owned.some(l => l.id === previous) ? previous : owned[0]?.id ?? '';
+      }
+      $('#owned-lair-section').hidden = !owned.length;
+      $('#enter-owned-lair').disabled = !connected || !owned.length;
       const next = state.recentLairs ?? [];
       if (JSON.stringify(recent) !== JSON.stringify(next)) {
         recent = next;
