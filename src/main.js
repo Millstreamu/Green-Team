@@ -1,3 +1,4 @@
+import { loadProfile, saveProfile, awardPersonalXp } from './profile.js';
 import { createPressure, updatePressure } from './pressure.js';
 import { pressureLabel } from './pressure-view.js';
 import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
@@ -26,7 +27,14 @@ const results = createResultsView(document.querySelector('#run-results'));
 let campStorage;
 try { campStorage = window.localStorage; } catch {}
 const camp = loadCamp(campStorage);
-const persistCamp = () => { document.querySelector('#save-status').textContent = saveCamp(camp, campStorage) ? 'LAIR SAVED IN THIS BROWSER' : 'LAIR KEPT WHILE THIS GAME IS OPEN'; }; 
+const profile = loadProfile(campStorage);
+let lairSaved = false, goblinSaved = false;
+const refreshSaveStatus = () => {
+  document.querySelector('#save-status').textContent = lairSaved && goblinSaved ? 'LAIR + GOBLIN SAVED IN THIS BROWSER'
+    : lairSaved ? 'LAIR SAVED · GOBLIN KEPT WHILE OPEN' : goblinSaved ? 'GOBLIN SAVED · LAIR KEPT WHILE OPEN' : 'LAIR + GOBLIN KEPT WHILE THIS GAME IS OPEN';
+};
+const persistCamp = () => { lairSaved = saveCamp(camp, campStorage); refreshSaveStatus(); };
+const persistProfile = () => { goblinSaved = saveProfile(profile, campStorage); refreshSaveStatus(); }; 
 let render;
 try {
   render = await createRenderer(canvas, document.querySelector('#map'));
@@ -59,7 +67,7 @@ const enterLair = () => {
   pointer.active = false; pointer.overGame = false;
   document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = 'At home';
   document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
-  persistCamp(); canvas.focus(); updateTarget();
+  persistCamp(); persistProfile(); canvas.focus(); updateTarget();
   tell('Welcome home. WASD to walk. E at the stash, workbench or dungeon tunnel.');
 };
 const reset = () => {
@@ -97,6 +105,7 @@ const interactLair = () => {
 const showRunResult = (result, message) => {
   if (!result) return;
   if (bankEscape(camp, result, loot)) persistCamp();
+  result.personalXp = awardPersonalXp(profile, result); persistProfile();
   cancelSearch(searchSession); cancelHiding(player); leaveHiding(player);
   input.clear(); dragStart = null; player.moving = false; player.phase = 0;
   cancelPlacement(placement); results.open(result); tell(message);
@@ -266,6 +275,8 @@ const frame = time => {
   updateTarget();
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId && !player.hiding }, dt);
   render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement, clouds, hidingSpots, hideTarget, pressure); sack.paint(loot, pointer);
+  const xpText = `Your goblin · ${profile.xp} XP`;
+  if (document.querySelector('#xp-label').textContent !== xpText) document.querySelector('#xp-label').textContent = xpText;
   const heatLabel = document.querySelector('#heat-label');
   heatLabel.hidden = world.lair;
   heatLabel.textContent = pressureLabel(pressure);

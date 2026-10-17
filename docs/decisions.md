@@ -384,3 +384,10 @@ Personal XP learning recipes and shared gold improving lair facilities are the a
 ## Equal personal XP from team haul approved — 17 October 2026
 
 User approved the proposal: all run participants earn the same personal XP based on the team's recovered loot, independent of who personally picked it up. This supports rescuing/helping rather than competing for loot ownership. Participants left behind remain participants; players waiting to join the next run do not receive XP for a run they did not enter. No exact XP conversion, failed-run reward, disconnected participant eligibility, level thresholds or recipe schedule set yet. Resolve reward once per run and credit each eligible profile once. Existing V24 remains unchanged; next bounded playable slice can show personal XP/results separately from group lair stock.
+
+
+## V25 personal XP first playable slice — 17 October 2026
+
+User approved personal XP display, XP on results and a separate personal save. Implemented without choosing level/unlock thresholds. Starting tuning is 1 XP per gold of recovered valuables; materials/gear/debug supplies do not generate XP in this test, empty/failed solo runs yield zero and earned XP is retained. Reuse existing sale values including Hard per-item rounding. Spending group gold cannot change personal XP.
+
+profile.js separates personal XP from existing camp save and credits each profile once per live team-haul result, allowing equal rewards to multiple profiles. This local single-profile prototype has no accounts, named group joining or server reward persistence. In-memory duplicate prevention must become durable run/profile transactions on the server. Final XP values, material/failure rewards, disconnect eligibility and recipe/level schedule remain to decide. Current gold-funded recipe UI is retained until a personal-recipe slice replaces it explicitly.

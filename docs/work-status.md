@@ -349,3 +349,12 @@ User selected a persistent home for each friend group and said run with it. Upda
 ## Team-haul personal XP accepted
 
 User approved equal XP for all participating goblins based on team recovered loot, with no pickup-owner bonus. Updated active ownership/XP review and decisions; spectators/waiting arrivals excluded, left-behind participants still participated. Exact conversion, failure rewards and disconnected eligibility remain open, as do unlock thresholds. Next bounded playable proposal: personal XP display plus end-run earned XP, saved separately from group lair stock; defer a large unlock tree until pacing is tested. No runtime changes/tests, V24 remains approved baseline.
+
+
+## V25 personal XP playable test ready
+
+Added profile.js (separate local personal save, team-haul XP calculation, per-profile live-result reward receipts), PROGRESSION.xpPerGold=1, main profile lifecycle/save/result settlement, personal XP HUD and result text using existing styles. Existing camp save untouched. XP reflects recovered valuable sale prices including Hard rounding; no materials/equipment/debug/failed-solo rewards in provisional slice. Retains XP after gold spending, lair stock changes or later loss. Footer distinguishes personal/lair save availability. Build includes module; index title/notes updated.
+
+Verified all 107 tests pass. New profile suite covers actual Hard run/packing/escape/bank XP, equal profile credits/idempotence, empty/lost/material/debug exclusions, separate save reload/corruption/blocked storage and integer bounds. Real main event flow verifies initial total, ruby escape+25XP, saved total, gold purchase independence and later loss+0XP without removing earned XP. Standalone build, bundle syntax and unique HTML IDs pass. Review artifact green-team-xp-v25.html; canonical play.html updated. No rendered browser or online team test.
+
+Next user playtests XP display/pacing. Recipe unlock levels/facilities, account identity and named persistent group joining remain to specify; current prototype still has gold-paid shared recipes, solo stock prep and shared crafting output. Do not imply approved future progression/gear/network changes are already built. Server rewards need durable run/profile deduplication and transactions; local receipt Map is only live-session protection.

@@ -20,7 +20,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'heat-label', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run', 'debug-supplies', 'snare-stock', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'recipe-snare-state', 'smoke-count', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'heat-label', 'xp-label', 'result-xp', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run', 'debug-supplies', 'snare-stock', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'recipe-snare-state', 'smoke-count', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
   elements.get('job-choice').value = 'manor'; elements.get('difficulty-choice').value = 'normal';
   elements.get('snare-count').value = '1'; elements.get('smoke-count').value = '0';
   const doc = new Surface(), win = new Surface(), frames = [];
@@ -50,6 +50,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   const prepareRun = () => { walk('KeyW', 80); tap('KeyE'); assert.equal(elements.get('run-setup').open, true); };
   tick();
   assert.match(elements.get('target-label').textContent, /Lair/);
+  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 0 XP');
   tap('Tab'); assert.equal(elements.get('lair-panel').open, true);
   elements.get('stash-grid').send('keydown', { code: 'KeyE' });
   elements.get('stash-grid').send('keydown', { code: 'KeyD' });
@@ -139,6 +140,9 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   doc.send('pointerdown', { target: elements.get('sack-grid'), clientX: 770, clientY: 380 }); tick();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.equal(campCounts().ruby, 0); assert.equal(campCounts().gold, 25); assert.equal(campCounts().snare, 2);
+  assert.equal(elements.get('result-xp').textContent, 'Your goblin: +25 XP · Total 25 XP');
+  assert.equal(elements.get('xp-label').textContent, 'Your goblin · 25 XP');
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 25);
   assert.equal(elements.get('haul-total').textContent, summary);
   assert.match(elements.get('target-label').textContent, /run complete/);
   elements.get('next-run').send('click'); tick();
@@ -147,6 +151,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.match(elements.get('craft-smoke').textContent, /Unlock/);
   elements.get('craft-smoke').send('click'); tick();
   assert.equal(campCounts().gold, 5);
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 25);
   assert.equal(JSON.parse(saved.get('green-team-camp-v1')).unlocked.smoke, true);
   elements.get('craft-smoke').send('click'); tick();
   assert.equal(campCounts().smoke, 1); assert.equal(campCounts().gold, 5);
@@ -184,6 +189,8 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   for (let i = 0; i < 4000 && !elements.get('run-results').open; i++) tick();
   assert.equal(elements.get('run-results').open, true);
   assert.equal(elements.get('results-title').textContent, 'You went down.');
+  assert.equal(elements.get('result-xp').textContent, 'Your goblin: +0 XP · Total 25 XP');
+  assert.equal(JSON.parse(saved.get('green-team-goblin-v1')).xp, 25);
   assert.match(elements.get('heat-label').textContent, /Heat [1-9][0-9]*%.*Alerts [1-9]/);
   assert.equal(campCounts().ruby, 0); assert.equal(campCounts().gold, 5); assert.equal(campCounts().snare, 1);
   assert.match(elements.get('haul-total').textContent, /^2 items lost/);

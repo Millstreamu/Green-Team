@@ -2,7 +2,7 @@
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
-A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. Hosting, multiplayer and player limits remain undecided.
+A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. Server-based multiplayer is the chosen direction; hosting setup, online implementation and player limits remain future work.
 
 ## Play
 
@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V24 heat and reinforcement pressure. Trigger three guard alerts, watch a guard door warn and admit a new sweeping guard, then break pursuit and hide to cool heat. Check the growing population still pushes you towards escape. Multiplayer remains deferred.
+Next: playtest V25 personal XP. Escape with valuables, check earned XP and the persistent personal total, then spend shared gold or try another run: personal XP stays yours. Multiplayer remains deferred.
 
 
 ## V12: single-use snare
@@ -207,3 +207,14 @@ Guard doors appear in solid top-wall sections in some rooms. Goblins cannot open
 Provisional values in HEAT in config.js: 30 seconds of pursuit to full heat, four quiet seconds before cooling, 20 seconds from full heat to zero, max chase speed 1.08 times goblin speed, three alerts per reinforcement, two-second arrival warning, doors about every third non-entrance room. pressure.js owns run state, doors, sweep construction and queued spawns; pressure-view.js owns door/HUD feedback. Existing navigation/routines are reused. Each new run resets pressure. Lair/results do not advance it; active runs still do not resume after reload.
 
 Verified: 102 automated tests, standalone build, bundled syntax and unique HTML IDs. New tests cover 100 generated door layouts, per-guard counts, carryover/warnings/arrival, no population cap, heat rise/grace/cooling/speed cap, actual guard re-alert reset, hiding witnesses, sweep movement/pauses and run reset. Existing real main event flow checks heat/count HUD and reset alongside the full economy/gear/hiding loop. No rendered browser or online multiplayer test; pressure balance, door readability and performance with many guards await playtest. Review copy: green-team-heat-v24.html.
+
+
+## V25: first personal XP test
+
+Your goblin's XP total is visible beside health in the lair and dungeon. The existing run-results dialog shows earned XP and the new personal total. Provisional pacing in PROGRESSION.xpPerGold is 1 XP per gold of recovered valuables, using the same per-item price/Hard rounding as selling. Materials and unused/debug equipment award no XP in this first test. Empty escapes and solo failed runs award zero; they never reduce already earned XP. No XP is earned merely by picking items up or abandoning a run.
+
+profile.js stores a separate personal profile under green-team-goblin-v1; existing lair stock/recipes remain under their previous key. Gold spending and lair stock changes cannot spend/reset XP. Saves reload locally when browser storage is available; otherwise XP still works in memory, with the footer reporting personal and lair save status. This is one local browser goblin profile, not accounts or server-synced progress yet.
+
+A team result can credit multiple distinct profiles equally, with per-profile receipts preventing repeated credit for that live result. The current playable build is solo; future server reward settlement must use durable run/profile IDs, eligibility and database transactions before claiming reconnect/crash-safe or actual team XP. Server accounts, group-lair joining, personal recipe unlock thresholds and a level tree are deferred. Existing prototype gold-funded recipes and shared-stock crafting remain until their replacement slice is specified.
+
+Verified: 107 automated tests, standalone build, bundled syntax and unique HTML IDs. New tests cover actual recovered Hard haul values, equal multi-profile rewards and duplicate prevention, loss/empty/material/debug exclusions, independent personal/lair saves, reload/corruption/blocked storage and integer-safe totals. Main event flow checks the XP HUD, results, save, gold-spend independence and later loss retention. No rendered browser or online team test; pacing/readability await playtest. Review copy: green-team-xp-v25.html.
