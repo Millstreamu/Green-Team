@@ -102,15 +102,15 @@ Crafting, purchases and withdrawals must validate against the same shared quanti
 
 Per-player damage immunity, knockback and attack direction must remain separate. A guard's invisible trail belongs to its pursued target, not whichever browser updates last. Smoke must obstruct the same sight checks for everyone. Placement safety follows the actual setter's identity. No secret map/guard information should leak through another player's local UI unless the team intentionally shares it.
 
-## Heat and reinforcements — core agreed, counting detail pending
+## Heat and reinforcements — per-guard counting agreed
 
 Agreed: shared dungeon heat rises during sustained pursuit, including fresh trail-following, holds through brief sight breaks, and slowly cools after a grace period without pursuit. Higher heat gradually increases alerted guards' chase speed, capped just above goblin running speed at maximum heat. Keep routine routes and attack timing predictable; heat never reveals hidden goblins. Show readable heat feedback. Exact rates, delay and speed cap remain tuning parameters.
 
 User additionally requested one extra guard entering the dungeon for every three chases/alerts. Reinforcements remain for the rest of that run: cooling heat does not remove them. The accumulating guards create increasing run pressure, eventually making continued looting/escape overwhelmingly difficult. Do not silently cap the guard count to negate that intended pressure. No automatic elapsed-time reinforcements were requested.
 
-Counting still needs confirmation. Recommended: count separate team alert incidents, not each alerted guard, each browser, or repeated sight checks. Several guards spotting goblins together count once; an ongoing chase or brief reacquisition does not repeatedly increment the counter. A genuinely new alert after pursuit has cleared counts again. Every third incident adds one guard and counting continues. This is a proposal until confirmed.
+Agreed counting: each individual guard becoming alerted adds one to the shared run counter. Two guards catching the team together add two counts; three add three and bring one reinforcement. This intentionally makes being spotted by multiple guards substantially more dangerous. The previous recommendation to combine simultaneous guard alerts into one team incident is rejected. Every third guard alert adds one guard; carry any remainder forward, and retain the counter through heat cooling.
 
-Still open: precise incident start/end rules, reinforcement entry location/arrival warning, heat tuning and difficulty/party scaling, and jail-guard interaction. Local detection/global heat must not imply every guard knows every goblin's position. No heat or reinforcement runtime code has been added.
+Count alert events rather than every frame of pursuit. Precise re-alert/reset rules for the same guard remain tuning/design details; do not repeatedly count an uninterrupted chase or count the same guard once per player/browser. Still open: reinforcement entry location/arrival warning, heat tuning and difficulty/party scaling, and jail-guard interaction. Local detection/global heat must not imply every guard knows every goblin's position. No heat or reinforcement runtime code has been added.
 
 ## Batch 7 — progress, difficulty and running the session
 

@@ -300,3 +300,8 @@ Still pending: failure with no free standing rescuers, Packed Lunch consumption/
 User accepted the preceding shared-heat proposal and added one new guard entering after every three chases/alerts. Heat gradually increases alerted chase speed, capped just above goblin speed; escaping pursuit allows delayed slow cooling. Reinforcements persist for the run independently of cooling, accumulating pressure until staying becomes untenable. No extra escalation systems requested. Exact heat values remain tuning details.
 
 Counting clarification pending: recommend one separate team alert incident, even when multiple guards spot players together; continuous pursuit and brief reacquisition do not generate repeated counts. Ask before marking that interpretation agreed. Entry location and warning remain unspecified. Documentation only; no runtime implementation.
+
+
+## Reinforcement alerts count per guard — 17 October 2026
+
+User explicitly chose each guard alert as one count: getting caught by two guards adds two, intentionally making multiple-guard detection a bigger problem. This rejects the proposed combined team-incident count. Every three guard alerts bring one permanent-for-this-run extra guard; keep remainder counts and do not reset on heat cooling. Count events, not pursuit frames or one event per observing browser/player. Same-guard re-alert/reset details remain unspecified. Documentation only.

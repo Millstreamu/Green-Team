@@ -267,3 +267,8 @@ User said “ok cool” to no-free-standing-player failure and hold-E rescue/can
 ## Heat accepted and reinforcement cadence recorded
 
 User accepted shared pursuit-driven heat and requested one additional persistent guard every three chases/alerts, creating increasing run pressure. Updated multiplayer review and decisions. Next clarify whether multiple guards spotting the team together count as one team incident (recommended) or separately; continuous-pursuit counting and reinforcement arrival details remain pending. No further escalation features requested. Documentation only; V21 remains playable, no runtime changes or game tests rerun.
+
+
+## Per-guard reinforcement counting confirmed
+
+User rejected combining simultaneous detections into one team alert. Each alerted guard adds one count; two spotting together add two. Updated active review and decision log, preserving one persistent extra guard every three counts. Precise same-guard re-alert rules and reinforcement arrival details remain open. No runtime changes or tests rerun; V21 remains current.
