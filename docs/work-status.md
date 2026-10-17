@@ -324,3 +324,8 @@ User accepted keeping the run alive for the existing remaining grace of the last
 ## Shared interaction batch approved; backend options explained
 
 User approved one searcher per container, floor-drop item sharing and pass-through goblin movement. Active review and decisions updated. Added dedicated-server versus browser P2P requirements and official references as a pending architecture comparison. Recommend a single Node.js game process, secure WebSockets and durable lair storage for the original cheap-server goal; P2P still needs connection services and host-loss/save decisions. Choice remains open. Documentation only, no tests rerun, V24 remains current approved playable build.
+
+
+## Server-based direction accepted; next shared supplies
+
+User chose the dedicated-server recommendation (Node.js, secure WebSockets/HTTPS, SQLite). Updated active networking notes and decision log; P2P no longer current direction. Framework/provider/budget/party limit remain open, no purchase/deployment or network code. Next discuss taking shared gear into personal sacks during lair preparation and handling simultaneous stock use; use existing agreed shared-access intent rather than re-asking who owns the stash. V24 remains current, documentation only, no tests rerun.

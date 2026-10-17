@@ -357,3 +357,8 @@ User confirmed the explicit failure exception: if the only standing goblin is di
 User explicitly approved all three: one searching goblin per container, dropping items for teammates to pick up, and goblins walking through each other to prevent doorway blocking. Update active D1–D3 rules accordingly. Existing item identity/conservation and single-spill constraints apply regardless of networking architecture.
 
 User asked what backend is needed for dedicated server versus P2P. Added a pending architecture comparison: recommended Node.js/secure WebSocket game server with durable shared-lair storage versus WebRTC host-authoritative browser plus signaling/STUN/TURN and explicit save/host-migration policy. No stack, provider, party size, server budget or P2P topology chosen; no network implementation begun.
+
+
+## Server-based multiplayer selected — 17 October 2026
+
+User accepted the recommendation: a small rented server runs shared game state independently of browsers. Starting backend is Node.js, secure WebSockets, HTTPS and SQLite for durable shared-lair storage. P2P is not the current plan. Colyseus is still only a candidate framework; no provider, machine size, price, party cap or deployment selected. No server/network implementation or paid provisioning started. Continue remaining multiplayer behavior review, next shared stash/crafting and supply preparation.
