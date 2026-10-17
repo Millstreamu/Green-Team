@@ -1,3 +1,5 @@
+import { createPressure, updatePressure } from './pressure.js';
+import { pressureLabel } from './pressure-view.js';
 import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
 import { seesPlayer } from './guard.js';
 import { selectJob } from './jobs.js';
@@ -32,6 +34,7 @@ try {
   document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
   throw error;
 }
+let pressure;
 let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
 let hidingSpots = [], hideTarget = null;
 let objects = [], searchSession = createSearchSession(), searchTarget = null;
@@ -48,7 +51,7 @@ const updateTarget = () => {
 };
 const enterLair = () => {
   results.close();
-  world = createLairWorld();
+  world = createLairWorld(); pressure = createPressure(world);
   player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
   guards = []; objects = []; hidingSpots = []; hideTarget = null; loot = createLoot(); traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now()); run.phase = 'lair'; run.entrance = { ...world.stations.find(station => station.kind === 'tunnel') };
@@ -74,7 +77,7 @@ const loadout = createLoadoutView(document.querySelector('#run-setup'), (quantit
   if (!selected) return false;
   world = generateDungeon(seed); world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = selected.bag;
-  guards = createGuards(world); objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  guards = createGuards(world); objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);
@@ -238,7 +241,7 @@ const frame = time => {
     }
     const events = { hit: false, spotted: false, exposed: false };
     for (const guard of guards) {
-      const event = updateGuard(world, guard, player, dt, clouds);
+      const event = updateGuard(world, guard, player, dt, clouds, pressure.heat);
       events.hit ||= event.hit; events.spotted ||= event.spotted; events.exposed ||= event.exposed;
     }
     if (events.exposed) { input.clear(); tell('The guard pulled you out! Run!'); }
@@ -256,12 +259,17 @@ const frame = time => {
       const searched = !placement.itemId && updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
       if (searched?.type === 'completed') tell(searched.count === 0 ? 'Nothing worth taking. Try the next one.' : `Found ${searched.count} ${searched.count === 1 ? 'item' : 'items'}. Release E, then press again to pack loot, or click to lift it.`);
       else if (searched?.type === 'cancelled') tell('Search cancelled. Hold E while standing still beside the object.');
+      updatePressure(world, pressure, guards, dt);
     }
   }
   const tunnelReady = !player.hiding && atTunnel(run, world, player) && !loot.held && !placement.itemId;
   updateTarget();
   sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId && !player.hiding }, dt);
-  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement, clouds, hidingSpots, hideTarget); sack.paint(loot, pointer);
+  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement, clouds, hidingSpots, hideTarget, pressure); sack.paint(loot, pointer);
+  const heatLabel = document.querySelector('#heat-label');
+  heatLabel.hidden = world.lair;
+  heatLabel.textContent = pressureLabel(pressure);
+  heatLabel.style.background = `linear-gradient(90deg, #6d392c ${Math.round(pressure.heat * 100)}%, #10191be6 0)`;
   const quickLabel = document.querySelector('#quick-label');
   quickLabel.hidden = run.phase !== 'exploring' || !quickType || !!player.hiding;
   quickLabel.textContent = quickType ? `Smoke bomb × ${loot.bag.filter(item => item.type === quickType).length} · Space` : '';

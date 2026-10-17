@@ -1,3 +1,4 @@
+import { drawReinforcementDoors } from './pressure-view.js';
 import { drawHidingSpots } from './hiding-view.js';
 import { drawSmoke } from './smoke-view.js';
 import { drawLair } from './lair-drawing.js';
@@ -29,7 +30,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null) => {
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = [], hidingSpots = [], hideTarget = null, pressure = null) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -48,6 +49,7 @@ export async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
+    drawReinforcementDoors(ctx, pressure, ox, oy);
     for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy, clouds);
     const highlightTunnel = tunnelReady || world.lair && lairTarget(world, player)?.kind === 'tunnel';
     const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);

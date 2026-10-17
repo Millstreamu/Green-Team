@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V23 hiding barrels with half-second entry and occupied indicators. Try entering unseen after breaking guard sight, then deliberately let a guard see you enter. Heat and accumulating reinforcements are agreed follow-ups; multiplayer remains deferred.
+Next: playtest V24 heat and reinforcement pressure. Trigger three guard alerts, watch a guard door warn and admit a new sweeping guard, then break pursuit and hide to cool heat. Check the growing population still pushes you towards escape. Multiplayer remains deferred.
 
 
 ## V12: single-use snare
@@ -194,3 +194,16 @@ Hold E beside a highlighted hiding barrel for 0.5 seconds to enter. The existing
 One goblin per hiding spot is now explicitly agreed. Entry checks capacity again at completion; only the first successful goblin enters. An occupied barrel shows a small green goblin-head icon, visible to others, plus OCCUPIED (or HIDDEN · E EXIT for its occupant). Completion stores the same occupant ID already used by V22; leaving clears it. Networked atomic capacity checks and disconnect cleanup remain future server work.
 
 HIDING.enterTime in config.js is 0.5 seconds. Progress reuses drawPixelProgress and follows the same hold/cancel pattern as searching. Verified: 95 automated tests, standalone build and bundled syntax check. New coverage includes exact duration, cancellation/restart, witnessing during the hold, contested entry and indicator clearing, plus actual keyboard hold/release wiring. Browser feel/visuals await playtest. Review copy: green-team-hiding-v23.html.
+
+
+## V24: heat and reinforcement doors
+
+Long pursuits build one shared heat value. Alerted chase speed rises smoothly, reaching slightly above goblin speed at maximum heat; routine/search speeds, attack timing and sight rules stay unchanged. Break pursuit (including the fresh invisible trail) to start a quiet grace period, then heat cools slowly. Successful unseen hiding remains safe. The HUD shows heat, total guard alerts/remainder and how many extra guards have arrived.
+
+Every individual guard becoming fully alerted adds one count immediately; two guards spotting together add two. Every third count schedules one extra guard. Ongoing chases and brief sight reacquisition never repeatedly count. A guard can count again after finishing investigation and returning to its routine. A guard witnessing completed hiding entry counts too. Alert counts/remainders and arrived guards survive heat cooling; the growing population has no cap and lasts until this run ends.
+
+Guard doors appear in solid top-wall sections in some rooms. Goblins cannot open, search or leave through them. A two-second GUARD INCOMING warning highlights the selected door and appears in the HUD before the guard steps in. Doors are used in a fixed cycle. New purple sweeping guards follow cached paths through rooms and pause to look around; they use the normal sight, chase, invisible trail, attacks, snares, smoke and hiding rules. Patrol destinations never use an unseen goblin's location.
+
+Provisional values in HEAT in config.js: 30 seconds of pursuit to full heat, four quiet seconds before cooling, 20 seconds from full heat to zero, max chase speed 1.08 times goblin speed, three alerts per reinforcement, two-second arrival warning, doors about every third non-entrance room. pressure.js owns run state, doors, sweep construction and queued spawns; pressure-view.js owns door/HUD feedback. Existing navigation/routines are reused. Each new run resets pressure. Lair/results do not advance it; active runs still do not resume after reload.
+
+Verified: 102 automated tests, standalone build, bundled syntax and unique HTML IDs. New tests cover 100 generated door layouts, per-guard counts, carryover/warnings/arrival, no population cap, heat rise/grace/cooling/speed cap, actual guard re-alert reset, hiding witnesses, sweep movement/pauses and run reset. Existing real main event flow checks heat/count HUD and reset alongside the full economy/gear/hiding loop. No rendered browser or online multiplayer test; pressure balance, door readability and performance with many guards await playtest. Review copy: green-team-heat-v24.html.

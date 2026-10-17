@@ -102,7 +102,7 @@ Crafting, purchases and withdrawals must validate against the same shared quanti
 
 Per-player damage immunity, knockback and attack direction must remain separate. A guard's invisible trail belongs to its pursued target, not whichever browser updates last. Smoke must obstruct the same sight checks for everyone. Placement safety follows the actual setter's identity. No secret map/guard information should leak through another player's local UI unless the team intentionally shares it.
 
-## Heat and reinforcements — per-guard counting agreed
+## Heat and reinforcements — V24 local implementation
 
 Agreed: shared dungeon heat rises during sustained pursuit, including fresh trail-following, holds through brief sight breaks, and slowly cools after a grace period without pursuit. Higher heat gradually increases alerted guards' chase speed, capped just above goblin running speed at maximum heat. Keep routine routes and attack timing predictable; heat never reveals hidden goblins. Show readable heat feedback. Exact rates, delay and speed cap remain tuning parameters.
 
@@ -110,11 +110,17 @@ User additionally requested one extra guard entering the dungeon for every three
 
 Agreed counting: each individual guard becoming alerted adds one to the shared run counter. Two guards catching the team together add two counts; three add three and bring one reinforcement. This intentionally makes being spotted by multiple guards substantially more dangerous. The previous recommendation to combine simultaneous guard alerts into one team incident is rejected. Every third guard alert adds one guard; carry any remainder forward, and retain the counter through heat cooling.
 
-Count alert events rather than every frame of pursuit. Precise re-alert/reset rules for the same guard remain tuning/design details; do not repeatedly count an uninterrupted chase or count the same guard once per player/browser. Still open: reinforcement entry location/arrival warning, heat tuning and difficulty/party scaling, and jail-guard interaction. Local detection/global heat must not imply every guard knows every goblin's position. No heat or reinforcement runtime code has been added.
+Count when each guard becomes fully alerted, not when the chase ends or each frame. A guard rearms only once it has finished searching and returned to its routine; brief sight breaks/reacquisition stay in the same alert cycle. Witnessing a completed hiding entry also fully alerts that guard and counts once. This follows the accepted proposal; no counting per player/browser.
+
+Agreed reinforcement entrances: doors in some rooms' upper walls, not interactable by goblins. New guards are roaming patrol/searchers. V24 chooses solid north-wall sections, excluding the starting room, with a brief two-second warning at the selected door and in the HUD. Doors cycle in fixed order. Each guard caches a broad room sweep, pauses to look around and uses existing sight/chase/trail/attack/snare/smoke/hiding rules; no unseen-player location knowledge. Extra guards last for the run without a population cap.
+
+Provisional HEAT values: full buildup in 30 seconds of pursuit, four-second quiet grace, full cooling over 20 seconds, maximum chase speed 1.08× goblin speed; routine/search speeds and attack timing unchanged. HUD shows heat, total alerts/remainder, extra guard count and pending arrival. State resets on a new run; lair/finished runs do not tick it.
+
+Before networking, the server must count each guard's alert cycle once, tick one shared heat state and spawn queue once for the whole team, and send stable guard/door IDs and warning times to all browsers. One goblin hiding cannot cool heat while another is pursued. Joining/reconnecting must receive current state without replaying alerts/spawns. Difficulty/party scaling and jail-guard interaction remain open. Detection stays local even though pressure is shared. V24 is local runtime, not multiplayer implementation.
 
 ## Hiding — playable local slice, team details pending
 
-Agreed: hold E for 0.5 seconds to enter, tap E to exit; one goblin per spot with a visible occupied indicator; no walking, searching or item use inside; guards that see entry approach and pull that goblin out; unseen entry is safe during nearby searches. V22 implements this locally with separate barrels and existing targeting/navigation/sight. Heat/reinforcements are still a follow-up.
+Agreed: hold E for 0.5 seconds to enter, tap E to exit; one goblin per spot with a visible occupied indicator; no walking, searching or item use inside; guards that see entry approach and pull that goblin out; unseen entry is safe during nearby searches. V22 implements this locally with separate barrels and existing targeting/navigation/sight. V24 now adds local heat/reinforcements.
 
 Prototype stores stable spot IDs, occupant ID and per-guard witness knowledge tied to a goblin ID. One occupant per barrel is now explicitly agreed. V23 also checks occupancy again at entry completion, so concurrent local attempts cannot both succeed. Before shared play, make reservation/release atomic on the server; decide disconnect/downing cleanup and how a witness prioritises a visible teammate. A hidden goblin must not stop guards pursuing others, reveal its location to non-witnesses, or independently cool team heat while others are chased. Current guard update remains single-target; do not call it once for every player as a substitute for target selection.
 
