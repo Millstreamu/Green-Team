@@ -203,3 +203,14 @@ Generate once per seed, retain empty outcomes everywhere and permit materials an
 **Tuning for review:** lock aim at attack start; .18s preparation, .14s directional swing, .45s attack cooldown. Trigger within .95 tiles, strike up to 1.2 tiles in a 120-degree forward arc, checking walls. Deal damage once at swing start. After the short swing, pursue even during cooldown. Draw the actual sector/weapon sweep instead of a full-circle strike. Keep health3 and one-second immunity.
 
 A damaging hit pushes the player .55 tiles over .1s away from the guard. Share collision-safe displacement with walking, preserving facing and allowing movement inputs. Immune hits do not add another push. Search/placement interruption and snare cancellation remain shared. COMBAT exposes all new timing/reach/angle/knockback values. No general stun or new combat subsystem.
+
+
+## V20: central gold/stash, recipe progression and quick-use smoke — 17 October 2026
+
+**Agreed:** returned valuables sell for gold in a central lair store; materials/crafted items and gold use a large stackable stash grid accessible by everyone. Carried copies stay separate in the sack. Gold unlocks recipes for the whole lair, then materials craft actual items. Distinguish placed gear and Space-activated quick gear. User explicitly requested implementing shared stash/gold/recipe foundation followed by smoke as first quick-use item. Job/map selection/difficulty, timed traps and sleep darts remain later work.
+
+**Prototype choices for review:** 6×6 stash, one unlimited-count stack per type, whole-stack rearranging with the sack's WASD/E/click/Tab/Escape patterns. Automatic sale/deposit at successful extraction. Values: coin3, scroll8, horn10, candlestick12, sword20, ruby25 gold. One canonical counts.gold powers both gold stack and workbench balance. Basic snare known; smoke recipe20 gold once, craft cost1 scrap+2 cloth per bomb. No per-player wallets/unlocks. Shared pool is modeled locally while multiplayer/server stays deferred.
+
+Equip smoke from sack with E, use one carried copy with Space; HUD shows remaining copies, each still occupies one square. Clouds stay at activation point, radius2 tiles, duration5s; block guard sight and its visual cone, while normal lost-sight trail/search and committed attacks still apply. No damage/stun/path blocking from smoke. Existing trap placement controls remain. Debug gear can include both supported items but never create real stock on return.
+
+Save schema2 migrates old held valuables to gold once and persists counts, shared unlocks and stash positions. Existing storage key retained. Source stacks remain reserved while being moved; occupied drops cannot overwrite. Recipe/launch/sale mutations validate before spending. Future multiplayer must run these operations authoritatively on the server; no network implementation added here.

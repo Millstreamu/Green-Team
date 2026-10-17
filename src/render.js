@@ -1,3 +1,4 @@
+import { drawSmoke } from './smoke-view.js';
 import { drawLair } from './lair-drawing.js';
 import { lairTarget } from './lair.js';
 import { drawTraps } from './trap-view.js';
@@ -27,7 +28,7 @@ export async function createRenderer(canvas, mapCanvas) {
     canvas.width = width; canvas.height = height; ctx.imageSmoothingEnabled = false;
   };
   new ResizeObserver(resize).observe(canvas); resize();
-  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null) => {
+  return (world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps = [], placement = null, clouds = []) => {
     ctx.fillStyle = '#101517'; ctx.fillRect(0, 0, width, height);
     const t = CONFIG.tile;
     const ox = Math.round(width / 2 - player.x * t), oy = Math.round(height / 2 - player.y * t);
@@ -46,7 +47,7 @@ export async function createRenderer(canvas, mapCanvas) {
         }
       }
     }
-    for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy);
+    for (const guard of guards) drawGuardVision(ctx, world, guard, ox, oy, clouds);
     const highlightTunnel = tunnelReady || world.lair && lairTarget(world, player)?.kind === 'tunnel';
     const tx = Math.round(run.entrance.x * t + ox), ty = Math.round(run.entrance.y * t + oy);
     rect(tx - 13, ty - 9, 26, 18, highlightTunnel ? '#d5c483' : '#8c805b');
@@ -71,6 +72,7 @@ export async function createRenderer(canvas, mapCanvas) {
       }
     }
     if (world.lair) drawLair(ctx, world, lairTarget(world, player), ox, oy);
+    drawSmoke(ctx, world, clouds, ox, oy);
     for (const guard of guards) drawGuard(ctx, guard, ox, oy);
     // Feet and shadow stay on the floor; only the supplied sprite hops.
     const sx = Math.round(player.x * t + ox), sy = Math.round(player.y * t + oy);

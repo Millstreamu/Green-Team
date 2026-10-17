@@ -3,14 +3,16 @@ import { canStand, isFloor } from './world.js';
 export const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
 // One definition supplies footprints and colours everywhere an item is shown.
 export const LOOT_TYPES = Object.freeze({
-  ruby: { name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
-  coin: { name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: '●' },
-  candlestick: { name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
-  scroll: { name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
-  sword: { name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
-  horn: { name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' },
+  ruby: { sellValue: 25, name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
+  coin: { sellValue: 3, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: '●' },
+  candlestick: { sellValue: 12, name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
+  scroll: { sellValue: 8, name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
+  sword: { sellValue: 20, name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
+  horn: { sellValue: 10, name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' },
   scrap: { name: 'Metal scrap', color: '#9ba8a4', cells: [[0, 0]], mark: '⊟', material: true },
   cloth: { name: 'Cloth', color: '#c9b998', cells: [[0, 0]], mark: '≈', material: true },
+  gold: { name: 'Gold', color: '#e3be59', cells: [[0, 0]], mark: 'G' },
+  smoke: { name: 'Smoke bomb', color: '#a8b7bf', cells: [[0, 0]], mark: '☁', equipment: true, quickUse: true },
   snare: { name: 'Snare trap', color: '#a9c3a3', cells: [[0, 0]], mark: '⌘', equipment: true }
 });
 

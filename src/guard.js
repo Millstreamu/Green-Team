@@ -1,3 +1,4 @@
+import { smokeBlocksSight } from './smoke.js';
 import { createRoamingRoute } from './guard-routes.js';
 import { CONFIG, COMBAT, GUARD_PATTERNS } from './config.js';
 import { canStand, moveActor } from './world.js';
@@ -131,9 +132,9 @@ function updateRoamingRoutine(world, guard, dt) {
   guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
 }
 
-export function seesPlayer(world, guard, player, alerted = false) {
+export function seesPlayer(world, guard, player, alerted = false, clouds = []) {
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
-  if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player)) return false;
+  if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (alerted || distance < 1.2) return true;
   return (dx * Math.cos(guard.angle) + dy * Math.sin(guard.angle)) / distance >= Math.cos(COMBAT.halfCone);
 }
@@ -147,13 +148,13 @@ function setGuardGoal(world, guard, point, dt) {
   }
 }
 
-export function updateGuard(world, guard, player, dt) {
+export function updateGuard(world, guard, player, dt, clouds = []) {
   const events = { hit: false, spotted: false };
   if (player.state !== 'active' || dt <= 0) return events;
   if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; guard.swing = 0; return events; }
   guard.cooldown = Math.max(0, guard.cooldown - dt); guard.swing = Math.max(0, guard.swing - dt); guard.moving = false;
   const alerted = guard.state === 'chase' || guard.state === 'search';
-  const sees = seesPlayer(world, guard, player, alerted);
+  const sees = seesPlayer(world, guard, player, alerted, clouds);
   if (sees) {
     clearGuardTrail(guard);
     guard.lastSeen = { x: player.x, y: player.y };

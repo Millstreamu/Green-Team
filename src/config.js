@@ -15,3 +15,5 @@ export const TRAPS = Object.freeze({ placeTime: 1, reach: 1.5, holdTime: 3, trig
 
 // Search rewards are rolled once per container when the dungeon is generated.
 export const SEARCH_LOOT = Object.freeze({ nearEmptyChance: 0.7, farEmptyChance: 0.5, twoItemChance: 0.15, nearMaterialChance: 0.75, farMaterialChance: 0.2, nearRareChance: 0.1, farRareChance: 0.8 });
+
+export const SMOKE = Object.freeze({ radius: 2, duration: 5 });

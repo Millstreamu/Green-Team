@@ -1,3 +1,4 @@
+import { drawInventoryGrid } from './inventory-grid.js';
 import { bagItemAt, fits, itemCells, LOOT_TYPES, SACK } from './loot.js';
 import { drawItem } from './item-view.js';
 import { createSackPanel, toggleSackPanel, revealSackPanel, stepSackPanel } from './sack-panel.js';
@@ -17,12 +18,7 @@ export function createSackView(canvas, ghost) {
     return { x: Math.floor((pointer.x - rect.left) / rect.width * SACK.width), y: Math.floor((pointer.y - rect.top) / rect.height * SACK.height) };
   };
   const paint = (state, pointer) => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let y = 0; y < SACK.height; y++) for (let x = 0; x < SACK.width; x++) {
-      ctx.fillStyle = '#10191b'; ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
-      ctx.strokeStyle = '#4b5343'; ctx.strokeRect(x * cell + 0.5, y * cell + 0.5, cell - 1, cell - 1);
-    }
-    state.bag.forEach(item => drawItem(ctx, item, item.x * cell, item.y * cell, cell, null));
+    drawInventoryGrid(ctx, SACK.width, SACK.height, cell, state.bag);
     const hovered = cellAt(pointer);
     const chosen = keyboardSelection && visibility.open ? selected : hovered;
     if (chosen && !state.held) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(chosen.x * cell + 3, chosen.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
@@ -39,7 +35,7 @@ export function createSackView(canvas, ghost) {
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · snare: select, E equip';
+    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : 'Click loot to lift · select gear, E equip';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
