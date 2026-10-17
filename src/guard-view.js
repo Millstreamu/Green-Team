@@ -4,12 +4,13 @@ import { isFloor } from './world.js';
 
 export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
   if (!guard.captiveId && !['patrol', 'suspicious', 'return', 'carry'].includes(guard.state)) return;
+  const combat = world.tuning?.combat ?? COMBAT;
   const t = CONFIG.tile;
   ctx.beginPath(); ctx.moveTo(guard.x * t + ox, guard.y * t + oy);
   for (let ray = 0; ray <= 24; ray++) {
-    const angle = guard.angle - COMBAT.halfCone + ray / 24 * COMBAT.halfCone * 2;
+    const angle = guard.angle - combat.halfCone + ray / 24 * combat.halfCone * 2;
     let x = guard.x, y = guard.y;
-    for (let step = 0.15; step <= COMBAT.sight; step += 0.15) {
+    for (let step = 0.15; step <= combat.sight; step += 0.15) {
       const nx = guard.x + Math.cos(angle) * step, ny = guard.y + Math.sin(angle) * step;
       if (!isFloor(world, Math.floor(nx), Math.floor(ny)) || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
       x = nx; y = ny;

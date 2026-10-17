@@ -98,7 +98,7 @@ export function createRescue(world, participants, guards, obstacles) {
           g.captiveId = null; g.captureTargetId = null; g.destinationCageId = null; g.state = 'return'; g.repath = 0;
         }
       } else {
-        g.state = 'capture'; walk(g, target, dt, COMBAT.patrolSpeed);
+        g.state = 'capture'; walk(g, target, dt, (world.tuning?.combat ?? COMBAT).patrolSpeed);
         if (Math.hypot(g.x - target.x, g.y - target.y) > .65) { g.captureElapsed = 0; return true; }
         g.captureElapsed += dt;
         if (g.captureElapsed + .000001 >= RESCUE.pickupSeconds) {

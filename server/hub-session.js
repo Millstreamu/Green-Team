@@ -4,6 +4,8 @@ import { createProfile, profileLevel } from '../src/profile.js';
 import { createCamp } from '../src/lair.js';
 import { validateSave } from './save-store.js';
 
+import { DEFAULT_TUNING, validateTuning } from '../src/tuning.js';
+
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const code = () => Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join('');
 export function migrateHubSave(saved) {
@@ -38,8 +40,9 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
     }
     for (const record of saved.lairs) {
       const savedState = structuredClone(record.state);
-      const engine = createLairSession({ store: { load: () => savedState, save() {} } });
-      const lair = { id: record.id, name: record.name, code: record.code, ownerId: record.ownerId ?? null, engine };
+      const lair = { id: record.id, name: record.name, code: record.code, ownerId: record.ownerId ?? null, tuning: { ...(record.tuning ?? DEFAULT_TUNING) } };
+      lair.engine = createLairSession({ store: { load: () => savedState, save() {} }, getTuning: () => lair.tuning });
+      const engine = lair.engine;
       lairs.set(lair.id, lair);
       for (const p of profiles.values()) engine.bindIdentity(p);
     }
@@ -51,7 +54,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
   function durableState() {
     return { version: 2,
       profiles: [...profiles.values()].map(({ token, id, name, profile }) => ({ token, id, name, profile })),
-      lairs: [...lairs.values()].map(({ id, name, code, ownerId, engine }) => ({ id, name, code, ownerId, state: engine.exportState() })) };
+      lairs: [...lairs.values()].map(({ id, name, code, ownerId, tuning, engine }) => ({ id, name, code, ownerId, tuning, state: engine.exportState() })) };
   }
   function checkpoint() { if (store) store.save(durableState()); }
   function reject(p, text) { p.error = text; return false; }
@@ -105,8 +108,8 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
       const existing = [...lairs.values()].find(l => l.name.toLowerCase() === name.toLowerCase());
       if (message.type === 'create-lair') {
         if (existing) return reject(p, 'That lair name is already in use. Join it with its code, or choose another name.');
-        const record = { id: randomUUID(), name, code: code(), ownerId: p.id };
-        record.engine = createLairSession({ store: { load: freshLairState, save() {} } });
+        const record = { id: randomUUID(), name, code: code(), ownerId: p.id, tuning: { ...DEFAULT_TUNING } };
+        record.engine = createLairSession({ store: { load: freshLairState, save() {} }, getTuning: () => record.tuning });
         lairs.set(record.id, record); return attach(p, record);
       }
       if (existing?.ownerId === p.id) return attach(p, existing);
@@ -142,6 +145,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
       const info = selected?.engine.adminInfo();
       const empty = createCamp(); for (const type of Object.keys(empty.counts)) empty.counts[type] = 0;
       return { saved: !!store, saveFailed: !!failure, runActive: [...lairs.values()].some(l => l.engine.adminInfo().runActive),
+        tuning: selected ? { ...selected.tuning } : null,
         selectedRunActive: info?.runActive ?? false, selectedLairId: selected?.id ?? null,
         lairs: [...lairs.values()].map(l => ({ id: l.id, name: l.name, code: l.code, runActive: l.engine.adminInfo().runActive })),
         camp: info?.camp ?? empty,
@@ -152,13 +156,18 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
       if (api.adminInfo().runActive) throw Error('End all active runs before editing saves.');
       validateSave(saved); install(saved); return true;
     },
+    adminSetTuning(lairId, values) {
+      const lair = lairs.get(lairId);
+      if (!lair) throw Error('Choose a lair.');
+      lair.tuning = validateTuning(values); return true;
+    },
     adminEndRun(lairId) {
       const lair = lairs.get(lairId);
       if (!lair) throw Error('Choose a lair.');
       lair.engine.adminEndRun(); return true;
     }
   };
-  for (const name of ['connect', 'disconnect', 'action', 'tick', 'adminReplace', 'adminEndRun']) {
+  for (const name of ['connect', 'disconnect', 'action', 'tick', 'adminReplace', 'adminEndRun', 'adminSetTuning']) {
     const operation = api[name];
     api[name] = (...args) => {
       if (failure) throw failure;

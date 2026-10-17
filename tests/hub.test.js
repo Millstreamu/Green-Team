@@ -176,6 +176,16 @@ test('real socket clients start at menu, create/join by code, isolate lairs and 
   const headers = { 'x-green-team-admin': admin.token, 'Content-Type': 'application/json', Origin: origin };
   const summary = await (await fetch(origin + '/admin/api?lair=' + a.state.lair.id, { headers })).json();
   assert.equal(summary.selectedLairId, a.state.lair.id); assert.equal(summary.lairs.length, 2);
+  const tuningCommand = { type: 'set-tuning', lairId: a.state.lair.id, values: { ...summary.tuning, sight: 2 } };
+  assert.equal((await fetch(origin + '/admin/api', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(tuningCommand) })).status, 403);
+  const tuned = await fetch(origin + '/admin/api', { method: 'POST', headers, body: JSON.stringify(tuningCommand) });
+  assert.equal(tuned.status, 200); assert.equal((await tuned.json()).state.tuning.sight, 2);
+  assert.equal(controller.summary(lair.id).tuning.sight, 7);
+  const rejections = a.messages.filter(m => m.type === 'rejected').length;
+  a.ws.send(JSON.stringify(tuningCommand)); await until(() => a.messages.filter(m => m.type === 'rejected').length > rejections);
+  assert.equal(controller.summary(a.state.lair.id).tuning.sight, 2);
+  assert.equal((await fetch(origin + '/src/tuning-view.js')).status, 200);
+
   const edited = await fetch(origin + '/admin/api', { method: 'POST', headers, body: JSON.stringify({ type: 'set-stock', lairId: a.state.lair.id, item: 'gold', amount: 77 }) });
   assert.equal(edited.status, 200); await until(() => a.state.camp.counts.gold === 77);
   assert.equal(b.state.camp.counts.gold, 0);
@@ -206,6 +216,7 @@ test('browser admin lair selector sends scoped requests and shows the selected j
     constructor() { this.dataset = {}; this.value = ''; this.listeners = {}; }
     addEventListener(type, fn) { this.listeners[type] = fn; }
     replaceChildren(...nodes) { this.children = nodes; }
+    appendChild(node) { (this.children ??= []).push(node); }
     send(type) { this.listeners[type]?.({ preventDefault() {} }); }
   }
   const nodes = new Map(), get = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
@@ -227,6 +238,24 @@ test('browser admin lair selector sends scoped requests and shows the selected j
   assert.equal(get('admin-lair-code').textContent, lairB.code);
   get('admin-item').value = 'gold'; get('stock-amount').value = '777'; get('stock-form').send('submit'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(commands.at(-1).lairId, lairB.id); assert.equal(hub.snapshot(b).camp.counts.gold, 777); assert.equal(hub.snapshot(a).camp.counts.gold, 0);
+  const input = id => get('tuning-fields').children.map(label => label.children[1]).find(node => node.id === 'tuning-' + id);
+  assert.equal(input('sight').value, 7); assert.equal(input('nearEmptyChance').value, 70);
+  input('sight').value = '3'; input('nearEmptyChance').value = '90'; input('sight').send('input');
+  // Polling the same saved state must not erase an unfinished edit.
+  get('admin-lair').send('change'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(input('sight').value, '3'); assert.match(get('tuning-note').textContent, /Unsaved/);
+  get('tuning-form').send('submit'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(commands.at(-1).type, 'set-tuning'); assert.equal(commands.at(-1).lairId, lairB.id);
+  assert.equal(admin.summary(lairB.id).tuning.nearEmptyChance, .9);
+  assert.equal(admin.summary(lairA.id).tuning.sight, 7);
+  launch(hub, [b]); get('admin-lair').send('change'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(get('save-tuning').disabled, false); assert.equal(get('set-stock').disabled, true);
+  get('reset-tuning').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(input('sight').value, 7); assert.equal(hub.snapshot(b).dungeon.tuning.combat.sight, 3);
+  // Reset also clears an unsaved draft when the saved settings already equal defaults.
+  input('sight').value = '4'; get('reset-tuning').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(input('sight').value, 7);
+
 });
 
 test('creator re-enters without a code after restart; friends and forged owners still need the join code', t => {
@@ -264,4 +293,72 @@ test('V39 ownership backfill is backed up and durable, while ownerless lairs can
   enter(ownerless, visitor, lair);
   const restarted = createHubSession({ store: { load: () => ownerless.adminState(), save() {} } });
   assert.equal(restarted.adminState().lairs[0].ownerId, null);
+});
+
+test('run settings are lair scoped, survive restart/backup, and never alter an active dungeon', t => {
+  const { hub: h, a, b, store, admin, backups } = fixture(t);
+  const lairA = create(h, a, 'Tuned'), lairB = create(h, b, 'Default');
+  const defaults = admin.summary(lairA.id).tuning;
+  const values = { ...defaults, sight: 2, windup: .7, alertsPerGuard: 1, chestTime: 8, nearEmptyChance: 1, farEmptyChance: 1 };
+  const result = admin.command({ type: 'set-tuning', lairId: lairA.id, values });
+  assert.deepEqual(backups.read(result.backupId).state.lairs.find(l => l.id === lairA.id).tuning, defaults);
+  assert.deepEqual(admin.summary(lairB.id).tuning, defaults);
+  launch(h, [a]); launch(h, [b]);
+  assert.equal(h.snapshot(a).dungeon.tuning.combat.sight, 2);
+  assert.equal(h.snapshot(a).dungeon.pressure.alertsPerGuard, 1);
+  assert.equal(h.snapshot(b).dungeon.tuning.combat.sight, defaults.sight);
+  // Update during a live run; same actors/world/positions remain in play.
+  const runId = h.snapshot(a).dungeon.id, actor = a.actor;
+  admin.command({ type: 'reset-tuning', lairId: lairA.id });
+  assert.equal(a.actor, actor); assert.equal(h.snapshot(a).dungeon.id, runId);
+  assert.equal(h.snapshot(a).dungeon.tuning.combat.sight, 2);
+  assert.equal(h.snapshot(a).dungeon.tuning.search.chestTime, 8);
+  assert.equal(h.snapshot(a).dungeon.tuning.loot.nearEmptyChance, 1);
+  admin.command({ type: 'end-run', lairId: lairA.id });
+  h.action(a, { type: 'dismiss-result' }); launch(h, [a]);
+  assert.equal(h.snapshot(a).dungeon.tuning.combat.sight, defaults.sight);
+  // Restart retains pending settings despite an interrupted run.
+  admin.command({ type: 'set-tuning', lairId: lairA.id, values });
+  const restored = createHubSession({ store });
+  assert.deepEqual(restored.adminInfo(lairA.id).tuning, values);
+  const saved = createHubAdminController(restored, backups).command({ type: 'backup' });
+  const restoredAdmin = createHubAdminController(restored, backups);
+  restoredAdmin.command({ type: 'reset-tuning', lairId: lairA.id });
+  restoredAdmin.command({ type: 'restore', backupId: saved.backupId });
+  assert.deepEqual(restored.adminInfo(lairA.id).tuning, values);
+  restoredAdmin.command({ type: 'reset-all' });
+  assert.deepEqual(restored.adminInfo(lairA.id).tuning, values);
+});
+
+test('invalid run settings and player commands cannot edit tuning; failed backups prevent changes', t => {
+  const { hub: h, a, admin, backups } = fixture(t), lair = create(h, a, 'Validation');
+  const defaults = admin.summary(lair.id).tuning, count = backups.list().length;
+  for (const values of [null, [], {}, { ...defaults, sight: '8' }, { ...defaults, sight: Infinity }, { ...defaults, windup: 0 }, { ...defaults, alertsPerGuard: 1.5 }, { ...defaults, twoItemChance: 1.1 }, { ...defaults, extra: 1 }]) {
+    assert.throws(() => admin.command({ type: 'set-tuning', lairId: lair.id, values }), /Invalid tuning/);
+  }
+  assert.throws(() => admin.command({ type: 'set-tuning', lairId: 'missing', values: defaults }), /Choose a lair/);
+  assert.equal(backups.list().length, count);
+  assert.equal(h.action(a, { type: 'set-tuning', lairId: lair.id, values: { ...defaults, sight: 2 } }), false);
+  const blocked = createHubAdminController(h, { list: () => [], create() { throw Error('Backup blocked'); } });
+  assert.throws(() => blocked.command({ type: 'reset-tuning', lairId: lair.id }), /Backup blocked/);
+  assert.deepEqual(admin.summary(lair.id).tuning, defaults);
+  const old = h.adminState(); delete old.lairs[0].tuning;
+  validateSave(old);
+  const upgraded = createHubSession({ store: { load: () => old, save() {} } });
+  assert.deepEqual(upgraded.adminInfo(lair.id).tuning, defaults);
+  old.lairs[0].tuning = { ...defaults, sight: 99 };
+  assert.throws(() => validateSave(old), /Invalid tuning/);
+});
+
+
+test('failed tuning checkpoint keeps its before-change backup and blocks further edits', () => {
+  let last = null, fail = false;
+  const h = createHubSession({ store: { load: () => null, save(s) { if (fail) throw Error('Disk full'); last = structuredClone(s); } } });
+  const a = h.connect(), lair = create(h, a, 'Disk test'), copies = [];
+  const admin = createHubAdminController(h, { list: () => [], create(s) { copies.push(structuredClone(s)); return 'backup'; } });
+  const defaults = h.adminInfo(lair.id).tuning; fail = true;
+  assert.throws(() => admin.command({ type: 'set-tuning', lairId: lair.id, values: { ...defaults, sight: 2 } }), /Disk full/);
+  assert.deepEqual(last.lairs[0].tuning, defaults); assert.deepEqual(copies[0].lairs[0].tuning, defaults);
+  assert.equal(h.adminInfo().saveFailed, true);
+  assert.throws(() => admin.command({ type: 'reset-tuning', lairId: lair.id }), /Saving failed/);
 });

@@ -16,7 +16,7 @@ export function createReinforcementDoors(world, obstacles = []) {
   return doors;
 }
 export function createPressure(world, obstacles = []) {
-  return { heat: 0, quiet: 0, alerts: 0, reinforcements: 0, scheduled: 0, pending: [], doors: world.lair ? [] : createReinforcementDoors(world, obstacles) };
+  return { alertsPerGuard: (world.tuning?.heat ?? HEAT).alertsPerGuard, heat: 0, quiet: 0, alerts: 0, reinforcements: 0, scheduled: 0, pending: [], doors: world.lair ? [] : createReinforcementDoors(world, obstacles) };
 }
 export function createReinforcement(world, door, serial) {
   const start = { ...door.spawn }, stops = [start], outbound = [start];
@@ -52,7 +52,7 @@ export function updatePressure(world, pressure, guards, dt) {
     if (!['chase', 'search'].includes(guard.state) || guard.alertRecorded) continue;
     guard.alertRecorded = true; pressure.alerts++; events.push({ type: 'alert', guard });
   }
-  const due = Math.floor(pressure.alerts / HEAT.alertsPerGuard);
+  const due = Math.floor(pressure.alerts / (world.tuning?.heat ?? HEAT).alertsPerGuard);
   while (pressure.scheduled < due && pressure.doors.length) {
     const door = pressure.doors[pressure.scheduled % pressure.doors.length];
     pressure.scheduled++;

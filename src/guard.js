@@ -23,6 +23,7 @@ export function hurtPlayer(player, damage = 1) {
 }
 
 export function createGuard(world, options = {}) {
+  const combat = world.tuning?.combat ?? COMBAT;
   const nearest = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
     .sort((a, b) => Math.hypot(a.room.cx - world.rooms[0].cx, a.room.cy - world.rooms[0].cy) - Math.hypot(b.room.cx - world.rooms[0].cx, b.room.cy - world.rooms[0].cy));
   const roomIndex = options.roomIndex ?? nearest[0]?.index ?? 0;
@@ -38,7 +39,7 @@ export function createGuard(world, options = {}) {
   return { id: `${world.seed ?? 0}-guard-${roomIndex}`, roomIndex, behaviour, homeRoom, home: { ...patrol[0] }, x: patrol[0].x, y: patrol[0].y,
     angle: firstAngle, watchAngles, watchIndex: 0, watchLeft: GUARD_PATTERNS.lookPause, pauseLeft: GUARD_PATTERNS.roomPause,
     state: 'patrol', suspicion: 0, patrol, patrolIndex: behaviour === 'lookout' ? 0 : 1, path: [], repath: 0, goal: null, lastSeen: null,
-    searchLeft: COMBAT.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
+    searchLeft: combat.searchTime, trail: [], trailLeft: 0, trailSource: null, trailEnd: null,
     windup: 0, cooldown: 0, swing: 0, attackAngle: null, snareLeft: 0, moving: false, resumeState: 'patrol' };
 }
 
@@ -86,6 +87,7 @@ function clearGuardTrail(guard) {
 }
 
 function recordGuardTrail(world, guard, player, dt) {
+  const combat = world.tuning?.combat ?? COMBAT;
   if (player.hiding || player.unavailable) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
   if (guard.trailLeft <= 0) return;
   const previous = guard.trailSource;
@@ -94,7 +96,7 @@ function recordGuardTrail(world, guard, player, dt) {
   if (previous && distance <= Math.max(0.6, CONFIG.speed * dt * 1.6) && canStand(world, player.x, player.y) && clearPath(world, previous, player)) {
     const last = guard.trailEnd;
     // Keep turns when crossing tiles, even before reaching the spacing limit.
-    if (!last || Math.hypot(last.x - player.x, last.y - player.y) >= COMBAT.trailSpacing || Math.floor(last.x) !== Math.floor(player.x) || Math.floor(last.y) !== Math.floor(player.y)) {
+    if (!last || Math.hypot(last.x - player.x, last.y - player.y) >= combat.trailSpacing || Math.floor(last.x) !== Math.floor(player.x) || Math.floor(last.y) !== Math.floor(player.y)) {
       const point = { x: player.x, y: player.y };
       guard.trail.push(point); guard.trailEnd = { ...point };
     }
@@ -104,6 +106,7 @@ function recordGuardTrail(world, guard, player, dt) {
 }
 
 function updateRoutine(world, guard, dt) {
+  const combat = world.tuning?.combat ?? COMBAT;
   if (guard.behaviour === 'roamer' || guard.behaviour === 'reinforcement') { updateRoamingRoutine(world, guard, dt); return; }
   if (guard.behaviour === 'lookout') {
     guard.watchLeft -= dt;
@@ -121,10 +124,11 @@ function updateRoutine(world, guard, dt) {
     guard.watchIndex = (guard.watchIndex + 1) % 2; guard.pauseLeft = GUARD_PATTERNS.roomPause; guard.repath = 0; return;
   }
   setGuardGoal(world, guard, goal, dt);
-  guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+  guard.moving = followPath(world, guard, guard.path, combat.patrolSpeed * dt, combat.guardRadius) > 0;
 }
 
 function updateRoamingRoutine(world, guard, dt) {
+  const combat = world.tuning?.combat ?? COMBAT;
   const route = guard.roamRoute;
   if (!route?.length) return;
   let goal = route[guard.roamIndex];
@@ -141,27 +145,30 @@ function updateRoamingRoutine(world, guard, dt) {
     if (stop) { guard.pauseLeft = GUARD_PATTERNS.roamPause; return; }
   }
   guard.path = [{ ...goal }];
-  guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+  guard.moving = followPath(world, guard, guard.path, combat.patrolSpeed * dt, combat.guardRadius) > 0;
 }
 
 export function seesPlayer(world, guard, player, alerted = false, clouds = [], forwardOnly = false) {
+  const combat = world.tuning?.combat ?? COMBAT;
   if (player.hiding || player.unavailable || player.ghost || player.state && player.state !== 'active') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
-  if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
+  if (distance > (alerted ? combat.alertSight : combat.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (distance === 0 || !forwardOnly && (alerted || distance < 1.2)) return true;
-  return (dx * Math.cos(guard.angle) + dy * Math.sin(guard.angle)) / distance >= Math.cos(COMBAT.halfCone);
+  return (dx * Math.cos(guard.angle) + dy * Math.sin(guard.angle)) / distance >= Math.cos(combat.halfCone);
 }
 
 function setGuardGoal(world, guard, point, dt) {
+  const combat = world.tuning?.combat ?? COMBAT;
   guard.repath -= dt;
   const changed = !guard.goal || Math.floor(guard.goal.x) !== Math.floor(point.x) || Math.floor(guard.goal.y) !== Math.floor(point.y);
   if (changed || guard.repath <= 0) {
     guard.path = findPath(world, guard, point); guard.goal = { ...point }; guard.repath = 0.5;
-    if (!guard.path.length && canStand(world, point.x, point.y, COMBAT.guardRadius) && Math.floor(point.x) === Math.floor(guard.x) && Math.floor(point.y) === Math.floor(guard.y) && clearPath(world, guard, point)) guard.path = [{ ...point }];
+    if (!guard.path.length && canStand(world, point.x, point.y, combat.guardRadius) && Math.floor(point.x) === Math.floor(guard.x) && Math.floor(point.y) === Math.floor(guard.y) && clearPath(world, guard, point)) guard.path = [{ ...point }];
   }
 }
 
 export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
+  const combat = world.tuning?.combat ?? COMBAT;
   const events = { hit: false, spotted: false };
   if (player.state !== 'active' || dt <= 0) return events;
   if (guard.snareLeft > 0) { guard.snareLeft = Math.max(0, guard.snareLeft - dt); guard.moving = false; guard.windup = 0; guard.swing = 0; return events; }
@@ -172,7 +179,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
       && (!guard.stationary || Math.hypot(guard.x - known.x, guard.y - known.y) <= HIDING.pullReach)) {
       guard.state = 'chase'; guard.windup = 0; guard.swing = 0;
       setGuardGoal(world, guard, known, dt);
-      guard.moving = !guard.stationary && followPath(world, guard, guard.path, heatedChaseSpeed(heat) * dt, COMBAT.guardRadius) > 0;
+      guard.moving = !guard.stationary && followPath(world, guard, guard.path, heatedChaseSpeed(heat, world.tuning?.combat) * dt, combat.guardRadius) > 0;
       if (Math.hypot(guard.x - known.x, guard.y - known.y) <= HIDING.pullReach) {
         leaveHiding(player); guard.knownHiding = null; guard.repath = 0;
         guard.lastSeen = { x: player.x, y: player.y }; clearGuardTrail(guard); events.exposed = true;
@@ -190,18 +197,18 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
     else {
       if (guard.state !== 'suspicious') guard.resumeState = guard.state;
       guard.state = 'suspicious'; guard.angle = Math.atan2(player.y - guard.y, player.x - guard.x);
-      guard.suspicion = Math.min(1, guard.suspicion + dt / COMBAT.noticeTime);
+      guard.suspicion = Math.min(1, guard.suspicion + dt / combat.noticeTime);
       if (guard.suspicion >= 1) { guard.state = 'chase'; guard.repath = 0; events.spotted = true; }
     }
   } else if (guard.state === 'suspicious') {
     guard.suspicion = Math.max(0, guard.suspicion - dt * 1.5);
     if (!guard.suspicion) guard.state = guard.resumeState;
   } else if (guard.state === 'chase') {
-    guard.state = 'search'; guard.searchLeft = COMBAT.searchTime; guard.repath = 0;
+    guard.state = 'search'; guard.searchLeft = combat.searchTime; guard.repath = 0;
     guard.trail = guard.lastSeen ? [{ ...guard.lastSeen }] : [];
     guard.trailSource = guard.lastSeen ? { ...guard.lastSeen } : null;
     guard.trailEnd = guard.lastSeen ? { ...guard.lastSeen } : null;
-    guard.trailLeft = COMBAT.trailSeconds;
+    guard.trailLeft = combat.trailSeconds;
   }
   if (guard.state === 'search') recordGuardTrail(world, guard, player, dt);
   // Commit to the direction chosen at attack start; a dodge can make it miss.
@@ -209,7 +216,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
     guard.angle = guard.attackAngle ?? guard.angle;
     guard.windup = Math.max(0, guard.windup - dt);
     if (!guard.windup) {
-      guard.swing = COMBAT.swingTime; guard.cooldown = COMBAT.cooldown;
+      guard.swing = combat.swingTime; guard.cooldown = combat.cooldown;
       events.hit = strikePlayer(world, guard, player);
     }
     return events;
@@ -218,15 +225,15 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
   if (guard.state === 'suspicious') return events;
   if (guard.state === 'chase' && sees) {
     const distance = Math.hypot(player.x - guard.x, player.y - guard.y);
-    if (distance <= COMBAT.attackRange && !guard.cooldown) {
+    if (distance <= combat.attackRange && !guard.cooldown) {
       guard.attackAngle = Math.atan2(player.y - guard.y, player.x - guard.x); guard.angle = guard.attackAngle;
-      guard.windup = COMBAT.windup;
+      guard.windup = combat.windup;
       return events;
     }
     // Navigate to the target's tile; approach precisely once inside that tile.
     if (Math.floor(player.x) === Math.floor(guard.x) && Math.floor(player.y) === Math.floor(guard.y)) guard.path = [{ x: player.x, y: player.y }];
     else setGuardGoal(world, guard, player, dt);
-    guard.moving = !guard.stationary && followPath(world, guard, guard.path, Math.min(heatedChaseSpeed(heat) * dt, Math.max(0, distance - CONFIG.radius - COMBAT.guardRadius)), COMBAT.guardRadius) > 0;
+    guard.moving = !guard.stationary && followPath(world, guard, guard.path, Math.min(heatedChaseSpeed(heat, world.tuning?.combat) * dt, Math.max(0, distance - CONFIG.radius - combat.guardRadius)), combat.guardRadius) > 0;
   } else if (guard.state === 'search') {
     if (guard.stationary) clearGuardTrail(guard);
     while (guard.trail.length && Math.hypot(guard.trail[0].x - guard.x, guard.trail[0].y - guard.y) <= 0.35) {
@@ -235,7 +242,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
     const goal = guard.trail[0];
     if (goal) {
       setGuardGoal(world, guard, goal, dt);
-      guard.moving = followPath(world, guard, guard.path, COMBAT.searchSpeed * dt, COMBAT.guardRadius) > 0;
+      guard.moving = followPath(world, guard, guard.path, combat.searchSpeed * dt, combat.guardRadius) > 0;
       if (!guard.path.length && !guard.moving) { guard.trail.shift(); guard.repath = 0; }
     } else if (guard.trailLeft <= 0) { guard.searchLeft -= dt; guard.angle += dt * 1.7; }
     if (guard.searchLeft <= 0) {
@@ -246,7 +253,7 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
       guard.x = guard.home.x; guard.y = guard.home.y; guard.state = 'patrol'; resetGuardRoutine(guard);
     } else {
       setGuardGoal(world, guard, guard.home, dt);
-      guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
+      guard.moving = followPath(world, guard, guard.path, combat.patrolSpeed * dt, combat.guardRadius) > 0;
     }
   } else if (guard.state === 'patrol') updateRoutine(world, guard, dt);
 
@@ -254,23 +261,25 @@ export function updateGuard(world, guard, player, dt, clouds = [], heat = 0) {
 }
 
 export function guardStrikeHits(world, guard, player) {
+  const combat = world.tuning?.combat ?? COMBAT;
   if (player.hiding || player.unavailable || player.ghost || player.state && player.state !== 'active') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   const angle = guard.attackAngle ?? guard.angle;
-  return distance <= COMBAT.attackReach && clearPath(world, guard, player)
-    && (distance < .001 || (dx * Math.cos(angle) + dy * Math.sin(angle)) / distance >= Math.cos(COMBAT.attackHalfArc));
+  return distance <= combat.attackReach && clearPath(world, guard, player)
+    && (distance < .001 || (dx * Math.cos(angle) + dy * Math.sin(angle)) / distance >= Math.cos(combat.attackHalfArc));
 }
 
-export function heatedChaseSpeed(heat = 0) {
-  return COMBAT.chaseSpeed + (CONFIG.speed * HEAT.maxSpeedRatio - COMBAT.chaseSpeed) * Math.max(0, Math.min(1, heat));
+export function heatedChaseSpeed(heat = 0, combat = COMBAT) {
+  return combat.chaseSpeed + (Math.max(combat.chaseSpeed, CONFIG.speed * HEAT.maxSpeedRatio) - combat.chaseSpeed) * Math.max(0, Math.min(1, heat));
 }
 
 // Shared directional hit/knockback for solo and team swings.
 export function strikePlayer(world, guard, player) {
+  const combat = world.tuning?.combat ?? COMBAT;
   if (!guardStrikeHits(world, guard, player) || !hurtPlayer(player)) return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
-  const speed = COMBAT.knockbackDistance / Math.max(.001, COMBAT.knockbackTime);
+  const speed = combat.knockbackDistance / Math.max(.001, combat.knockbackTime);
   player.knockbackX = (distance ? dx / distance : Math.cos(guard.angle)) * speed;
   player.knockbackY = (distance ? dy / distance : Math.sin(guard.angle)) * speed;
-  player.knockbackLeft = COMBAT.knockbackTime; return true;
+  player.knockbackLeft = combat.knockbackTime; return true;
 }

@@ -1,7 +1,9 @@
+import { createTuningView } from './tuning-view.js';
 import { LOOT_TYPES } from './loot.js';
 const $ = selector => document.querySelector(selector);
 const key = location.hash.slice(1);
 let state = null, busy = false, access = !!key;
+const tuningView = createTuningView(command => run(command));
 const status = (text, error = false) => { $('#admin-status').textContent = text; $('#admin-status').dataset.error = String(error); };
 function options(select, entries) {
   const signature = JSON.stringify(entries);
@@ -22,6 +24,8 @@ function controls() {
   $('#end-run').disabled = locked || !(state?.selectedRunActive ?? state?.runActive);
   if (state?.lairs && !state.selectedLairId) { $('#set-stock').disabled = true; $('#reset-lair').disabled = true; }
   $('#set-xp').disabled ||= !selectedGoblin(); $('#reset-goblin').disabled ||= !selectedGoblin();
+  $('#admin-lair').disabled = locked;
+  tuningView.paint(state, locked);
   $('#restore-backup').disabled ||= !state?.backups.some(b => b.id === $('#admin-backup').value && b.valid);
 }
 function details() {
@@ -36,7 +40,7 @@ function paint(next) {
     $('#admin-lair').value = state.selectedLairId ?? '';
     $('#admin-lair-code').textContent = state.lairs.find(l => l.id === state.selectedLairId)?.code ?? 'No lairs yet';
   }
-  $('#run-state').textContent = state.saveFailed ? 'Saving failed · game paused. Check Terminal and restart after fixing disk access.' : state.runActive ? 'Run active · back up now, or end the run before editing.' : 'At the lair · edits are available.';
+  $('#run-state').textContent = state.saveFailed ? 'Saving failed · game paused. Check Terminal and restart after fixing disk access.' : state.runActive ? 'Run active · settings apply next departure. End all runs before editing stock or progress.' : 'At the lair · edits are available.';
   $('#stock-summary').textContent = Object.entries(state.camp.counts).filter(([type]) => !LOOT_TYPES[type].sellValue).map(([type, count]) => `${LOOT_TYPES[type].name}: ${count}`).join(' · ');
   options($('#admin-goblin'), state.players.map(p => [p.id, p.name]));
   options($('#admin-backup'), state.backups.map(b => [b.id, `${b.label} · ${b.createdAt ? new Date(b.createdAt).toLocaleString() : 'cannot restore'}`]));
@@ -52,13 +56,15 @@ async function request(command) {
 }
 async function refresh() {
   if (busy || !access) return;
-  try { paint(await request()); } catch (error) { status(error.message, true); controls(); }
+  busy = true; controls();
+  try { paint(await request()); } catch (error) { status(error.message, true); }
+  finally { busy = false; controls(); }
 }
 async function run(command, confirmation) {
   if (busy || !access || !state) return;
   if (confirmation && !window.confirm(confirmation)) return;
   busy = true; controls(); status('Working…');
-  try { const result = await request(command); paint(result.state); if (result.backupId) $('#admin-backup').value = result.backupId; status(result.message); }
+  try { const result = await request(command); if (['set-tuning', 'reset-tuning'].includes(command.type)) tuningView.saved(); paint(result.state); if (result.backupId) $('#admin-backup').value = result.backupId; status(result.message); }
   catch (error) { status(error.message, true); }
   finally { busy = false; controls(); }
 }

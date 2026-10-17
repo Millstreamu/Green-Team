@@ -27,8 +27,8 @@ export function createSearchables(world) {
   const depths = searchRewardDepths(world, objects);
   objects.forEach((object, index) => {
     Object.assign(object, depths[index]);
-    const profile = searchRewardProfile(object.depth), definition = SEARCHABLE_TYPES[object.type];
-    const count = random() < profile.emptyChance ? 0 : random() < SEARCH_LOOT.twoItemChance ? 2 : 1;
+    const profile = searchRewardProfile(object.depth, world.tuning?.loot), definition = SEARCHABLE_TYPES[object.type];
+    const count = random() < profile.emptyChance ? 0 : random() < (world.tuning?.loot ?? SEARCH_LOOT).twoItemChance ? 2 : 1;
     object.contents = Array.from({ length: count }, () => {
       const pool = random() < profile.materialChance ? ['scrap', 'cloth'] : random() < Math.min(1, profile.rareChance + (world.job?.rareBonus ?? 0)) ? definition.rarePool : definition.pool;
       return pool[Math.floor(random() * pool.length)];
@@ -42,10 +42,10 @@ export function searchRewardDepths(world, objects) {
   const farthest = Math.max(1, ...distances);
   return distances.map(distance => ({ distance, depth: distance / farthest }));
 }
-export function searchRewardProfile(depth) {
+export function searchRewardProfile(depth, values = SEARCH_LOOT) {
   const t = Math.max(0, Math.min(1, depth));
   const blend = (near, far) => near + (far - near) * t;
-  return { emptyChance: blend(SEARCH_LOOT.nearEmptyChance, SEARCH_LOOT.farEmptyChance), materialChance: blend(SEARCH_LOOT.nearMaterialChance, SEARCH_LOOT.farMaterialChance), rareChance: blend(SEARCH_LOOT.nearRareChance, SEARCH_LOOT.farRareChance) };
+  return { emptyChance: blend(values.nearEmptyChance, values.farEmptyChance), materialChance: blend(values.nearMaterialChance, values.farMaterialChance), rareChance: blend(values.nearRareChance, values.farRareChance) };
 }
 
 export function canSearch(world, player, object) {
@@ -73,7 +73,7 @@ export function cancelSearch(session) { session.active = null; session.elapsed =
 export function beginSearch(session, world, player, loot, object) {
   if (session.active || loot.held || !canSearch(world, player, object)) return false;
   const rate = Number.isFinite(player.searchRate) && player.searchRate > 0 ? player.searchRate : 1;
-  session.duration = SEARCHABLE_TYPES[object.type].duration / rate;
+  session.duration = (world.tuning?.search?.[`${object.type}Time`] ?? SEARCHABLE_TYPES[object.type].duration) / rate;
   session.active = object; session.elapsed = 0; session.origin = { x: player.x, y: player.y };
   return true;
 }

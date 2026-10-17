@@ -1,11 +1,11 @@
-GREEN TEAM V40 — MAC TEST
+GREEN TEAM V41 — MAC TEST
 
 Node is already installed if you ran V31. You do not need to install it again.
 
 1. In the old Terminal window, press Control+C to stop the old game.
-2. Unzip this download. The new folder is green-team-v40.
-3. If you played V36, V37, V38 or V39, copy its whole data folder into green-team-v40 BEFORE starting. This keeps your home and goblins.
-4. In Terminal type cd followed by a space. Drag green-team-v40 into Terminal and press Return.
+2. Unzip this download. The new folder is green-team-v41.
+3. If you played V36, V37, V38, V39 or V40, copy its whole data folder into green-team-v41 BEFORE starting. This keeps your home and goblins.
+4. In Terminal type cd followed by a space. Drag green-team-v41 into Terminal and press Return.
 5. Type npm ci and press Return. Wait for it to finish.
 6. Type npm start and press Return.
 7. Open http://localhost:8080. You start on the HOME SCREEN, with your goblin and level.
@@ -32,7 +32,7 @@ SAVE TEST: put supplies in the stash and pack a real item into a goblin’s sack
 
 Restarting during a dungeon run loses that run’s carried supplies and loot. Lair stock stays safe. Earned XP and unlocks save with your shared home.
 
-IMPORTANT FOR FUTURE UPDATES: stop the server, then copy the whole data folder from this game folder into the next version’s folder before starting it. Do not throw away data: it contains your shared home. Back it up with the server stopped. V36/V37/V38 saves work directly in V40. No new database software needs installing.
+IMPORTANT FOR FUTURE UPDATES: stop the server, then copy the whole data folder from this game folder into the next version’s folder before starting it. Do not throw away data: it contains your shared home. Back it up with the server stopped. V36/V37/V38 saves work directly in V41. No new database software needs installing.
 
 XP TEST: escape with valuables. Each departed goblin gets the same XP:1XP per gold from recovered valuables. Waiting arrivals get none. Downed/caged/offline teammates still receive the team reward. Failed or empty runs give no XP; materials, gear and debug supplies give none.
 
@@ -51,3 +51,12 @@ Level currently rises every100 lifetime XP as a display-only test value. Spendin
 ADMIN: choose Selected lair before changing stock or ending a run. Its code is shown there. Backups/restore cover ALL lairs/profiles; Reset all affects all groups. Reset goblin clears that goblin’s sacks across lairs and its personal progression. Other lairs can run independently, but all runs must end before global save edits or restore.
 
 V40 CREATOR ACCESS: the home screen has Your lairs. Select a lair you created with this goblin and click Enter your lair: NO CODE NEEDED. Friends use Join a friend’s lair and its name/code. Your own lairs stay remembered after restarting; shared stock, sacks and personal progress are preserved. For old V39 saves, the first saved member is treated as creator; a before-update backup is made automatically. Ownership stays with that goblin identity, including after resets/restores.
+
+V41 GAME BUILDER TEST
+1. Open the Private server admin link printed in Terminal after npm start.
+2. Select your lair. In Game builder, try Normal sight distance 3, Chest search time 6 and Alerts per extra guard 1. Save settings for next run.
+3. Start a run. Guards should see a shorter distance, chests take longer, and each full guard alert brings a reinforcement. Personal search bonuses still apply.
+4. While playing, reset settings to defaults in the admin page. Your CURRENT run stays the same; the NEXT run uses defaults. Other lairs keep their own settings.
+5. Stop/restart to check saved settings remain. Use Reset settings to defaults whenever you want the previous balance back. Loot chance boxes use percentages; 100 means always, 0 means never.
+
+No new sprites/room editing yet. This first builder edits the existing shared gameplay rules. Creating another lair/settings/reset home-screen organisation is deferred to a later UI pass.

@@ -152,6 +152,7 @@ test('browser admin wires edits, backup/restore, confirmations, run locks and ac
     constructor() { this.dataset = {}; this.value = ''; this.listeners = {}; this.disabled = false; }
     addEventListener(type, fn) { this.listeners[type] = fn; }
     replaceChildren(...nodes) { this.children = nodes; }
+    appendChild(node) { (this.children ??= []).push(node); }
     send(type) { this.listeners[type]?.({ preventDefault() {} }); }
   }
   const elements = new Map();

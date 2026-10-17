@@ -15,7 +15,7 @@ export function drawReinforcementDoors(ctx, pressure, ox, oy) {
   }
 }
 export function pressureLabel(pressure) {
-  const progress = pressure.alerts % HEAT.alertsPerGuard;
+  const progress = pressure.alerts % (pressure.alertsPerGuard ?? HEAT.alertsPerGuard);
   const warning = pressure.pending.length ? ` · GUARD INCOMING ${Math.ceil(Math.min(...pressure.pending.map(p => p.left)))}s` : '';
-  return `Heat ${Math.round(pressure.heat * 100)}% · Alerts ${pressure.alerts} (${progress}/${HEAT.alertsPerGuard}) · Extra guards ${pressure.reinforcements}${warning}`;
+  return `Heat ${Math.round(pressure.heat * 100)}% · Alerts ${pressure.alerts} (${progress}/${pressure.alertsPerGuard ?? HEAT.alertsPerGuard}) · Extra guards ${pressure.reinforcements}${warning}`;
 }

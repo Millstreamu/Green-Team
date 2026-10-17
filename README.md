@@ -4,6 +4,12 @@ A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loo
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Named persistent lairs are implemented; public hosting, account login and player limits remain future work.
 
+## Game builder · V41
+
+Open the **Private server admin** link printed in Terminal, choose a lair, and use **Game builder · run settings**. Change guard speeds, sight, notice/attack timings, alerts per reinforcement, furniture search times and loot chances. **Save settings for next run** persists them for that lair; **Reset settings to defaults** restores our current balance. You can save during an active run: it keeps its original settings and the next departure uses the new values. Every edit backs up the server first. Personal bonuses and map difficulty still apply normally. See [game builder](docs/game-builder.md).
+
+Copy your whole old data folder into green-team-v41 before starting. Existing saves use current defaults automatically; no extra installation. Solo play.html keeps its existing defaults.
+
 ## Your lairs · V40
 
 **V40:** lairs remember their creator. On the home screen, choose from **Your lairs** and click **Enter your lair** without a code. Friends still need the name/code. Ownership follows the same goblin and survives restart, reset and backup/restore. Existing V39 saves backfill the first saved lair member as creator, with a backup before the update.
@@ -33,7 +39,7 @@ The Goblin selector on the home screen and above the game remembers local goblin
 
 Keep the **data folder** when updating to another version: stop the server, copy that folder into the new game folder, then start there. For backup, stop the server and copy data somewhere safe. Runtime saves are ignored by Git and are never included in downloads. A broken/unsupported save stops startup instead of silently replacing the home. A disk write failure pauses the live server and tells players. See [server saving](docs/server-saving.md) for recovery, optional save path and checks. Opening play.html remains the separate standalone solo game.
 
-For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v40 to distinguish it from older copies.
+For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v41 to distinguish it from older copies.
 
 `server/lair-session.js` owns home/run membership and routing; `server/dungeon-session.js` owns the active world, search reservations, loot transactions and outcome. `server/danger.js` reuses guard/pressure/hiding/snare/smoke rules; `server/team-guards.js` selects one focus per guard without advancing timers once per player. It retains the brief target trail without reading unseen teammates or ghosts for new clues. The browser regenerates the deterministic layout from the server-selected seed; all movement/collision, search duration and item ownership are still checked by the server. Snapshots conceal container contents and other players’ bags/profiles. Each active scene shares player poses and searchable/ground updates. Public deployment still needs HTTPS/WSS, authenticated group membership, transport heartbeat handling and production account recovery and group membership management. SQLite home persistence is implemented; one server process owns each save file. Server/rescue.js owns rescue claims/hold completion, captives and guard transport; src/rescue.js shares cage layout/reach targeting, and rescue-view.js reuses pixel progress bars for the temporary cage/body art.
 

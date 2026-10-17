@@ -55,3 +55,6 @@ V36–V38 payloads are backed up before CLI migration, then preserved as Origina
 ## V40 creator ownership
 
 Payload2 lair metadata now includes nullable ownerId, checked against known global profile IDs. Newly created lairs record the creator on the server before acknowledgement. V39 records missing that field are backed up, then backfilled from their first saved member; empty groups get explicit null. Explicit null is preserved across later restarts. Canonical personal identities retain their ownership even when progression is reset. Owned-lair entry authenticates the current socket's goblin ID rather than accepting a client-supplied owner. Friends still need valid codes. Backup/restore preserves recorded ownership; restoring older metadata does not overwrite a known owner. No lair economy or level/XP rules change.
+
+
+V41 adds optional per-lair tuning metadata to payload2; missing fields use the previous balance defaults, and present objects must pass the shared tuning validator. The SQLite table stays unchanged. Each next-run settings update commits through the hub checkpoint, including during a live dungeon; the current run keeps its independent launch copy. Full backups/restores include settings. Old backups reset missing settings to defaults; progress resets retain tuning.

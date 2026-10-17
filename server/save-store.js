@@ -1,3 +1,4 @@
+import { validateTuning } from '../src/tuning.js';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, chmodSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -61,6 +62,7 @@ export function validateSave(saved) {
       && (lair.ownerId == null || typeof lair.ownerId === 'string' && ownerIds.has(lair.ownerId))
       && typeof lair.code === 'string' && /^[A-Z2-9]{6}$/.test(lair.code));
     ids.add(lair.id); names.add(lair.name.toLowerCase());
+    if (lair.tuning !== undefined) validateTuning(lair.tuning);
     restoreSave(lair.state);
     for (const actor of lair.state.players) {
       const p = identities.get(actor.token);

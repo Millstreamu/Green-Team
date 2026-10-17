@@ -520,3 +520,10 @@ User confirmed V34 works and requested sneaking behind a guard carrying a teamma
 User corrected the V39 join rule: a lair's creator should not be locked out for forgetting the code; codes make sense for other goblins. Added persisted ownerId bound to the actual creating server identity, Your lairs with dedicated code-free entry, and owner recognition in normal name-based joining. Other goblins still need a correct invite code even if they previously visited. This supersedes V39's universal code-on-rejoin rule, without adding admin privileges or member roles.
 
 Compatibility default: V39 had no creator field, but inserted its creator as the first member before acknowledging creation. Back up before backfilling that first member for existing groups; empty groups get explicit null, which never auto-claims on a later visit/restart. Legacy Original Lair uses its first saved member as the provisional owner. Restore retains known ownership when older backups lack it; normal reset/restore retains identity/ownership. This is a migration fallback, not invented historical certainty.
+
+
+## V41 — first game builder settings
+
+User accepted the proposed first builder: guard speeds/vision/attack timing, reinforcement frequency, loot amounts and search time; saved settings for the next run and reset to defaults. Existing shared functions are reused. Sprite import/room editing remain later. Implementation defaults: per-lair settings in private server admin, editable during live play but copied only on the next departure; backup before each save/reset; progress resets retain settings, full backup restores include them. See game-builder.md for exact scope and checks.
+
+V40 owner re-entry was playtested and approved. Deferred UI note: after a goblin creates a lair, remove Create lair from primary home controls; secondary creation/settings/reset organisation waits for a later UI/UX pass. Not implemented in V41.

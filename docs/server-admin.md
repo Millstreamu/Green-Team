@@ -41,3 +41,8 @@ The admin endpoint requires a random per-start capability from Terminal, loopbac
 This is local operator tooling for the named-lair server, not a hosted administrator account/role system. Backups are home/profile snapshots rather than resumable dungeon saves or downloadable public exports. A later public server needs its own authenticated admin deployment design.
 
 Save edits/restores apply coherent new home snapshots: connected goblins stay in their selected group, return to its home spawn and cancel boarding. Stock/progression outside the requested reset scope stay unchanged. End run uses the selected engine directly and leaves other groups’ ongoing runs intact.
+
+
+## V41 game builder
+
+The selected lair now has a Game builder run-settings form with Save settings for next run and Reset settings to defaults. Changes are allowed during active runs and do not alter them; every edit backs up first and saves for the next departure. See game-builder.md for values, defaults and scope. Other stock/progress edits/restores still require no active runs. Reset lair/goblin/all progress keeps run settings; use the dedicated defaults button to reset balance. Full restore includes backed-up tuning, with defaults for pre-V41 backups.
