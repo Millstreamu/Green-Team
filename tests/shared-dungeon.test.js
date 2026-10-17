@@ -97,7 +97,8 @@ test('all active goblins gather to extract; bank shared haul once and preserve u
   assert.equal(result.soldGold, 38); assert.equal(camp.counts.gold, 38); assert.equal(camp.counts.snare, 2);
   assert.equal(a.bag.length + b.bag.length, 0);
   assert.equal(d.action(a, { type: 'extract' }), false); assert.equal(camp.counts.gold, 38);
-  assert.equal(a.profile.xp, 0); // Network reward settlement deliberately deferred in this slice.
+  assert.equal(a.profile.xp, 38); assert.equal(b.profile.xp, 38);
+  assert.equal(a.result.personalXp.earned, 38); assert.equal(b.result.personalXp.earned, 38);
 });
 test('dungeon ghost lasts sixty seconds, retains sack on return, and spills once on expiry', () => {
   const { d, a, b } = fixture(); const item = searchRuby(d, a); d.action(a, { type: 'pickup', id: item.id });

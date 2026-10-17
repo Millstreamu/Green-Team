@@ -143,7 +143,8 @@ function teamHaulXp(result) {
   return Math.min(Number.MAX_SAFE_INTEGER, Math.floor(gold * PROGRESSION.xpPerGold));
 }
 // A shared haul can reward several profiles equally. Each profile is credited
-// once for this live result; the future server needs durable run/profile IDs.
+// once for this live result. The server commits all profile/bank changes
+// atomically and never restores a live dungeon after restart.
 function awardPersonalXp(profile, teamResult) {
   teamResult.xpAwards ??= new Map();
   if (teamResult.xpAwards.has(profile.id)) return teamResult.xpAwards.get(profile.id);

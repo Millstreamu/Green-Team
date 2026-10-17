@@ -181,3 +181,44 @@ test('debug supplies retain their tag across restart and cannot become real stas
   assert.ok(r.s.action(p, { type: 'return', id: p.bag[0].id }));
   assert.equal(r.s.snapshot(p).camp.counts.lunch, 0); assert.equal(p.bag.length, 0);
 });
+
+test('earned team XP, shared gold and subsequent purchases persist together without replay rewards', t => {
+  const f = fixture(t), { s, store } = f.open(), a = s.connect(), b = s.connect();
+  launch(s, [a, b]);
+  for (let i = 0; i < 4; i++) a.bag.push({ id: `xp-ruby-${i}`, type: 'ruby', rotation: 0, x: i % 3, y: Math.floor(i / 3) });
+  s.disconnect(b); Object.assign(a, s.snapshot(a).dungeon.entrance);
+  assert.equal(s.action(a, { type: 'extract' }), true);
+  assert.equal(a.profile.xp, 100); assert.equal(b.profile.xp, 100);
+  assert.equal(store.load().camp.counts.gold, 100);
+  s.action(a, { type: 'dismiss-result' }); a.x = 9; a.y = 11.5;
+  assert.ok(s.action(a, { type: 'buy', upgrade: 'quickSearch' }));
+  a.x = 13; a.y = 6; assert.ok(s.action(a, { type: 'buy', upgrade: 'smoke' }));
+  store.close();
+  for (let i = 0; i < 2; i++) {
+    const r = f.open(), ra = r.s.connect(a.token), rb = r.s.connect(b.token);
+    assert.equal(ra.profile.xp, 20); assert.equal(ra.profile.earnedXp, 100);
+    assert.deepEqual(ra.profile.purchases, ['quickSearch', 'smoke']);
+    assert.equal(rb.profile.xp, 100); assert.deepEqual(rb.profile.purchases, []);
+    assert.equal(r.s.snapshot(ra).camp.counts.gold, 100);
+    assert.equal(r.s.action(ra, { type: 'extract' }), false);
+    assert.equal(r.s.action(ra, { type: 'award-xp', runId: 'old', amount: 100 }), false);
+    ra.x = 13; ra.y = 6; assert.equal(r.s.action(ra, { type: 'buy', upgrade: 'smoke' }), false);
+    r.store.close();
+  }
+});
+
+test('failed reward commit cannot persist gold without XP or XP without gold', () => {
+  let saved;
+  const store = { load: () => null, save(value) {
+    if (value.camp.counts.gold) throw Error('Disk full during rewards');
+    saved = structuredClone(value);
+  } };
+  const s = createLairSession({ store }), a = s.connect(), b = s.connect(); launch(s, [a, b]);
+  a.bag.push({ id: 'uncommitted-haul', type: 'ruby', rotation: 0, x: 0, y: 0 });
+  const entrance = s.snapshot(a).dungeon.entrance; Object.assign(a, entrance); Object.assign(b, entrance);
+  assert.throws(() => s.action(a, { type: 'extract' }), /Disk full/);
+  assert.equal(saved.camp.counts.gold, 0); assert.ok(saved.players.every(p => p.profile.xp === 0 && p.bag.length === 0));
+  const restored = createLairSession({ store: { load: () => saved, save() {} } }), back = restored.connect(a.token);
+  assert.equal(back.profile.xp, 0); assert.equal(restored.snapshot(back).camp.counts.gold, 0);
+  assert.equal(restored.snapshot(back).dungeon, null); assert.deepEqual(back.bag, []);
+});

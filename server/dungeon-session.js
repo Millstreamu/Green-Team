@@ -4,7 +4,7 @@ import { generateDungeon, movePlayer } from '../src/world.js';
 import { createLoot, autoPickup, liftItem, placeHeld, dropHeld, reachable, LOOT_TYPES, itemCells } from '../src/loot.js';
 import { createSearchables, createSearchSession, beginSearch, cancelSearch, updateSearch } from '../src/search.js';
 import { createRun, atTunnel } from '../src/run.js';
-import { personalSearchRate } from '../src/profile.js';
+import { awardPersonalXp, personalSearchRate } from '../src/profile.js';
 import { bankEscape } from '../src/lair.js';
 
 // The same single-player rules operate on one shared dungeon and separate sacks.
@@ -34,13 +34,19 @@ export function createDungeonSession(launch, participants, camp) {
     const recoveredIds = new Set(recovered.map(item => item.id));
     const items = recovered.filter(item => !LOOT_TYPES[item.type].equipment);
     const result = { runId: launch.id, outcome, job: launch.job, items, count: items.length,
-      slots: items.reduce((sum, item) => sum + itemCells(item).length, 0), team: true, networkXpPending: true,
+      slots: items.reduce((sum, item) => sum + itemCells(item).length, 0), team: true,
       elapsed: Math.floor(elapsed), lostItems: [] };
     if (outcome === 'escaped') bankEscape(camp, result, { bag: recovered });
+    // The departure roster earns equally, including offline/left-behind goblins.
+    // The lair checkpoint commits these profiles and the bank together before
+    // acknowledging settlement. Live runs are never replayed after restart.
+    const receipts = new Map(participants.map(p => [p.id, awardPersonalXp(p.profile, result)]));
+    delete result.xpAwards; // Internal receipt cache never belongs in snapshots.
     for (const p of participants) {
       const wasInRun = p.inRun;
       stopSearch(p); danger.rescue.remove(p); danger.cancel(p, true); p.bag.length = 0; p.loot.held = null; p.inRun = false;
-      p.result = p.connected && wasInRun ? { ...result, ...(p.state !== 'active' ? { outcome: 'down', leftBehind: outcome === 'escaped', items: [], count: 0, slots: 0, lostItems: (p.downItems ?? []).filter(i => !recoveredIds.has(i.id)) } : {}), personalXp: { earned: 0, total: p.profile.xp } } : null;
+      if (!p.connected || !wasInRun) p.notice = { id: `${launch.id}-xp`, text: `Team run finished. +${receipts.get(p.id).earned} XP · ${p.profile.xp} XP available.` };
+      p.result = p.connected && wasInRun ? { ...result, ...(p.state !== 'active' ? { outcome: 'down', leftBehind: outcome === 'escaped', items: [], count: 0, slots: 0, lostItems: (p.downItems ?? []).filter(i => !recoveredIds.has(i.id)) } : {}), personalXp: receipts.get(p.id) } : null;
     }
     return result;
   }

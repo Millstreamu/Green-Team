@@ -1,4 +1,4 @@
-# Server saving — V36
+# Server saving — V37
 
 Run `npm ci`, then `npm start` as before. Node 22.13+ includes the SQLite database used here; no database download is needed. Existing Node24 works.
 
@@ -10,7 +10,7 @@ Run `npm ci`, then `npm start` as before. Node 22.13+ includes the SQLite databa
 
 Everyone returns to the lair with full health after a server restart, with no boarding countdown. Dungeon layouts, floor loot, carried loot/supplies, cages and live timers are not resumed. A launched run durably removes its sacks from the saved home immediately; restarting cannot restore used supplies. Interrupted participants receive a notice. Waiting arrivals keep their home sacks. Successful extraction commits banked gold/materials/unused real gear and cleared participant sacks in the same save. Repeated restarts cannot repeat the haul.
 
-Debug supplies retain their no-credit tag across restart. Existing personal progression is stored; network XP rewards are still disabled, with no free XP introduced by this change.
+Debug supplies retain their no-credit tag across restart. Personal XP from the actual banked team valuables is now stored with shared gold and all participant profiles in one commit. Every departure participant earns equally, including offline/expired and left-behind goblins; waiting arrivals are excluded. Failed/interrupted runs earn none. One existing rule calculates rewards (1XP per valuable gold); materials/equipment/debug items earn none. The client cannot submit its own XP or ownership.
 
 ## Find your goblin
 
@@ -30,8 +30,14 @@ One SQLite row contains the versioned home snapshot, committed as one atomic sta
 
 Loading checks schema/version, counts, profiles, unique identities/item IDs, item footprints and bags. Unreadable or unsupported saves stop startup rather than silently resetting. Do not delete that file to make an error disappear; retain a copy and restore a known backup while the server is stopped. On write failure the session blocks further changes, the server pauses simulation, and players see a saving error. Fix disk space/access, then restart from the last successful save.
 
-There are no public accounts, named group selection, cross-device identity recovery, automatic backups, public hosting or network XP reward transactions yet. This is one durable friend-group home on the existing local server.
+There are no public accounts, named group selection, cross-device identity recovery, automatic backups, or public hosting yet. This is one durable friend-group home on the existing local server.
 
 ## Verification
 
 Automated checks cover SQLite close/reopen, distinct sacks, stock/crafting/stack/destination/purchase persistence, monotonic item IDs, boarding recovery, run-launch consumption, waiting-player preservation, interrupted-run cleanup, bank-once extraction, malformed/unsupported saves, failed commits and live save-error feedback. Real WebSocket tests restart a server and recover the same goblin. A separate child-process test launches the actual server entry point, forcibly kills it without shutdown, confirms a home sack survives, then kills a launched run and confirms its sack cannot return. Browser entry event tests cover selector switching, disabled selection in a run and save feedback; pure identity tests cover closed tabs, simultaneous tab registration and blocked storage. Rendered browser appearance and manual Mac feel remain user playtests.
+
+## V37 reward durability
+
+Settlement uses the immutable departure roster and one live settled flag. It reuses the existing profile award calculator and keeps its temporary receipt cache off network snapshots. The lair checkpoint atomically saves shared bank changes, cleared sacks and every participant’s XP before acknowledging an escape. Live dungeons/results are not reloaded or replayed on restart, so the durable state is either the previous launched-run snapshot (no rewards) or the completed home snapshot (bank and XP together). No client command can replay a run ID or grant XP. Separate durable run history/receipt browsing is not part of this slice; if resumable runs are added later, they must retain this guarantee with a durable settlement ledger.
+
+Personal purchases already use server profile balances/station checks and save immediately. Recipe ownership remains separate per goblin; crafting spends shared materials and puts output into the acting goblin's sack first. Quick Fingers derives search rate from the stored profile when a run begins. Offline reward balances persist even if the temporary result/notice is missed. V36 schema1 saves work unchanged in V37.
