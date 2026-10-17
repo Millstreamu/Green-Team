@@ -230,3 +230,10 @@ Job/difficulty inputs and upfront risk/reward preview extend the existing tunnel
 **Agreed process:** user identified that map/job choice needs an explicit multiplayer rule and requested a pass through comparable questions across current systems. Review group behavior alongside each feature, even while server testing remains deferred. Ask short batches and record unresolved choices rather than assuming solo code defines co-op behavior.
 
 Created multiplayer-review.md with current-source audit evidence and seven batches: job/readiness, escape/recovery, joining/leaving, searching/carrying, shared resources, guards/effects, persistence/difficulty/session operation. Existing agreed shared-lair/downing/trap principles are separated from new proposals. First proposal: organiser chooses job/difficulty, all participating players ready their own gear before organiser launches, new arrivals wait until next run. These are **not yet accepted**. “Host” here means organiser role, not a player's PC running the world/server.
+
+
+## Multiplayer batch 1 answers — 17 October 2026
+
+**Agreed explicitly:** job/difficulty chosen by team vote; everyone marks Ready; new arrivals wait for the next run. This replaces the earlier proposed host-selected job. Reconnects are separate from new arrivals.
+
+**Still open:** vote ties, ballot grouping/timing, readiness invalidation on selection changes, and whether everyone-ready triggers a countdown or enables an organiser Start button. Proposed next follow-ups: random selection among tied options and a short automatic countdown after all are ready. Do not mark these details accepted until answered. No runtime change yet.

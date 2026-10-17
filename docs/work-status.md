@@ -215,3 +215,8 @@ User raised who chooses the map in a party and asked for a pass over similar una
 Read actual run/main/loadout/lair/loot/search/guard/trap/smoke/UI flows for the audit. Main gaps: local launch selects/spends/creates world; solo extraction/down ends entire run; one guard target/trail; browser-local lair/effect timers; single search/selection; fixed goblin ID. Existing solo checks do not establish co-op correctness. Review document supplies future co-op checks and outlines server responsibility without implementing it.
 
 Documentation-only change: inspected coverage and proposal/agreement labels; no runtime code or generated play build changed, so no game tests rerun. V21 remains playable. Continue by resolving batch1 with user, record accepted answers, then present the next small batch. Do not treat recommendations as accepted. Keep multiplayer server setup deferred until separately authorised.
+
+
+## Multiplayer review: first answers recorded
+
+User chose team vote, everyone marks Ready, and new arrivals wait until next run. Updated multiplayer-review.md batch1 and decisions.md. Host-selected jobs are not the agreed direction. Before escape/recovery, clarify two launch details: tied-vote resolution and automatic countdown versus organiser Start once everyone is ready. Ballot grouping/readiness-reset details remain proposed. Documentation only; V21 code/play.html unchanged, no runtime tests rerun. Continue small batches; no server/network implementation authorised by these design answers.

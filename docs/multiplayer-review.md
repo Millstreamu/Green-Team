@@ -15,13 +15,21 @@ The user requested a pass over multiplayer questions that should accompany featu
 
 ## Batch 1 — choosing and starting a job
 
-| ID | Question | Recommended starting rule | Alternative |
-|---|---|---|---|
-| A1 | Who chooses job and difficulty? | Session host chooses; everyone sees the proposal. | Team vote. |
-| A2 | When can the run start? | Each player prepares their own sack and marks Ready; host starts once all participating players are ready. | Host can launch without everyone ready. |
-| A3 | Can a new friend join an ongoing run? | Join the lair/waiting area and play from the next run. Reconnecting an existing goblin is separate. | Spawn into the active dungeon. |
+Accepted by the user, 17 October 2026:
 
-If A1/A2 are accepted: changing the job/difficulty clears readiness. One job profile/seed is frozen at launch and shared by the whole party. Inventory changes clear that player's ready state. These details are proposed, not implied acceptance.
+| ID | Decision | Agreed rule |
+|---|---|---|
+| A1 | Who chooses job and difficulty? | Team vote. |
+| A2 | Readiness | Everyone marks Ready before the run can launch. |
+| A3 | New arrivals during a run | Wait until the next run. Reconnecting an existing goblin is a separate question. |
+
+Follow-ups still open:
+
+- A1a: How to break a tied vote? Proposed: random choice among the tied options. Alternative: revote until resolved.
+- A2a: Once everyone is ready, launch automatically after a short cancellable countdown, or require the organiser to press Start? Proposed: short automatic countdown.
+- Ballot details: proposed one vote per player for a job+difficulty pair; if the winning selection changes, clear readiness. Not yet accepted. Decide these details before implementation, rather than assuming the solo dropdown describes a team vote.
+
+One job profile/seed must be shared for the run; server coordination is still deferred. Everyone-ready does not by itself settle the launch-button/countdown behavior.
 
 “Host” means the person organising the session. It does not mean their browser must simulate the game or their computer must host the server. An inexpensive shared server remains the intended hosting direction; technology/setup choices are not made by this review.
 
