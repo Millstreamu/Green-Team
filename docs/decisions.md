@@ -286,3 +286,10 @@ User approved: E climbs aboard and marks ready; E again hops out/unreadies. When
 User confirmed both: a carrying guard drops its captive when it sees a standing goblin and prioritises chasing that goblin; an ally opening the cage releases its goblin with one health and does not need a Packed Lunch. Keep two rescue paths: resource-based revival on the floor, or harder guarded-cage rescue without the item. The original sack contents stay on the floor independently of body transport/release.
 
 Still pending: failure with no free standing rescuers, Packed Lunch consumption/interruption, and cage-opening interaction. Proposed next discussion: no free standing goblins ends the run; same hold-E/cancel-on-movement-or-damage rescue pattern, with lunch spent only upon completed ground revival. These proposals are not yet accepted.
+
+
+## Recovery closure and heat discussion — 17 October 2026
+
+**Agreed through “ok cool” to the preceding two proposals:** when no free standing goblins remain, the run ends unsuccessfully and everyone returns to the lair; loot left behind is lost. Rescue is hold E at teammate/cage, cancelled by movement or damage. A Packed Lunch is used only on completed ground revival, not interrupted attempts. Cage rescue needs no lunch and restores one health as already agreed. Keep zero-standing failure separate from successful survivor extraction.
+
+**New requested goal:** prevent indefinite kiting by making guards more dangerous over sustained pursuit. User asked for a proposal, not immediate implementation. Draft idea in multiplayer-review.md: readable shared heat, pursuit-driven buildup, delayed slow cooling after contact breaks, capped gradual chase-speed increase. High heat can let alerted guards slightly outrun a goblin; hiding/gear can break contact. Shared/per-guard scope, exact effects/values and scaling are not approved. No heat code added.

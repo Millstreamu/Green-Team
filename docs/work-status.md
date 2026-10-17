@@ -257,3 +257,8 @@ User added guards picking up downed goblins and taking them to the nearest prede
 ## Capture follow-ups approved
 
 User answered yes: carrier drops captive and chases a standing goblin in sight; cage opening restores one health without Packed Lunch. Updated active review/decisions. Body drop returns the same goblin downed at the drop point; do not re-spill/duplicate the original floor items. Next confirm no-free-standing-player failure and shared hold-E rescue/interruption/Lunch-consumption behavior. Documentation only, V21 code unchanged and no runtime tests rerun.
+
+
+## Recovery accepted; heat proposal pending
+
+User said “ok cool” to no-free-standing-player failure and hold-E rescue/cancellation with Packed Lunch consumed only upon completed revival. Recorded as agreed. User then requested anti-kiting heat and asked for thoughts. Added a clearly pending proposal to review: sustained-pursuit heat with slow cooling and capped chase-speed escalation, readable UI, no hidden-player omniscience; reinforcements only a future possibility. Next obtain reaction to heat concept, then resume remaining multiplayer batches. No runtime/heat/capture implementation, V21 remains current and no game tests rerun for docs.

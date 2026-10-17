@@ -47,13 +47,13 @@ Accepted user answers, 17 October 2026:
 | B1 | Leaving | All standing participating goblins must be together to leave. Downed goblins do not count toward the leave check, so survivors can leave without them. No individual extraction/banking while another standing teammate continues. |
 | B3 | Ground revival | A teammate can revive a downed goblin to one health using a Packed Lunch before capture. Player-carrying a downed goblin out is not allowed. Restoring a goblin to standing adds it back to the extraction count. |
 | B5 | Capture / jail rescue | A guard picks up a downed goblin and carries it to the closest preplaced cage. Cage locations are fixed for that generated map and have a largely stationary jail guard. Allies can rescue from cages, restoring one health without a Packed Lunch, at greater risk than a coordinated ground revival. A carrying guard that sees a standing goblin drops its captive and chases the standing goblin. |
+| B6 | No rescuers left | When no standing, free goblins remain, end the failed run and return everyone to the lair. Loot left behind is lost. |
+| B7 | Rescue interaction | Hold E on the teammate or cage. Moving or taking damage cancels. Packed Lunch is consumed only when a ground revival completes; interrupted attempts keep it. |
 | B4 | Sack on downing | Sack items spill onto the floor immediately. They can be picked up again, including by the goblin after recovery. Do not delete them at downing or automatically restore a packed sack on revival. |
 
 Unresolved before implementation:
 
-- Rescue interaction proposal: use the same hold-E rescue interaction for cages and ground revival, cancelled by movement/damage. Ground revival needs Packed Lunch; cage release does not. Cage opening method/duration is not yet accepted.
-- Failure when no standing/free rescuers remain (all downed, carried or caged): previous immediate-all-down proposal was not accepted and must be reviewed against this capture loop. A zero-standing-player count must never trigger successful extraction. Leaving/disconnect handling remains a later batch.
-- Packed Lunch crafting/unlock cost and consumption: proposed one lunch per completed three-second rescue, with interruptions resetting progress and preserving the lunch. Costs not yet set.
+- Packed Lunch crafting/unlock cost and cage opening duration are still unset. Ground revival uses the previously proposed three-second hold; interruption cancels progress. Consumption on completed ground revival and preserving the lunch on interruption are now agreed.
 - Repeated revival limits, pickup delay/interruptions, how many goblins fit in a cage, jail-guard pursuit limits and whether a delivered guard returns to its original routine. No bleed-out timer or self-escape rule has been chosen.
 - Group exit interaction/countdown/required proximity; do not automatically copy the departure-cart countdown onto extraction.
 
@@ -101,6 +101,14 @@ Crafting, purchases and withdrawals must validate against the same shared quanti
 | F3 | Do quick items/attacks affect teammates? | Smoke hides all goblins; snares waste harmlessly under any goblin as agreed. Decide damage items separately when added. | Other explicit friendly-effect rules. |
 
 Per-player damage immunity, knockback and attack direction must remain separate. A guard's invisible trail belongs to its pursued target, not whichever browser updates last. Smoke must obstruct the same sight checks for everyone. Placement safety follows the actual setter's identity. No secret map/guard information should leak through another player's local UI unless the team intentionally shares it.
+
+## Heat — new design request, still discussing
+
+User wants increasing danger over time to prevent indefinite guard kiting. No heat mechanic or specific escalation is approved yet.
+
+Proposed first version: a shared dungeon heat meter that rises during sustained active pursuit (including fresh trail-following), retains pressure through brief corner/sight breaks, and slowly cools after a grace period without pursuit. A smooth capped chase-speed increase affects alerted guards, reaching just above goblin running speed at the highest heat. This makes prolonged open kiting unsafe while preserving hiding, corners, smoke and snares as ways to escape. Keep routine routes and attack timing predictable. Heat does not reveal hidden goblin locations. Add a clear meter/warning so escalation is readable; tune rise/cooldown/cap later. Reinforcements are a possible later extension, not part of the first proposal.
+
+Still open: shared versus per-guard heat, exactly what builds/holds/decays it, escalation effects/caps, difficulty/party scaling and how jail guards interact with heat. Discuss user intent before implementation. Local detection/global heat must not silently imply every guard knows every goblin's position.
 
 ## Batch 7 — progress, difficulty and running the session
 
