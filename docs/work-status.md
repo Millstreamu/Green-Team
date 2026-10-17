@@ -247,3 +247,8 @@ User chose group extraction: everyone together, not individual escape. Revive to
 ## Downed extraction exception recorded
 
 User rejected carrying: downed goblins must be revived to leave themselves and are excluded from the extraction counter. All standing goblins gather; downed teammates do not block surviving players leaving. Reviving brings that goblin back into the count. Updated review/decisions. Next confirm all-down failed-run handling and Packed Lunch consumption only on completed rescue. Still documentation only; no runtime changes/tests, V21 remains playable.
+
+
+## New capture layer in recovery review
+
+User added guards picking up downed goblins and taking them to the nearest predetermined cage. Cage sites have largely stationary jail guards; allies can rescue captives, with a harder rescue than using Packed Lunch before capture. Standing visible goblins take priority. Updated review/decisions, keeping sack spill and downed exclusion from exit count. Next two focused questions: carrier drops captive when it sees a standing goblin? Cage opening frees to one health without Lunch? Failure/all-down and detailed cage rules remain pending. No capture/jail/Packed Lunch runtime added; V21 stays current and no game tests rerun for docs.

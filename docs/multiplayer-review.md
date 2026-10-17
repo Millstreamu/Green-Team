@@ -11,6 +11,7 @@ The user requested a pass over multiplayer questions that should accompany featu
 - Successful return sells valuables and deposits materials/unused gear. Taking supplies uses lair stock. Debug items do not create real stock.
 - Goblins can trigger/waste armed snares without being harmed. A newly placed snare waits for its setter to step clear.
 - Team extraction requires all standing participating goblins together; downed goblins are excluded from the leave counter. A teammate can revive a downed goblin to one health using a Packed Lunch. Downing spills sack contents as recoverable floor items; the revived goblin can pick them up again. Exact handling of an unrecovered goblin remains open.
+- Guards capture downed goblins into the nearest preplaced cage, prioritising standing goblins in sight. Allies can rescue captives; cage sites have a largely stationary jail guard. Capture interruption and cage-release details remain open.
 - Keep the game lightweight for inexpensive hosting. No working multiplayer or shared online save exists yet.
 
 ## Batch 1 — choosing and starting a job
@@ -44,15 +45,20 @@ Accepted user answers, 17 October 2026:
 | ID | Decision | Agreed rule |
 |---|---|---|
 | B1 | Leaving | All standing participating goblins must be together to leave. Downed goblins do not count toward the leave check, so survivors can leave without them. No individual extraction/banking while another standing teammate continues. |
-| B3 | Revival | Teammate rescue restores one health and requires a Packed Lunch item. A downed goblin must be revived to leave itself; carrying downed goblins out is not allowed. Reviving adds that goblin back into the standing-player extraction count. |
+| B3 | Ground revival | A teammate can revive a downed goblin to one health using a Packed Lunch before capture. Player-carrying a downed goblin out is not allowed. Restoring a goblin to standing adds it back to the extraction count. |
+| B5 | Capture / jail rescue | A guard picks up a downed goblin and carries it to the closest preplaced cage. Cage locations are fixed for that generated map and have a largely stationary jail guard. Allies can rescue from cages, at greater risk than a coordinated ground revival. Visible standing goblins take priority for guards. |
 | B4 | Sack on downing | Sack items spill onto the floor immediately. They can be picked up again, including by the goblin after recovery. Do not delete them at downing or automatically restore a packed sack on revival. |
 
 Unresolved before implementation:
 
-- All-downed outcome: proposed immediate failed-run end and return to lair, with floor loot left behind. Confirm with user. A zero-standing-player count must never accidentally trigger successful extraction. Leaving/disconnect handling remains a later batch.
+- Capture priority follow-up: if a carrier sees a standing goblin, does it drop its captive and chase? User specified standing-visible priority, but the physical interruption behavior is not settled.
+- Cage release follow-up: does opening a cage return its goblin to standing with one health without needing a Packed Lunch? Proposed yes, to distinguish the harder cage rescue from using supplies before capture. Method/duration/cost not yet accepted.
+- Failure when no standing/free rescuers remain (all downed, carried or caged): previous immediate-all-down proposal was not accepted and must be reviewed against this capture loop. A zero-standing-player count must never trigger successful extraction. Leaving/disconnect handling remains a later batch.
 - Packed Lunch crafting/unlock cost and consumption: proposed one lunch per completed three-second rescue, with interruptions resetting progress and preserving the lunch. Costs not yet set.
-- Whether there is a limit on repeated revivals and whether guards keep targeting downed goblins.
+- Repeated revival limits, pickup delay/interruptions, how many goblins fit in a cage, jail-guard pursuit limits and whether a delivered guard returns to its original routine. No bleed-out timer or self-escape rule has been chosen.
 - Group exit interaction/countdown/required proximity; do not automatically copy the departure-cart countdown onto extraction.
+
+Implementation proposal: choose the nearest reachable preplaced cage by walking-route distance, reusing navigation. Guards transporting a captive move that goblin’s body; previously spilled floor loot remains where it fell. Exact pickup/transport/release transitions need the answers above.
 
 Implementation notes: transfer bag contents to ground exactly once per down event, preserve item IDs/metadata/debug tags and clear the bag. The quick-use equipment display is a reference to a carried copy, not another item to duplicate. Recollection uses normal floor pickup and sack fitting. Proposed held-cursor behavior: drop that carried item too. Future loss settlement should concern items actually left behind, not also delete a copy already recovered by a teammate. Successful survivor-group extraction banks/sells only the escaping goblins' actual carried contents once. Downed goblins remain left behind; floor items teammates recovered belong to those actual carried copies and must not also be lost/deleted by prior ownership.
 

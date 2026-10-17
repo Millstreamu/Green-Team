@@ -272,3 +272,10 @@ User approved: E climbs aboard and marks ready; E again hops out/unreadies. When
 **Agreed clarification:** a downed goblin must be revived to leave itself; no carrying downed goblins out. Downed goblins do not count in the leave-check counter. Thus all standing participating goblins must gather, but they can extract without reviving every downed teammate. Revival restores participation in the standing-player extraction requirement. This refines “everyone together,” rather than requiring recovery of all downed teammates.
 
 **Next pending checks:** everyone down causes failed-run end (never a successful zero-player extraction); a Packed Lunch is consumed only on completed rescue, with interrupted attempts preserving it. These proposals await confirmation. Floor contents remain recoverable as already agreed; loot carried out by a teammate must not also be deleted as someone else's lost sack.
+
+
+## Guard capture and cage rescue — 17 October 2026
+
+**Agreed new recovery layer:** after a goblin goes down, a guard can pick it up and carry it to the closest cage. Cage sites are predetermined for the generated map; cages have an accompanying jail guard that largely stays put. Allies can rescue the captive there, but this is harder than a coordinated Packed Lunch revival before capture. Guards prioritise standing goblins in sight. Existing downed sack-spill and standing-only group extraction rules remain.
+
+**Still open:** when a carrying guard spots a standing goblin, does it put/drop its captive down to chase? Does opening a cage restore one health without using Packed Lunch? Cage opening method/duration, transport/pickup delay, jail-guard pursuit limits/cage capacity, and team-failure rules when no free standing rescuer remains are unconfirmed. The earlier all-down instant-failure proposal was never accepted; do not implement it as a settled rule. Nearest reachable cage by path distance is the implementation recommendation.
