@@ -232,3 +232,8 @@ Next focused question: does changing destination/difficulty clear everyone’s R
 ## Readiness clarification confirmed
 
 User confirmed Ready means ready to go; changing selected destination/difficulty never clears it. Cart leaves for the latest selection at departure. Updated review and decisions; previous readiness-reset recommendation is rejected/superseded. Next short question proposes E to board/ready, E again to hop out, and a three-second departure countdown once all are aboard (not yet agreed). Documentation only, V21 remains unchanged; no runtime tests rerun.
+
+
+## Cart readiness approved; move to escape/recovery
+
+User approved E board/ready, E again leave/unready, three-second countdown when all participating goblins are aboard, cancelled if someone hops out. Updated accepted cart flow; destination edits never clear readiness. Next discuss individual escape, teammate rescue and recoverable sack contents in a short batch. Those rules are still pending. Documentation only; V21 remains current, no runtime tests rerun.

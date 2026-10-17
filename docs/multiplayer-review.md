@@ -27,10 +27,10 @@ The lair has distinct functions: stash, workbench, map-planning station and depa
 
 Confirmed clarification: even if someone readies on Normal and another changes it to Hard, readiness remains and the party departs on Hard if that is the selection when the cart leaves. Do not add a reset, destination approval or confirmation gate. Freeze the live run profile at actual departure.
 
-Follow-ups still open:
+Confirmed cart interaction: E boards/marks ready; E again hops out/unreadies. When all participating goblins are aboard, start a three-second countdown. A goblin hopping out cancels it. Destination changes still do not clear readiness.
 
-- How does cart readiness work physically? Proposed next: E boards the cart and marks ready; E again hops out/unreadies.
-- Departure timing: proposed three-second countdown once all participating goblins are aboard; getting out cancels the countdown. This has not yet been accepted.
+Remaining preparation follow-up:
+
 - Where the current gear-packing screen fits between stash preparation and cart readiness. The map station should not silently spend supplies or start the dungeon.
 
 One job profile/seed must be frozen for the departed run and shared by everyone. Subsequent edits at the planning station cannot alter a live dungeon. New arrivals still wait for the next run. Server implementation remains deferred.
@@ -38,6 +38,8 @@ One job profile/seed must be frozen for the departed run and shared by everyone.
 “Host” means the person organising the session. It does not mean their browser must simulate the game or their computer must host the server. An inexpensive shared server remains the intended hosting direction; technology/setup choices are not made by this review.
 
 ## Batch 2 — escape, downing and recovery
+
+Next user discussion. All suggestions here remain open; do not infer acceptance from cart approval. Suggested first questions: individual escape, hold-E rescue, and whether teammates may recover a downed sack.
 
 | ID | Question | Recommended starting rule | Alternative |
 |---|---|---|---|

@@ -253,3 +253,8 @@ Do not retain voting/tie-break logic or restrict selection to an organiser. Keep
 User explicitly confirmed: readiness is not destination/difficulty approval. If a player readies while Normal is selected and another changes it to Hard, they stay ready. Departure uses whatever destination/difficulty is currently selected. This supersedes the suggested readiness reset in earlier notes; do not implement that reset or an extra approval gate. Snapshot the run profile when the cart actually leaves.
 
 Next proposal, not accepted: E boards/marks ready, E again gets out/unreadies; a three-second countdown begins once everyone is aboard and cancels if someone gets out. This settles physical readiness and departure timing only if the user accepts it. Gear preparation remains a later open detail.
+
+
+## Cart boarding approved — 17 October 2026
+
+User approved: E climbs aboard and marks ready; E again hops out/unreadies. When everyone participating is aboard, a three-second countdown starts. Someone hopping out cancels it. Destination/difficulty changes continue to preserve readiness as already agreed. Gear-preparation placement remains open; proceed to escape and teammate-recovery questions. No runtime implementation in this design review.
