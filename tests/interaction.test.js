@@ -132,7 +132,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   tap('Tab'); tap('Tab'); assert.equal(elements.get('sack-panel').dataset.open, 'false');
   elements.get('sack-tab').send('click'); tick(); assert.equal(elements.get('sack-panel').dataset.open, 'true');
   tap('Tab');
-  key('KeyW'); for (let i = 0; i < 42; i++) tick(); win.send('keyup', { code: 'KeyW' });
+  walk('KeyD', 14); walk('KeyW', 14);
   assert.equal(elements.get('sack-panel').dataset.open, 'false');
   assert.match(elements.get('target-label').textContent, /Chest.*hold E/);
   key('KeyE'); for (let i = 0; i < 30; i++) tick();
@@ -161,7 +161,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   tap('KeyE');
   assert.equal(elements.get('sack-used').textContent, '2 / 9');
   tap('Tab');
-  key('KeyS'); for (let i = 0; i < 42; i++) tick(); win.send('keyup', { code: 'KeyS' });
+  walk('KeyS', 14); walk('KeyA', 14);
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
   tap('KeyE');
   assert.equal(elements.get('run-results').open, true);
@@ -223,15 +223,16 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.match(elements.get('target-label').textContent, /Secret tunnel/);
   // Search again, lift actual spilled loot and deliberately approach a lookout.
   // Guards no longer wander into the starting room on their normal routine.
-  key('KeyW'); for (let i = 0; i < 42; i++) tick(); release('KeyW');
+  walk('KeyD', 14); walk('KeyW', 14);
   key('KeyE'); for (let i = 0; i < 145; i++) tick(); release('KeyE'); tick();
-  doc.send('pointerdown', { target: elements.get('game'), clientX: 421, clientY: 253 }); tick();
+  doc.send('pointerdown', { target: elements.get('game'), clientX: 469, clientY: 324 }); tick();
   assert.match(elements.get('held-label').textContent, /Holding Ruby/);
-  key('KeyS'); for (let i = 0; i < 42; i++) tick(); release('KeyS');
+  walk('KeyS', 14); walk('KeyA', 14);
   const { generateDungeon } = await import('../src/world.js');
   const { createGuards } = await import('../src/guard.js');
   const { findPath } = await import('../src/navigation.js');
-  const map = generateDungeon(978983017), post = createGuards(map)[0];
+  const { dungeonConfig } = await import('../src/generator-settings.js');
+  const map = generateDungeon(978983017, dungeonConfig()), post = createGuards(map)[0];
   const route = findPath(map, map.spawn, post);
   const simulated = { ...map.spawn };
   for (const goal of route) {
@@ -275,7 +276,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(elements.get('sack-used').textContent, '9 / 9');
   elements.get('regenerate').send('click'); tick(); dungeonSeed = 42; prepareRun();
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
-  walk('KeyD', 14); walk('KeyW', 14); key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
+  walk('KeyW', 14); key('KeyE'); for (let i = 0; i < 160; i++) tick(); release('KeyE'); tick();
   assert.match(elements.get('status').textContent, /Nothing worth taking/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   elements.get('regenerate').send('click'); tick(); packAtHome('smoke'); prepareRun();
@@ -303,7 +304,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   elements.get('confirm-job').send('click'); tick(); walk('KeyD', 56); tap('KeyE'); waitForDeparture();
   const { createHidingSpots } = await import('../src/hiding.js');
   const { createSearchables } = await import('../src/search.js');
-  const hideWorld = generateDungeon(42), barrel = createHidingSpots(hideWorld, createSearchables(hideWorld))[0];
+  const hideWorld = generateDungeon(42, dungeonConfig()), barrel = createHidingSpots(hideWorld, createSearchables(hideWorld))[0];
   const hideRoute = findPath(hideWorld, hideWorld.spawn, barrel), position = { ...hideWorld.spawn };
   for (const goal of hideRoute) {
     for (let i = 0; i < 150 && Math.hypot(goal.x - position.x, goal.y - position.y) > 0.06; i++) {

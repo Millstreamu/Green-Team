@@ -4,6 +4,10 @@ A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loo
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Named persistent lairs are implemented; public hosting, account login and player limits remain future work.
 
+## Approved starting settings
+
+The Moss export approved on17 October2026 now defines architecture defaults: Human Manor is50×40, requests15 rooms of5–8 tiles per side, tries6 extra routes and requests4 searchables per room. Protected dead ends remain2. Dwarf/Elf presets and gameplay tuning match the previous values. Existing lairs keep saved overrides; new lairs and defaults reset use the updated presets. Current Moss already has these settings, so no reinstall is needed for that lair.
+
 ## Export settings · V43
 
 In private admin, select a lair and click **Export settings** after saving your builder edits. It downloads one JSON file with that lair's saved gameplay tuning and all three dungeon layouts. Attach it in our chat to have the chosen values promoted into the GitHub defaults. Export is read-only and works during runs. It contains settings and the lair name; invite codes, identity keys, inventory and progress are excluded. Unsaved form edits and example preview numbers are not included. Export itself does not change GitHub.

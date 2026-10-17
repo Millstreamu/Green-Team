@@ -537,3 +537,8 @@ User accepted saved generator parameters and a small preview with Human/Dwarf/El
 ## V43 — export tuned settings for GitHub defaults
 
 User asked to add the proposed one-file export immediately. Export settings in private admin downloads the selected lair's saved gameplay tuning plus all three saved architecture presets. User attaches this file in chat to have the desired settings committed as code defaults; export itself does not write to GitHub. Unsaved form edits are excluded, explicitly explained in the screen. Implementation: read-only fresh summary, versioned JSON whitelist, no invite/identity/admin keys or player economy; available during runs. No import/publish/account feature added.
+
+
+## Approved Moss defaults — 17 October2026
+
+User supplied green-team-settings-moss.json after requesting export-to-GitHub promotion and confirmed everything works. Validated format/version and complete settings. Promoted Human Manor to50×40, requested15 rooms, room width5–8/height5–8,6 attempted loops,4 searchables per room. Other Human fields, all Dwarf/Elf fields and gameplay tuning match prior defaults. Architecture presets now each specify their full values, preventing a changed Human base from accidentally changing another culture. Existing lairs keep overrides; new groups/reset-defaults use these code defaults. No stock/progress migration or auto-merge to main.

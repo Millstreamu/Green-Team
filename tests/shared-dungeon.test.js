@@ -25,7 +25,7 @@ function searchRuby(d, a) {
 }
 test('shared deterministic dungeon conceals contents and reserves searches with observable progress', () => {
   const { d, a, b } = fixture();
-  assert.deepEqual(d.world.tiles, generateDungeon(978983017).tiles);
+  assert.deepEqual(d.world.tiles, generateDungeon(978983017, d.world.layout).tiles);
   const chest = d.objects[0];
   assert.equal(d.snapshot().objects[0].contents, undefined);
   assert.equal(d.action(a, { type: 'search', id: chest.id }), true);

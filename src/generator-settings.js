@@ -9,12 +9,11 @@ export const GENERATOR_FIELDS = Object.freeze([
   ['extraConnections', 'Extra looping routes to try', 0, 8], ['preserveDeadEnds', 'Dead ends to protect', 0, 4],
   ['searchablesPerRoom', 'Furniture per room (entrance minimum 3)', 1, 4], ['hidingInterval', 'One hiding spot every N rooms', 1, 6]
 ].map(([id, label, min, max]) => Object.freeze({ id, label, min, max })));
-const human = { width: 76, height: 56, rooms: 14, minRoomWidth: 6, maxRoomWidth: 12, minRoomHeight: 5, maxRoomHeight: 9,
-  corridorWidth: 1, corridorBends: 0, maxCorridorLength: 100, extraConnections: 3, preserveDeadEnds: 2, searchablesPerRoom: 1, hidingInterval: 2 };
+// Approved Moss export, 17 October 2026. Each type owns its full preset.
 export const GENERATOR_PRESETS = Object.freeze({
-  manor: Object.freeze({ ...human }),
-  hold: Object.freeze({ ...human, width: 88, height: 64, rooms: 12, minRoomWidth: 9, maxRoomWidth: 14, minRoomHeight: 7, maxRoomHeight: 10, corridorWidth: 3, extraConnections: 2 }),
-  sanctuary: Object.freeze({ ...human, width: 72, height: 64, rooms: 18, minRoomWidth: 5, maxRoomWidth: 8, minRoomHeight: 5, maxRoomHeight: 7, corridorBends: 1, extraConnections: 5, preserveDeadEnds: 1 })
+  manor: Object.freeze({"width":50,"height":40,"rooms":15,"minRoomWidth":5,"maxRoomWidth":8,"minRoomHeight":5,"maxRoomHeight":8,"corridorWidth":1,"corridorBends":0,"maxCorridorLength":100,"extraConnections":6,"preserveDeadEnds":2,"searchablesPerRoom":4,"hidingInterval":2}),
+  hold: Object.freeze({"width":88,"height":64,"rooms":12,"minRoomWidth":9,"maxRoomWidth":14,"minRoomHeight":7,"maxRoomHeight":10,"corridorWidth":3,"corridorBends":0,"maxCorridorLength":100,"extraConnections":2,"preserveDeadEnds":2,"searchablesPerRoom":1,"hidingInterval":2}),
+  sanctuary: Object.freeze({"width":72,"height":64,"rooms":18,"minRoomWidth":5,"maxRoomWidth":8,"minRoomHeight":5,"maxRoomHeight":7,"corridorWidth":1,"corridorBends":1,"maxCorridorLength":100,"extraConnections":5,"preserveDeadEnds":1,"searchablesPerRoom":1,"hidingInterval":2})
 });
 export function validateGenerator(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== GENERATOR_FIELDS.length
