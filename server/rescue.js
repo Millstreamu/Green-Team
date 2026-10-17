@@ -64,7 +64,11 @@ export function createRescue(world, participants, guards, obstacles) {
     },
     guardTick(g, dt, clouds) {
       if (g.jailer) return false;
-      const visible = participants.filter(p => p.inRun && p.connected && p.state === 'active' && seesPlayer(world, g, p, ['chase', 'search', 'capture', 'carry'].includes(g.state), clouds));
+      // Pickup leaves state as capture until the next tick; the captive claim
+      // must switch vision immediately, including the usual close-range check.
+      const carrying = !!g.captiveId || g.state === 'carry';
+      const visible = participants.filter(p => p.inRun && p.connected && p.state === 'active' && seesPlayer(world, g, p,
+        !carrying && ['chase', 'search', 'capture'].includes(g.state), clouds, carrying));
       if (visible.length) {
         if (g.captiveId || g.captureTargetId) { drop(g); g.state = 'chase'; g.targetId = visible[0].id; }
         return false;

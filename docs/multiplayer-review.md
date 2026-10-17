@@ -265,3 +265,8 @@ Guard pickup/carry reuses walking navigation. Eligible ordinary guards must see 
 V34 defaults in RESCUE:2sec revive,3sec cage opening,1sec pickup,1.6tiles/sec carry, up to3 cages. Multiple captives may share the nearest cage; each completion releases one. These are provisional choices, not new fixed user requirements. Packed Lunch uses1 sack slot and is available in existing local Debug supplies; its crafting/material/recipe/XP price remains undecided. Lunch metadata flows through standard stash/bag/save/item rendering and debug no-credit rules.
 
 Carried disconnect drops as a downed ghost and clears carrier claim; caged disconnect retains the cage/health state but is ineligible for rescue until connected. Expiry/closed run clear cage membership/carrier/helper reservations and never revive or respill the original bag. A downed/carried/caged ghost cannot prolong failure as a standing rescuer. Proper account identity, active heartbeat detection, durable recovery, repeat-grace abuse and persistent rewards remain future stages.
+
+
+## V35 carrier sight correction
+
+V34 received user playtest approval with one correction: a guard carrying a teammate must look forward so another goblin can follow behind. Server carrier checks now reuse shared sight with forward-only mode, suppressing both alert all-around detection and the close-range rear exception. The actual captive claim controls the first post-pickup tick too. Walls/smoke still block forward detection; a visible goblin ahead still causes drop-and-chase. Renderer shows the matching normal-range cone. Other guard states retain their existing rules.

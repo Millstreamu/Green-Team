@@ -3,7 +3,7 @@ import { CONFIG, COMBAT } from './config.js';
 import { isFloor } from './world.js';
 
 export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
-  if (!['patrol', 'suspicious', 'return'].includes(guard.state)) return;
+  if (!guard.captiveId && !['patrol', 'suspicious', 'return', 'carry'].includes(guard.state)) return;
   const t = CONFIG.tile;
   ctx.beginPath(); ctx.moveTo(guard.x * t + ox, guard.y * t + oy);
   for (let ray = 0; ray <= 24; ray++) {

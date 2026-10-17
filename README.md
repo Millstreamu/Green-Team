@@ -4,9 +4,9 @@ A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loo
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Public hosting, persistent accounts/group homes and player limits remain future work.
 
-## Revive and cage rescue test · V34
+## Carrier vision fix · V35
 
-The user has playtested V31 shared-lair movement/stock/cart and V32 shared dungeon/search/loot/return, and approved a larger connected update. V33 adds server-owned guard patrols, chasing either goblin, directional attacks/knockback, shared heat/alerts/reinforcements, one-goblin hiding spots, snares and smoke. Existing guard/search/loot/equipment rules, renderer, sack grids and results dialog are reused. V34 adds Packed Lunch floor revives, guard pickup/carry/drop, deterministic reachable cages with stationary jail guards, and cage rescue. XP reward settlement remains future network work.
+The user has playtested V31 shared-lair movement/stock/cart and V32 shared dungeon/search/loot/return, and approved a larger connected update. V33 adds server-owned guard patrols, chasing either goblin, directional attacks/knockback, shared heat/alerts/reinforcements, one-goblin hiding spots, snares and smoke. Existing guard/search/loot/equipment rules, renderer, sack grids and results dialog are reused. V34 adds Packed Lunch floor revives, guard pickup/carry/drop, deterministic reachable cages with stationary jail guards, and cage rescue. The user confirmed V34 works. V35 fixes carrying guards to use forward-only sight, including close behind and the first tick after pickup, and shows their vision cone. XP reward settlement remains future network work.
 
 With Node.js 22 or newer installed, open a terminal in this repository and run:
 
@@ -23,7 +23,7 @@ Late arrivals wait in the lair until the next run. A detected dungeon disconnect
 
 This test listens only on **127.0.0.1** and keeps one temporary home in server memory. Restarting resets test stock/profiles; solo localStorage is untouched. Per-tab session tokens reconnect to the same test identity while the server remains running. Duplicating an open tab gets a separate identity. There are no accounts, SQLite saves, public hosting or production access controls. Opening play.html remains the standalone solo game, not multiplayer.
 
-For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v34 to distinguish it from older copies.
+For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v35 to distinguish it from older copies.
 
 `server/lair-session.js` owns home/run membership and routing; `server/dungeon-session.js` owns the active world, search reservations, loot transactions and outcome. `server/danger.js` reuses guard/pressure/hiding/snare/smoke rules; `server/team-guards.js` selects one focus per guard without advancing timers once per player. It retains the brief target trail without reading unseen teammates or ghosts for new clues. The browser regenerates the deterministic layout from the server-selected seed; all movement/collision, search duration and item ownership are still checked by the server. Snapshots conceal container contents and other players’ bags/profiles. Each active scene shares player poses and searchable/ground updates. Public deployment still needs HTTPS/WSS, authenticated group membership, SQLite persistence, transport heartbeat handling and persistent reward transactions. Server/rescue.js owns rescue claims/hold completion, captives and guard transport; src/rescue.js shares cage layout/reach targeting, and rescue-view.js reuses pixel progress bars for the temporary cage/body art.
 
@@ -91,7 +91,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V34 rescues with two goblins. Pack a test lunch and smoke, revive on the ground, interrupt a revive without losing the lunch, distract a carrier to make it drop the captive, then try rescuing from a cage. Compare2second floor revive and3second cage rescue pacing. Persistent home/account/SQLite saves, network XP settlement and public hosting remain later work. Public hosting, persistent accounts/groups/SQLite and authoritative XP rewards remain pending.
+Next: playtest V35 by following behind a carrying guard, then stepping in front to make it drop the captive. V34 rescues have user playtest approval. Pack a test lunch and smoke, revive on the ground, interrupt a revive without losing the lunch, distract a carrier to make it drop the captive, then try rescuing from a cage. Compare2second floor revive and3second cage rescue pacing. Persistent home/account/SQLite saves, network XP settlement and public hosting remain later work. Public hosting, persistent accounts/groups/SQLite and authoritative XP rewards remain pending.
 
 
 ## V12: single-use snare

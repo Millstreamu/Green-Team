@@ -144,11 +144,11 @@ function updateRoamingRoutine(world, guard, dt) {
   guard.moving = followPath(world, guard, guard.path, COMBAT.patrolSpeed * dt, COMBAT.guardRadius) > 0;
 }
 
-export function seesPlayer(world, guard, player, alerted = false, clouds = []) {
+export function seesPlayer(world, guard, player, alerted = false, clouds = [], forwardOnly = false) {
   if (player.hiding || player.unavailable || player.ghost || player.state && player.state !== 'active') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
   if (distance > (alerted ? COMBAT.alertSight : COMBAT.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
-  if (alerted || distance < 1.2) return true;
+  if (distance === 0 || !forwardOnly && (alerted || distance < 1.2)) return true;
   return (dx * Math.cos(guard.angle) + dy * Math.sin(guard.angle)) / distance >= Math.cos(COMBAT.halfCone);
 }
 

@@ -99,9 +99,29 @@ test('guard carries to nearest predetermined cage while spilled items stay at th
 test('a visible standing distraction makes carrier drop captive and chase, without respilling loot', () => {
   const { d, a, b } = fixture(); down(d, a); hideHelper(d, b); const g = carrier(d, a);
   step(d, [b], 1.05); assert.equal(a.state, 'carried'); const at = { x: g.x, y: g.y };
-  leaveHiding(b); b.x = g.x + 2; b.y = g.y; const count = d.ground.length;
+  leaveHiding(b); g.angle = 0; b.x = g.x + 2; b.y = g.y; const count = d.ground.length;
   d.tick(.05); assert.equal(a.state, 'down'); assert.equal(a.carrierId, null); assert.equal(a.x, at.x); assert.equal(a.y, at.y);
   assert.equal(g.state, 'chase'); assert.equal(g.targetId, b.id); assert.equal(d.ground.length, count);
+});
+test('carriers ignore goblins behind even at close range and immediately after pickup', () => {
+  for (const distance of [.7, 2]) for (const state of ['capture', 'carry']) {
+    const { d, a, b } = fixture(); down(d, a); hideHelper(d, b); const g = carrier(d, a);
+    step(d, [b], 1.05); assert.equal(a.state, 'carried');
+    leaveHiding(b); Object.assign(g, { angle: Math.PI, state });
+    b.x = g.x + distance; b.y = g.y;
+    assert.ok(canStand(d.world, b.x, b.y));
+    assert.equal(d.danger.rescue.guardTick(g, 0, []), true);
+    assert.equal(a.state, 'carried'); assert.equal(g.captiveId, a.id);
+    assert.equal(g.state, 'carry');
+  }
+});
+test('carrier forward vision still respects smoke before dropping the captive', () => {
+  const { d, a, b } = fixture(); down(d, a); hideHelper(d, b); const g = carrier(d, a);
+  step(d, [b], 1.05); leaveHiding(b); g.angle = 0; b.x = g.x + .7; b.y = g.y;
+  d.danger.rescue.guardTick(g, 0, [{ x: b.x, y: b.y, radius: 2, left: 5 }]);
+  assert.equal(a.state, 'carried');
+  assert.equal(d.danger.rescue.guardTick(g, 0, []), false);
+  assert.equal(a.state, 'down'); assert.equal(g.state, 'chase'); assert.equal(g.targetId, b.id);
 });
 test('visible standing goblins prevent pickup; snared carriers cannot move', () => {
   const { d, a, b } = fixture(); down(d, a); const g = carrier(d, a);
