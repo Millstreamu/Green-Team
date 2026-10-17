@@ -1,3 +1,4 @@
+import { createOnlineIdentity } from './online-identity.js';
 import { createCamp, createLairWorld, lairTarget } from './lair.js';
 import { createProfile } from './profile.js';
 import { createLairView } from './lair-view.js';
@@ -14,6 +15,24 @@ import { pressureLabel } from './pressure-view.js';
 import { atTunnel } from './run.js';
 
 const $ = selector => document.querySelector(selector);
+let identityStorage, identityTabStorage;
+try { identityStorage = window.localStorage; } catch {}
+try { identityTabStorage = sessionStorage; } catch {}
+const identity = createOnlineIdentity(identityStorage, identityTabStorage);
+let identityToken, identityChoices = '';
+function showIdentities(name) {
+  if (identityToken) identity.remember(identityToken, name);
+  const entries = identity.list(), signature = JSON.stringify(entries);
+  if (signature !== identityChoices) {
+    identityChoices = signature;
+    const choices = entries.map(p => {
+      const option = document.createElement('option'); option.value = p.token; option.textContent = p.name; return option;
+    });
+    const add = document.createElement('option'); add.value = ''; add.textContent = 'New goblin';
+    $('#goblin-choice').replaceChildren(...choices, add);
+  }
+  $('#goblin-choice').value = identityToken ?? '';
+}
 let world = createLairWorld(), state = null, connected = false, socket, previous = 0, dragStart = null, aimDirty = false;
 let shownResult = null, shownNotice = null;
 const camp = createCamp(), profile = createProfile(), loot = createLoot();
@@ -54,22 +73,33 @@ const planning = createMapPlanningView($('#map-planning'), selection => {
 $('#regenerate').hidden = true; $('#sack-tab').hidden = true; $('#seed').textContent = 'Shared home';
 $('#rooms').textContent = 'Network dungeon test';
 $('.controls').textContent = 'WASD move · Tab sack / lair stash · Hold E search · E pack loot / drop held item · Click loot to lift · R rotate · Click sack to place · Hold E revive / cage rescue · E at tunnel: leave together · Hold E hide / E exit · E equip selected gear · WASD aim · Hold E place · Space smoke';
-$('.note').textContent = 'Two tabs share one dungeon and its loot. One goblin searches each container at a time. Everyone returns to the secret tunnel to leave. Guards can chase either goblin. Hide, snare or smoke to escape. Packed Lunch revives a downed teammate. Cage rescue needs no lunch. Network XP is still coming. Use Debug supplies in the lair to test gear. Temporary home: restarting the server resets stock and progress. Solo saves are separate.';
+$('.note').textContent = 'Two tabs share one dungeon and its loot. One goblin searches each container at a time. Everyone returns to the secret tunnel to leave. Guards can chase either goblin. Hide, snare or smoke to escape. Packed Lunch revives a downed teammate. Cage rescue needs no lunch. Network XP is still coming. Use Debug supplies in the lair to test gear. The shared lair and home sacks save on the server. Restarting during a run loses that run’s carried supplies and loot. Choose a saved goblin above when returning. Solo saves are separate.';
 $('#xp-label').textContent = 'Test goblin · 0 XP';
 $('#next-run').addEventListener('click', () => { send({ type: 'dismiss-result' }); results.close(); clear(); });
 $('#sack-tab').addEventListener('click', () => { if (activeDungeon() && !self().hiding) { clear(); stopSearch(); send({ type: 'cancel-placement' }); sack.toggle(); } });
+$('#online-identity').hidden = false;
+$('#goblin-choice').addEventListener('change', () => {
+  if (!connected || state?.location !== 'home' || state?.launched) return;
+  clear(); $('#lair-panel').close(); $('#map-planning').close();
+  identity.select($('#goblin-choice').value); connected = false;
+  const old = socket; socket = null; old.close(); state = null; identityToken = null;
+  tell('Connecting to the selected goblin…'); connect();
+});
 function connect() {
   socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/session`);
+  const connection = socket;
   socket.addEventListener('open', () => {
-    let token; try { token = sessionStorage.getItem('green-team-test-token'); } catch {}
-    socket.send(JSON.stringify({ type: 'hello', token }));
+    if (connection !== socket) return;
+    socket.send(JSON.stringify({ type: 'hello', token: identity.token() }));
   });
   socket.addEventListener('message', event => {
+    if (connection !== socket) return;
     const message = JSON.parse(event.data);
     if (message.type === 'welcome') {
-      connected = true; try { sessionStorage.setItem('green-team-test-token', message.token); } catch {}
+      connected = true; identityToken = message.token; identity.remember(message.token, 'Goblin');
       tell('Connected. WASD to walk; Tab opens your inventory.'); return;
     }
+    if (message.type === 'save-error') { connected = false; $('#save-status').textContent = 'SAVE FAILED · GAME PAUSED'; tell('Saving failed. Game paused. Check the server Terminal before restarting.'); return; }
     if (message.type === 'rejected') {
       tell('That action could not finish. Check sack space, distance, or whether another goblin got there first.'); return;
     }
@@ -89,7 +119,11 @@ function connect() {
     Object.assign(camp, message.camp); Object.assign(profile, message.profile);
     loot.bag = message.bag; loot.held = message.held; loot.ground = message.dungeon?.ground ?? [];
     $('#xp-label').textContent = `${message.name} · ${profile.xp} XP available`;
-    $('#save-status').textContent = 'TEMPORARY SERVER HOME · SOLO SAVE UNCHANGED';
+    showIdentities(message.name);
+    $('#goblin-choice').disabled = message.location !== 'home' || !!message.launched;
+    $('#save-status').textContent = message.saving === 'saved'
+      ? `LAIR SAVED ON SERVER${identity.remembered() ? '' : ' · BROWSER CANNOT REMEMBER YOUR GOBLIN'}`
+      : 'TEMPORARY TEST HOME · NOT SAVED';
     $('#seed').textContent = message.dungeon ? String(message.dungeon.seed) : 'Shared home';
     $('#rooms').textContent = message.dungeon ? `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes` : 'Shared lair';
     $('#sack-tab').hidden = !message.dungeon;
@@ -101,9 +135,11 @@ function connect() {
     }
   });
   socket.addEventListener('close', event => {
+    if (connection !== socket) return;
     connected = false; input.clear(); dragStart = null; $('#lair-panel').close(); $('#map-planning').close();
+    if (event.reason === 'Save failed') { $('#save-status').textContent = 'SAVE FAILED · GAME PAUSED'; tell('Saving failed. Game paused. Check the server Terminal before restarting.'); return; }
     tell('Disconnected. Controls paused; reconnecting…');
-    if (event.reason === 'Session already open') { try { sessionStorage.removeItem('green-team-test-token'); } catch {} }
+    if (event.reason === 'Session already open') identity.select(null);
     setTimeout(connect, 1000);
   });
   socket.addEventListener('error', () => {});

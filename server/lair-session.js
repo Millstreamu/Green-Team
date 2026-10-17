@@ -1,14 +1,34 @@
+import { restoreSave } from './save-store.js';
 import { createVitality } from '../src/guard.js';
 import { createDungeonSession } from './dungeon-session.js';
 import { randomUUID, randomInt } from 'node:crypto';
-import { createCamp, createLairWorld, lairTarget, takeStashItem, returnStashItem, craftForSack, moveStashStack } from '../src/lair.js';
+import { createLairWorld, lairTarget, takeStashItem, returnStashItem, craftForSack, moveStashStack } from '../src/lair.js';
 import { createProfile, buyPersonalUpgrade } from '../src/profile.js';
 import { createDeparture, setDestination, toggleCartSeat, tickDeparture } from '../src/jobs.js';
 import { movePlayer } from '../src/world.js';
 
-// One temporary test home. No browser supplies stock, coordinates, profiles or elapsed time.
-export function createLairSession() {
-  const world = createLairWorld(), camp = createCamp(), players = new Map();
+// One shared home. The browser never supplies stock, profiles or saved state.
+export function createLairSession({ store = null } = {}) {
+  const restored = restoreSave(store?.load() ?? null);
+  const world = createLairWorld(), camp = restored.camp, players = new Map();
+  function actor(saved) {
+    return { ...saved, connected: false, waiting: false, location: 'home',
+      ...world.spawn, ...createVitality(), facing: 1, phase: 0, moving: false,
+      input: { x: 0, y: 0 }, inputAge: 0,
+      notice: saved.interrupted ? { id: `restart-${randomUUID()}`, text: 'Server restarted during your run. Carried supplies and dungeon loot were lost; lair stock is safe.' } : null };
+  }
+  for (const saved of restored.players) players.set(saved.token, actor(saved));
+  let saveFailure = null;
+  function checkpoint() {
+    if (!store) return;
+    const { counts, slots, nextItemId, destination } = camp;
+    store.save({ version: 1, camp: { counts, slots, nextItemId, destination },
+      players: [...players.values()].map(p => {
+        const interrupted = !!p.inRun || p.location === 'dungeon';
+        return { token: p.token, id: p.id, name: p.name, profile: p.profile,
+          bag: interrupted ? [] : p.bag, interrupted };
+      }) });
+  }
   const cart = createDeparture([], camp.destination);
   let launched = null, dungeon = null;
   function returnHome() {
@@ -23,7 +43,7 @@ export function createLairSession() {
     for (const id of cart.aboard) if (!ids.includes(id)) cart.aboard.delete(id);
     // A membership change requires a fresh boarding action to begin a countdown.
   }
-  return {
+  const api = {
     connect(token) {
       let p = players.get(token);
       if (!p) {
@@ -104,7 +124,7 @@ export function createLairSession() {
       }
     },
     snapshot(p) {
-      return { type: 'state', selfId: p.id, name: p.name, bag: p.bag, profile: p.profile, location: p.location, held: p.loot?.held ?? null, result: p.result ?? null, notice: p.notice ?? null,
+      return { type: 'state', selfId: p.id, name: p.name, saving: store ? 'saved' : 'temporary', bag: p.bag, profile: p.profile, location: p.location, held: p.loot?.held ?? null, result: p.result ?? null, notice: p.notice ?? null,
         placement: p.placement ?? null, quickType: p.quickType ?? null,
         dungeon: p.location === 'dungeon' ? dungeon?.snapshot() : null,
         camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination },
@@ -114,4 +134,16 @@ export function createLairSession() {
         cart: { selection: cart.selection, participants: cart.participants, aboard: [...cart.aboard], countdown: cart.countdown }, launched };
     }
   };
+  // Commit before returning success or broadcasting a new snapshot. Comparison
+  // inside the store avoids disk writes for movement-only ticks and inputs.
+  for (const name of ['connect', 'disconnect', 'action', 'tick']) {
+    const operation = api[name];
+    api[name] = (...args) => {
+      if (saveFailure) throw saveFailure;
+      const result = operation(...args);
+      try { checkpoint(); } catch (error) { saveFailure = error; throw error; }
+      return result;
+    };
+  }
+  return api;
 }

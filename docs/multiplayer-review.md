@@ -270,3 +270,12 @@ Carried disconnect drops as a downed ghost and clears carrier claim; caged disco
 ## V35 carrier sight correction
 
 V34 received user playtest approval with one correction: a guard carrying a teammate must look forward so another goblin can follow behind. Server carrier checks now reuse shared sight with forward-only mode, suppressing both alert all-around detection and the close-range rear exception. The actual captive claim controls the first post-pickup tick too. Walls/smoke still block forward detection; a visible goblin ahead still causes drop-and-chase. Renderer shows the matching normal-range cone. Other guard states retain their existing rules.
+
+
+## V36 durable home and local identity recovery
+
+User approved the persistent shared-lair slice. Shared stock/gold/slots/destination and all personal home sacks/profiles are saved together in one SQLite row before acknowledgement. Launch projects participating bags as empty in the durable home; normal in-memory dungeon/reconnect rules continue unchanged until that run closes. Restart therefore returns interrupted participants home without their spent supplies or unbanked loot. Waiting arrivals' prepared bags stay saved. Extraction commits banked real recovered copies and cleared sacks once. This restart policy is an implementation default stated to the user, not a newly invented crash-recovery promise.
+
+Browser local identity registry and per-tab selections restore existing goblins across server/browser restarts without touching solo saves. Duplicate live identity still becomes a distinct test goblin. Home-only selector lets testers choose prior goblins; selection is disabled during a run. Tokens never appear in another player's snapshot; save files are excluded from HTTP/static serving and Git/ZIPs. One default home/database per server, not yet group joining or secure accounts. Network XP settlement remains disabled. Local identity keys are bound to browser/address storage; account recovery across devices remains open.
+
+Unreadable/unsupported saves fail visibly at startup. Write failure blocks further session mutations, pauses live simulation, closes clients with save-error feedback and never acknowledges the failed transfer. Copy data only with server stopped for updates/backup. SQLite uses full synchronous single-statement commits; movement-only checkpoints compare equal and do not write. Concurrent server processes sharing a save are unsupported. See server-saving.md.

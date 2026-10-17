@@ -35,7 +35,11 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   globalThis.location = { protocol: 'http:', host: 'localhost:8080' };
   const stored = new Map();
   globalThis.sessionStorage = { getItem: key => stored.get(key), setItem: (key, value) => stored.set(key, value) };
-  win.localStorage = { getItem() { assert.fail('Online entry read solo save'); }, setItem() { assert.fail('Online entry changed solo save'); } };
+  const browserSaved = new Map();
+  win.localStorage = {
+    getItem(key) { assert.equal(key, 'green-team-online-goblins-v1'); return browserSaved.get(key); },
+    setItem(key, value) { assert.equal(key, 'green-team-online-goblins-v1'); browserSaved.set(key, value); }
+  };
   const session = createLairSession(), player = session.connect(), other = session.connect();
   const sent = [];
   let socket;
@@ -43,6 +47,7 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
     static OPEN = 1;
     constructor() { super(); socket = this; this.readyState = 1; }
     send(data) { sent.push(JSON.parse(data)); }
+    close() { this.readyState = 3; Surface.prototype.send.call(this, 'close', { reason: '' }); }
   };
   await import('../src/online-main.js');
   const receive = message => Surface.prototype.send.call(socket, 'message', { data: JSON.stringify(message) });
@@ -51,6 +56,10 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   receive({ type: 'welcome', token: player.token });
   const sync = () => receive(session.snapshot(player));
   sync(); frames.shift()();
+  assert.equal(element('online-identity').hidden, false);
+  receive({ ...session.snapshot(player), saving: 'saved' });
+  assert.match(element('save-status').textContent, /LAIR SAVED ON SERVER/);
+  assert.equal(JSON.parse(browserSaved.get('green-team-online-goblins-v1'))[0].name, player.name);
   assert.match(element('target-label').textContent, /Tab/);
   const key = code => win.send('keydown', { code, target: element('game') });
   key('Tab'); assert.equal(element('lair-panel').open, true);
@@ -148,6 +157,7 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   sync(); frames.shift()(96);
   assert.ok(session.snapshot(player).dungeon.guards.length >= 4);
   assert.match(element('health-label').textContent, /Health 3/);
+  assert.equal(element('goblin-choice').disabled, true);
   assert.match(element('heat-label').textContent, /Heat/);
   key('Tab'); flush(); frames.shift()(112); key('KeyE');
   assert.equal(sent.at(-1).type, 'equip'); flush(); sync(); frames.shift()(128);
@@ -192,6 +202,15 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   Object.assign(other, session.snapshot(other).dungeon.entrance);
   assert.equal(session.action(other, { type: 'extract' }), true); sync();
   assert.match(element('results-title').textContent, /left behind/);
-
+  assert.equal(element('goblin-choice').disabled, false);
+  const oldSocket = socket;
+  element('goblin-choice').value = '';
+  element('goblin-choice').send('change');
+  assert.notEqual(socket, oldSocket); assert.equal(oldSocket.readyState, 3);
+  Surface.prototype.send.call(socket, 'open');
+  assert.equal(sent.at(-1).type, 'hello'); assert.equal(sent.at(-1).token, undefined);
+  receive({ type: 'welcome', token: other.token }); receive(session.snapshot(other));
+  assert.equal(element('goblin-choice').value, other.token);
+  assert.equal(JSON.parse(browserSaved.get('green-team-online-goblins-v1')).length, 2);
 
 });

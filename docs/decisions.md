@@ -475,3 +475,12 @@ Downing spills bag and held item once at the body, blocks interactions/movement,
 ## V35 — forward vision while carrying
 
 User confirmed V34 works and requested sneaking behind a guard carrying a teammate. A carrier uses the existing normal sight distance/cone, walls and smoke, without chase-mode all-around awareness or the usual close-range rear detection. The captive claim switches this on immediately after pickup, before the carry state label updates. Seeing a standing goblin ahead still drops the captive and chases; normal chase/search and pre-pickup detection remain unchanged. Carrying guards display the existing vision cone. Exact overlap can still be detected; following close behind is safe from that carrier until it turns toward you.
+
+
+## V36 — persistent shared home
+
+**Agreed:** user approved saving the shared lair/gold/materials/crafted stock and each goblin's identity/personal progress across server restarts. Implemented one durable home in server SQLite, including stash layout, destination, separate prepared sacks and existing personal XP/purchases. This supersedes the V31–V35 memory-only home restriction. No new XP rewards or upgrade economy are added.
+
+**Implementation defaults for this slice:** home positions, health, readiness and countdown reset at restart. Live dungeons are not resumed: departure durably consumes prepared sacks; interrupted participants return home without dungeon supplies/loot, while lair stock and waiting goblins' sacks survive. Completed haul banking and cleared participant sacks save atomically, preventing repeated rewards. These restart choices were stated during implementation and remain adjustable; do not relabel them as a separately explicit user decision.
+
+**Identity/storage scope:** browser remembers local goblin keys, with a shared Goblin selector and distinct per-tab selection. An already-connected identity creates a separate test goblin in the new tab. Selecting is restricted to home with no active run. Local keys are not accounts; cross-device recovery, named groups/invites and production authentication remain future work. Server saves default to data/home.sqlite, ignored by Git/downloads. Keep/copy data when updating; no extra database installation. Bad/unsupported saves stop startup; failed writes pause the session without success acknowledgements. Existing solo saves remain separate.
