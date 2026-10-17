@@ -96,6 +96,8 @@ Crafting, purchases and withdrawals must validate against the same shared quanti
 
 Agreed preparation flow: each goblin packs its own sack at the shared stash before boarding the departure minecart. Taking an item transfers that actual copy immediately out of shared stock into the goblin's sack; putting it back reverses the transfer. If two players try to take the last copy, only the first successful transfer gets it. A full sack rejects the transfer without spending stock. Departure must not deduct packed supplies again. This replaces reservation-only preparation as the chosen flow; the current solo setup dialog remains until this team flow is implemented.
 
+Crafting output correction, agreed: crafted items go into the crafter's personal sack first if they fit. Shared-stash overflow is the proposed fallback, not yet explicitly confirmed. Use existing sack footprint/fit rules; never consume materials unless the output has a valid destination. This supersedes the proposed always-to-shared-stash output. Where a recipe/progression belongs is now actively under reconsideration; do not mark the previous shared-recipe recommendation newly accepted.
+
 ## Batch 6 — guards, traps and team information
 
 | ID | Question | Recommended starting rule | Alternative |
@@ -174,3 +176,12 @@ Agreed starting dedicated setup: one continuously running Node.js game process u
 P2P candidate: browsers exchange gameplay over WebRTC; for this shared-rule game a practical design still chooses one browser as the authority. Provide website hosting, a small signaling service for room/connection introductions, STUN discovery and TURN relay fallback where direct connections fail. Durable shared saves still need an explicit ownership/storage policy. If the authoritative browser leaves, transferring its latest game state and authority requires a separate host-migration design. Relaying traffic also has hosting/bandwidth costs; do not promise server-free or always-cheaper P2P.
 
 References: https://webrtc.org/getting-started/peer-connections ; https://webrtc.org/getting-started/turn-server ; https://docs.colyseus.io/deployment ; https://docs.colyseus.io/server . The server-based direction and starting stack are agreed; no deployment or purchase is authorised. Multiplayer implementation/testing remains deferred until its playable slice is explicitly started. The P2P comparison is retained as background, not the current implementation plan.
+
+
+## Personal progression versus lair ownership — brainstorming, not decided
+
+User raised persistence across logout, lair ownership/access, joining different friend groups and Payday 2-inspired individual XP/unlocks. Revisit earlier lair-based recipe/gold direction before more progression implementation. Existing V24 is a local prototype, not proof of final ownership design.
+
+Proposed split to discuss: a persistent personal goblin profile carries XP, learned recipes and character improvements across friend groups; each named shared lair has its own saved gold/materials/stations/decorations, stored on the chosen server. Invite links or room codes select a lair with explicit membership/access; leaving a browser does not erase it. One person may belong to multiple lairs without copying the lairs' shared stock into each other. Personal recipes could be learned through XP while shared gold improves lair facilities instead of buying portable personal unlocks. These are proposals, not replacements for previously agreed economy until confirmed.
+
+Still open: account/reconnect identity, creator/member permissions, whether gold stays shared or becomes personal, exact XP earning, portable gear/material transfers, personal-versus-lair recipe ownership, and whether friends may use a lair while its creator is offline. Keep this design discussion bounded and resolve the ownership model before implementing accounts/progression.

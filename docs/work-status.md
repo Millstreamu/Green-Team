@@ -334,3 +334,8 @@ User chose the dedicated-server recommendation (Node.js, secure WebSockets/HTTPS
 ## Immediate shared gear transfer accepted
 
 User approved stash-to-personal-sack transfer during lair preparation: stock decreases immediately, returning item restores it, first successful transfer gets last copy. Departure never spends packed items again; full-bag failure preserves stock. Updated review/decisions. Next small batch: whether crafted output enters shared stash and gold recipe unlocks are immediately usable by all (both recommended and consistent with shared lair intent); handle concurrent purchases/material spends once. Other follow-ups include lair disconnect-held gear persistence. Documentation only, V24 unchanged, no tests rerun.
+
+
+## Progression ownership discussion active
+
+User wants crafted outputs in own sack first when they fit; recorded correction, stash overflow still proposed. User raised persistent lair ownership/access across logout and changing friend groups, and personal XP/unlocks inspired by Payday 2. Added clearly pending ownership brainstorm to review/decisions. Do not keep advancing permission questions as if shared-recipe progression is fully settled. Discuss persistent personal goblin progression versus named shared-lair resources/facilities before implementation. V24 remains current; documentation only, no tests rerun.

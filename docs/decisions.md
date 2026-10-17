@@ -367,3 +367,8 @@ User accepted the recommendation: a small rented server runs shared game state i
 ## Shared stash-to-sack gear preparation approved — 17 October 2026
 
 User confirmed: taking gear from shared stash immediately transfers it to that goblin's sack and removes it from shared stock. Returning gear restores stock. Each goblin packs before boarding the minecart. Simultaneous attempts on the last copy resolve to the first successful transfer, with no duplicates. Full sack cannot consume stock, and departure must not spend those supplies a second time. Reuse existing item footprints/fit checks and actual item identity. This is the agreed future team preparation flow; the solo setup dialog is not replaced yet. No runtime changes.
+
+
+## Sack-first crafting; progression ownership reopened — 17 October 2026
+
+User corrected output priority: if the crafter's sack has room, crafted items go there first. Shared stash as overflow remains proposed. Do not treat always-shared crafting output as agreed. User questioned whose lair/save is used after logout and across different friend groups, and suggested individual XP/unlocks with Payday 2 as inspiration. This opens a design discussion, not authorisation to replace the economy. Personal profile versus named shared-lair saves is a proposal to explore; gold/recipe ownership and member/offline access remain undecided. No runtime changes.
