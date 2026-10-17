@@ -20,7 +20,8 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run', 'debug-supplies', 'snare-stock', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'recipe-snare-state', 'smoke-count', 'quick-label'].map(id => [id, new Surface(id)]));
+  const elements = new Map(['game', 'sack-grid', 'map', 'held-ghost', 'status', 'seed', 'rooms', 'regenerate', 'sack-used', 'held-label', 'target-label', 'run-results', 'haul-list', 'empty-haul', 'haul-total', 'next-run', 'result-eyebrow', 'results-title', 'results-description', 'health-label', 'alert-label', 'sack-panel', 'sack-tab', 'run-setup', 'snare-count', 'loadout-total', 'start-run', 'debug-supplies', 'snare-stock', 'cancel-loadout', 'save-status', 'lair-panel', 'lair-title', 'lair-description', 'stash-list', 'craft-snare', 'craft-status', 'close-lair', 'stash-empty', 'stash-grid', 'stash-selection', 'stash-used', 'lair-gold', 'recipes', 'craft-smoke', 'recipe-smoke-state', 'recipe-snare-state', 'smoke-count', 'quick-label', 'job-choice', 'difficulty-choice', 'job-preview', 'job-label', 'result-job'].map(id => [id, new Surface(id)]));
+  elements.get('job-choice').value = 'manor'; elements.get('difficulty-choice').value = 'normal';
   elements.get('snare-count').value = '1'; elements.get('smoke-count').value = '0';
   const doc = new Surface(), win = new Surface(), frames = [];
   doc.querySelector = selector => elements.get(selector.slice(1));
@@ -78,6 +79,7 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.equal(elements.get('start-run').disabled, true);
   elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-setup').open, true);
+  elements.get('job-choice').value = 'manor'; elements.get('difficulty-choice').value = 'normal';
   elements.get('snare-count').value = '1'; elements.get('smoke-count').value = '0'; elements.get('snare-count').send('input');
   elements.get('start-run').send('click'); tick();
   assert.equal(elements.get('run-setup').open, false);
@@ -227,4 +229,11 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
   assert.match(elements.get('status').textContent, /Smoke deployed/);
   assert.equal(elements.get('sack-used').textContent, '0 / 9');
   assert.match(elements.get('quick-label').textContent, /Smoke bomb × 0/);
+  elements.get('regenerate').send('click'); tick(); prepareRun();
+  elements.get('difficulty-choice').value = 'hard'; elements.get('difficulty-choice').send('change');
+  assert.match(elements.get('job-preview').textContent, /Hard.*2 extra guards/);
+  elements.get('start-run').send('click'); tick();
+  assert.equal(elements.get('job-label').textContent, 'Human Manor · Hard');
+  tap('KeyE');
+  assert.equal(elements.get('result-job').textContent, 'Human Manor · Hard');
 });

@@ -6,6 +6,7 @@ export function createResultsView(dialog) {
   return {
     open(result) {
       const down = result.outcome === 'down';
+      document.querySelector('#result-job').textContent = result.job ? `${result.job.jobName} · ${result.job.difficultyName}` : '';
       document.querySelector('#result-eyebrow').textContent = down ? 'THE RUN IS OVER' : 'BACK THROUGH THE TUNNEL';
       document.querySelector('#results-title').textContent = down ? 'You went down.' : 'You made it out.';
       document.querySelector('#results-description').textContent = down ? 'Nobody was left to recover you. Your carried loot and supplies were lost.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;

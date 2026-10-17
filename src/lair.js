@@ -1,4 +1,4 @@
-import { LOOT_TYPES } from './loot.js';
+import { LOOT_TYPES, itemSaleValue } from './loot.js';
 import { buildTrapLoadout } from './loadout.js';
 import { clearPath } from './loot.js';
 
@@ -60,7 +60,7 @@ export function bankEscape(camp, result, loot) {
   if (result.outcome !== 'escaped' || result.banked) return false;
   let gold = 0;
   for (const item of loot.bag) if (!item.debugSupply) {
-    if (LOOT_TYPES[item.type].sellValue) gold += LOOT_TYPES[item.type].sellValue;
+    if (LOOT_TYPES[item.type].sellValue) gold += itemSaleValue(item);
     else camp.counts[item.type]++;
   }
   camp.counts.gold += gold; result.soldGold = gold;

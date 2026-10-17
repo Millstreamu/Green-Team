@@ -214,3 +214,12 @@ A damaging hit pushes the player .55 tiles over .1s away from the guard. Share c
 Equip smoke from sack with E, use one carried copy with Space; HUD shows remaining copies, each still occupies one square. Clouds stay at activation point, radius2 tiles, duration5s; block guard sight and its visual cone, while normal lost-sight trail/search and committed attacks still apply. No damage/stun/path blocking from smoke. Existing trap placement controls remain. Debug gear can include both supported items but never create real stock on return.
 
 Save schema2 migrates old held valuables to gold once and persists counts, shared unlocks and stash positions. Existing storage key retained. Source stacks remain reserved while being moved; occupied drops cannot overwrite. Recipe/launch/sale mutations validate before spending. Future multiplayer must run these operations authoritatively on the server; no network implementation added here.
+
+
+## V21: first job and selectable difficulty — 17 October 2026
+
+**Agreed:** user approved choosing a job at the tunnel, starting with one job and two difficulties. Harder changes guard coverage/reward, not just health. Shared stash/recipes/smoke V20 approved.
+
+**Prototype choices for review:** Human Manor uses the current procedural rooms/art; Normal is existing play. Hard adds one lookout and one room patrol in rooms outside existing guard and roamer coverage, preferring deep and middle-distance coverage. Original routines stay intact. Hard rare-pool chance +.15 among valuables, saleMultiplier1.5 rounded per item. Keep sparse empty/material/count probabilities and combat/gear unchanged. Both difficulties available immediately; no job unlock/XP gating yet.
+
+Job/difficulty inputs and upfront risk/reward preview extend the existing tunnel gear dialog. Validate before stock spend; record profile on world/run/results. Price metadata stays on found valuables; one itemSaleValue function powers floor/haul/bank. Preserve quiet rooms and entrance routine exclusion. More job types, theme art and progression gates are later work.

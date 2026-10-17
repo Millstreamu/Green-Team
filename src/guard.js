@@ -56,6 +56,14 @@ export function createGuards(world) {
       guards.push(guard);
     }
   }
+  const covered = new Set(guards.flatMap(guard => [guard.roomIndex, ...(guard.roamRooms ?? [])]));
+  const extraRooms = rooms.filter(entry => !covered.has(entry.index));
+  const extraCount = Math.min(world.job?.extraGuards ?? 0, extraRooms.length);
+  for (let i = 0; i < extraCount; i++) {
+    const position = i === 0 ? extraRooms.length - 1 : Math.floor(extraRooms.length / 2);
+    const [entry] = extraRooms.splice(position, 1);
+    guards.push(createGuard(world, { roomIndex: entry.index, behaviour: i % 2 ? 'room' : 'lookout' }));
+  }
   return guards;
 }
 

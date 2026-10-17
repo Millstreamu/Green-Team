@@ -1,7 +1,7 @@
 import { findPath } from './navigation.js';
 import { SEARCH, SEARCH_LOOT } from './config.js';
 import { canStand } from './world.js';
-import { clearPath, reachable } from './loot.js';
+import { clearPath, reachable, LOOT_TYPES } from './loot.js';
 
 export const SEARCHABLE_TYPES = Object.freeze({
   chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['coin', 'horn'], rarePool: ['ruby', 'candlestick'] },
@@ -29,7 +29,7 @@ export function createSearchables(world) {
     const profile = searchRewardProfile(object.depth), definition = SEARCHABLE_TYPES[object.type];
     const count = random() < profile.emptyChance ? 0 : random() < SEARCH_LOOT.twoItemChance ? 2 : 1;
     object.contents = Array.from({ length: count }, () => {
-      const pool = random() < profile.materialChance ? ['scrap', 'cloth'] : random() < profile.rareChance ? definition.rarePool : definition.pool;
+      const pool = random() < profile.materialChance ? ['scrap', 'cloth'] : random() < Math.min(1, profile.rareChance + (world.job?.rareBonus ?? 0)) ? definition.rarePool : definition.pool;
       return pool[Math.floor(random() * pool.length)];
     });
   });
@@ -79,7 +79,7 @@ function spillContents(world, object, loot) {
     .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, object, point));
   object.contents.forEach((type, i) => {
     const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? object;
-    loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0 });
+    loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
   });
 }
 

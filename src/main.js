@@ -1,3 +1,4 @@
+import { selectJob } from './jobs.js';
 import { useSmoke, updateSmoke } from './smoke.js';
 import { loadCamp, saveCamp, createLairWorld, lairTarget, takeSupplies, bankEscape } from './lair.js';
 import { createLairView } from './lair-view.js';
@@ -6,7 +7,7 @@ import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, place
 import { generateDungeon, movePlayer } from './world.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
-import { createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld, bagItemAt, LOOT_TYPES } from './loot.js';
+import { createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld, bagItemAt, LOOT_TYPES, itemSaleValue } from './loot.js';
 import { createSackView } from './sack-view.js';
 import { createRun, atTunnel, finishRun, loseRun } from './run.js';
 import { createResultsView } from './results-view.js';
@@ -49,7 +50,7 @@ const enterLair = () => {
   run = createRun(world, performance.now()); run.phase = 'lair'; run.entrance = { ...world.stations.find(station => station.kind === 'tunnel') };
   input.clear(); sack.reset(); dragStart = null; previous = 0;
   pointer.active = false; pointer.overGame = false;
-  document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair';
+  document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = 'At home';
   document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
   persistCamp(); canvas.focus(); updateTarget();
   tell('Welcome home. WASD to walk. E at the stash, workbench or dungeon tunnel.');
@@ -60,20 +61,23 @@ const reset = () => {
 };
 const closeLairPanel = () => { run.phase = 'lair'; input.clear(); canvas.focus(); };
 const lairView = createLairView(document.querySelector('#lair-panel'), camp, persistCamp, closeLairPanel);
-const loadout = createLoadoutView(document.querySelector('#run-setup'), (quantities, debug) => {
+const loadout = createLoadoutView(document.querySelector('#run-setup'), (quantities, debug, selection) => {
   if (run.phase !== 'setup') return false;
+  const job = selection && selectJob(selection.jobId, selection.difficultyId);
+  if (!job) return false;
   const seed = crypto.getRandomValues(new Uint32Array(1))[0];
   const selected = takeSupplies(camp, quantities, seed, debug);
   if (!selected) return false;
-  world = generateDungeon(seed); player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
+  world = generateDungeon(seed); world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = selected.bag;
   guards = createGuards(world); objects = createSearchables(world); traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);
+  document.querySelector('#job-label').textContent = `${job.jobName} · ${job.difficultyName}`;
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
   document.querySelector('#regenerate').hidden = false; document.querySelector('#sack-tab').hidden = false;
-  tell('Search furniture for loot, scrap and cloth. Escape through the tunnel to keep what you pack.');
+  tell(`${job.jobName} · ${job.difficultyName}. Search furniture, avoid guards, then escape through the tunnel.`);
   return true;
 }, () => camp.counts, closeLairPanel);
 const interactLair = () => {
@@ -251,7 +255,7 @@ const frame = time => {
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
   else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
-  else if (target) targetText = `${LOOT_TYPES[target.type].name}${LOOT_TYPES[target.type].sellValue ? ` · ${LOOT_TYPES[target.type].sellValue} gold` : ''} · E pack / click to lift`;
+  else if (target) targetText = `${LOOT_TYPES[target.type].name}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
   else targetText = 'Find a chest, cupboard or crate to search';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
   const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;

@@ -99,3 +99,8 @@ export function dropHeld(state, world, player) {
   state.ground.push({ ...state.held, ...at }); state.held = null;
   return true;
 }
+
+// Sale price travels with a found item so floor hints, haul rows and gold agree.
+export function itemSaleValue(item) {
+  return Math.round((LOOT_TYPES[item.type].sellValue ?? 0) * (item.saleMultiplier ?? 1));
+}
