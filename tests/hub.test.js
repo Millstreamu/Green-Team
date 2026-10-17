@@ -225,11 +225,14 @@ test('browser admin lair selector sends scoped requests and shows the selected j
     appendChild(node) { (this.children ??= []).push(node); }
     getContext() { return { fillRect() {} }; }
     setAttribute(key, value) { this[key] = value; }
+    click() { this.clicked = true; }
+    remove() {}
     send(type) { this.listeners[type]?.({ preventDefault() {} }); }
   }
+  const anchors = [];
   const nodes = new Map(), get = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   const buttons = ['set-stock', 'reset-lair', 'set-xp', 'reset-goblin', 'make-backup', 'restore-backup', 'end-run', 'reset-all'];
-  globalThis.document = { querySelector: s => get(s.slice(1)), createElement: () => new Element(), querySelectorAll: s => buttons.filter(id => s === 'button' || !['make-backup', 'end-run'].includes(id)).map(get) };
+  globalThis.document = { querySelector: s => get(s.slice(1)), createElement: tag => { const node = new Element(); if (tag === 'a') anchors.push(node); return node; }, body: { appendChild() {} }, querySelectorAll: s => buttons.filter(id => s === 'button' || !['make-backup', 'end-run'].includes(id)).map(get) };
   globalThis.window = { confirm: () => true }; globalThis.location = { hash: '#private-test' };
   const priorFetch = globalThis.fetch, priorInterval = globalThis.setInterval;
   t.after(() => { globalThis.fetch = priorFetch; globalThis.setInterval = priorInterval; });
@@ -277,6 +280,19 @@ test('browser admin lair selector sends scoped requests and shows the selected j
   assert.equal(admin.summary(lairB.id).generator.hold.width, 80); assert.equal(admin.summary(lairA.id).generator.hold.width, 88);
   get('generator-reset').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(layoutInput('width').value, 88); assert.equal(get('generator-save').disabled, false);
+  const previousCreate = URL.createObjectURL, blobs = [];
+  URL.createObjectURL = blob => { blobs.push(blob); return previousCreate(blob); };
+  t.after(() => { URL.createObjectURL = previousCreate; });
+  input('sight').value = '2'; // Export saved values, not this unfinished edit.
+  const commandCount = commands.length;
+  get('export-settings').send('click'); await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(commands.length, commandCount); assert.equal(blobs.length, 1);
+  const exported = JSON.parse(await blobs[0].text());
+  assert.equal(exported.lairName, 'Second'); assert.equal(exported.tuning.sight, 7);
+  assert.equal(exported.generator.hold.width, 88); assert.equal(exported.generator.sanctuary.rooms, 18);
+  assert.equal(anchors.at(-1).clicked, true); assert.equal(anchors.at(-1).download, 'green-team-settings-second.json');
+  assert.match(get('admin-status').textContent, /Attach it/);
+
 
 });
 

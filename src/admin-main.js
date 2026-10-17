@@ -1,3 +1,4 @@
+import { createSettingsExport, downloadSettings } from './settings-export.js';
 import { createGeneratorView } from './generator-view.js';
 import { createTuningView } from './tuning-view.js';
 import { LOOT_TYPES } from './loot.js';
@@ -27,6 +28,7 @@ function controls() {
   if (state?.lairs && !state.selectedLairId) { $('#set-stock').disabled = true; $('#reset-lair').disabled = true; }
   $('#set-xp').disabled ||= !selectedGoblin(); $('#reset-goblin').disabled ||= !selectedGoblin();
   $('#admin-lair').disabled = locked;
+  $('#export-settings').disabled = locked || !state?.selectedLairId || !state?.tuning || !state?.generator;
   tuningView.paint(state, locked);
   generatorView.paint(state, locked);
   $('#restore-backup').disabled ||= !state?.backups.some(b => b.id === $('#admin-backup').value && b.valid);
@@ -71,6 +73,17 @@ async function run(command, confirmation) {
   catch (error) { status(error.message, true); }
   finally { busy = false; controls(); }
 }
+async function exportSettings() {
+  if (busy || !access || !state?.selectedLairId) return;
+  busy = true; controls(); status('Preparing saved settings…');
+  try {
+    const latest = await request(); paint(latest);
+    downloadSettings(createSettingsExport(latest));
+    status('Settings file downloaded. Attach it in our chat to make these the GitHub defaults. Unsaved form edits are not included.');
+  } catch (error) { status(error.message, true); }
+  finally { busy = false; controls(); }
+}
+$('#export-settings').addEventListener('click', exportSettings);
 options($('#admin-item'), Object.entries(LOOT_TYPES).filter(([, def]) => !def.sellValue).map(([id, def]) => [id, def.name]));
 $('#admin-item').value = 'gold';
 $('#admin-lair').addEventListener('change', refresh);

@@ -14,3 +14,8 @@ Checks: domain guard movement/sight/notice/attack, generated loot/search bonuses
 
 
 V42 extends this with Dungeon generator and floor-plan preview. Both sections reuse src/number-fields.js. Layout settings are saved separately for each architecture in each lair; normal gameplay tuning still applies across its types. See dungeon-builder.md.
+
+
+V43: Export settings near the selected-lair control downloads saved tuning and all three architecture presets as one version1 green-team-builder-settings JSON file. Save form edits first; export fetches the latest admin summary, excludes unsaved drafts and does not change server state/GitHub. Attach the file in chat to promote chosen values into code defaults. src/settings-export.js uses existing validators and an explicit field projection, omitting codes/keys/progress and preview seed/difficulty. Chance values in JSON are fractions as in code, even though the UI shows percentages.
+
+When promoting an attached export, validate format/version and the complete tuning/generator values, map tuning fields back into their existing groups in src/config.js, and update the three presets in src/generator-settings.js. Preserve unrelated constants and record intended balance changes/checks. Existing lairs retain their saved overrides; defaults apply to new lairs and explicit defaults reset. Do not commit private server backups instead of the settings file.

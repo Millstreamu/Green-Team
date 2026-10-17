@@ -49,3 +49,6 @@ The selected lair now has a Game builder run-settings form with Save settings fo
 
 
 V42 adds a Dungeon generator section. Choose architecture, edit parameters, preview the same example number or Generate another, then save for the next matching run. Reset this architecture to defaults changes only the selected type/lair. Generator edits, like V41 tuning, are allowed while runs are active and take effect only on a future departure; stock/progress/restore locks remain. Choose the saved type and difficulty at the in-game map table. See dungeon-builder.md for preview legend and placement rules.
+
+
+V43 Export settings is a read-only download beside the selected-lair control. Save builder edits first, then export that lair's gameplay tuning and all three architecture presets to share in chat for a defaults update. Existing private summary access is reused; no new server route/command or backup mutation. The export omits invite/identity/admin keys and player economy. It does not update GitHub automatically; full server backup/restore stays separate.

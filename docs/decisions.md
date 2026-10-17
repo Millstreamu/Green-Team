@@ -532,3 +532,8 @@ V40 owner re-entry was playtested and approved. Deferred UI note: after a goblin
 ## V42 — dungeon preview and tile-grid furnishing
 
 User accepted saved generator parameters and a small preview with Human/Dwarf/Elf architecture presets, independent difficulty, and shared tile-grid placement for furniture/hiding/future decor. Implemented per-lair, per-architecture settings; example number retained during edits; Generate another samples again; actual next runs choose fresh numbers using the saved type. Map table now offers all three types. Shared wall/corner/footprint rules protect doorway lanes; cages also use them. Art remains temporary. Fourteen editor fields and initial architecture numbers are experimental. See dungeon-builder.md for parameter meanings and limits. V41 was user-playtested/tweaked and approved. Deferred home/settings UI pass stays deferred.
+
+
+## V43 — export tuned settings for GitHub defaults
+
+User asked to add the proposed one-file export immediately. Export settings in private admin downloads the selected lair's saved gameplay tuning plus all three saved architecture presets. User attaches this file in chat to have the desired settings committed as code defaults; export itself does not write to GitHub. Unsaved form edits are excluded, explicitly explained in the screen. Implementation: read-only fresh summary, versioned JSON whitelist, no invite/identity/admin keys or player economy; available during runs. No import/publish/account feature added.
