@@ -252,3 +252,8 @@ User rejected carrying: downed goblins must be revived to leave themselves and a
 ## New capture layer in recovery review
 
 User added guards picking up downed goblins and taking them to the nearest predetermined cage. Cage sites have largely stationary jail guards; allies can rescue captives, with a harder rescue than using Packed Lunch before capture. Standing visible goblins take priority. Updated review/decisions, keeping sack spill and downed exclusion from exit count. Next two focused questions: carrier drops captive when it sees a standing goblin? Cage opening frees to one health without Lunch? Failure/all-down and detailed cage rules remain pending. No capture/jail/Packed Lunch runtime added; V21 stays current and no game tests rerun for docs.
+
+
+## Capture follow-ups approved
+
+User answered yes: carrier drops captive and chases a standing goblin in sight; cage opening restores one health without Packed Lunch. Updated active review/decisions. Body drop returns the same goblin downed at the drop point; do not re-spill/duplicate the original floor items. Next confirm no-free-standing-player failure and shared hold-E rescue/interruption/Lunch-consumption behavior. Documentation only, V21 code unchanged and no runtime tests rerun.

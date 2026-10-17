@@ -279,3 +279,10 @@ User approved: E climbs aboard and marks ready; E again hops out/unreadies. When
 **Agreed new recovery layer:** after a goblin goes down, a guard can pick it up and carry it to the closest cage. Cage sites are predetermined for the generated map; cages have an accompanying jail guard that largely stays put. Allies can rescue the captive there, but this is harder than a coordinated Packed Lunch revival before capture. Guards prioritise standing goblins in sight. Existing downed sack-spill and standing-only group extraction rules remain.
 
 **Still open:** when a carrying guard spots a standing goblin, does it put/drop its captive down to chase? Does opening a cage restore one health without using Packed Lunch? Cage opening method/duration, transport/pickup delay, jail-guard pursuit limits/cage capacity, and team-failure rules when no free standing rescuer remains are unconfirmed. The earlier all-down instant-failure proposal was never accepted; do not implement it as a settled rule. Nearest reachable cage by path distance is the implementation recommendation.
+
+
+## Carrier interruption and cage release confirmed — 17 October 2026
+
+User confirmed both: a carrying guard drops its captive when it sees a standing goblin and prioritises chasing that goblin; an ally opening the cage releases its goblin with one health and does not need a Packed Lunch. Keep two rescue paths: resource-based revival on the floor, or harder guarded-cage rescue without the item. The original sack contents stay on the floor independently of body transport/release.
+
+Still pending: failure with no free standing rescuers, Packed Lunch consumption/interruption, and cage-opening interaction. Proposed next discussion: no free standing goblins ends the run; same hold-E/cancel-on-movement-or-damage rescue pattern, with lunch spent only upon completed ground revival. These proposals are not yet accepted.
