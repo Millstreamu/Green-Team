@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, canStand, movePlayer } from '../src/world.js';
 import { createSearchables, selectInteraction, canSearch } from '../src/search.js';
-import { createHidingSpots, canHide, enterHiding, leaveHiding } from '../src/hiding.js';
+import { createHidingSpots, canHide, enterHiding, leaveHiding, beginHiding, updateHiding } from '../src/hiding.js';
 import { createGuard, createVitality, seesPlayer, updateGuard, tickVitality, guardStrikeHits } from '../src/guard.js';
 import { useSmoke } from '../src/smoke.js';
 import { createPlacement, updatePlacement } from '../src/traps.js';
@@ -93,4 +93,55 @@ test('spot occupancy, reach and walls prevent conflicting entry; leaving frees t
   player.x = 1.5; assert.equal(canHide(world, player, spot), false);
   player.x = 6.9; spot.x = 8.1; world.tiles[5 * 20 + 7] = 0;
   assert.equal(canHide(world, player, spot), false);
+});
+
+
+test('entry requires a full half-second, stays vulnerable, and remembers any witness during the hold', () => {
+  const { world, player, spot, guard } = scenario();
+  assert.ok(beginHiding(world, player, spot));
+  assert.equal(updateHiding(world, player, true, 0.2, [guard]), null);
+  assert.equal(player.hiding, undefined); assert.equal(spot.occupantId, null);
+  assert.ok(seesPlayer(world, guard, player));
+  assert.equal(updateHiding(world, player, true, 0.299), null);
+  assert.deepEqual(updateHiding(world, player, true, 0.001), { type: 'hidden', witnessed: true });
+  assert.equal(spot.occupantId, player.id); assert.equal(guard.knownHiding.spotId, spot.id);
+  assert.equal(player.enteringHide, null);
+});
+
+test('release, movement, damage, downing and other actions reset entry rather than banking progress', () => {
+  for (const reason of ['release', 'move', 'hit', 'down', 'blocked']) {
+    const { world, player, spot } = scenario();
+    beginHiding(world, player, spot); updateHiding(world, player, true, 0.4);
+    if (reason === 'move') player.x += 0.1;
+    if (reason === 'hit') player.health--;
+    if (reason === 'down') player.state = 'down';
+    assert.deepEqual(updateHiding(world, player, reason !== 'release', 0.2, [], reason === 'blocked'), { type: 'cancelled' });
+    assert.equal(player.hiding, undefined); assert.equal(spot.occupantId, null);
+    player.state = 'active'; assert.ok(beginHiding(world, player, spot));
+    assert.equal(updateHiding(world, player, true, 0.1), null);
+    assert.equal(player.hiding, undefined);
+  }
+});
+
+test('two goblins completing entry cannot occupy the same spot; leaving makes it available again', () => {
+  const { world, player, spot } = scenario(), other = { ...player, id: 'two' };
+  assert.ok(beginHiding(world, player, spot)); assert.ok(beginHiding(world, other, spot));
+  assert.equal(updateHiding(world, player, true, 0.5).type, 'hidden');
+  assert.equal(updateHiding(world, other, true, 0.5).type, 'cancelled');
+  assert.equal(spot.occupantId, 'one'); assert.equal(other.hiding, undefined);
+  leaveHiding(player); assert.ok(beginHiding(world, other, spot));
+  assert.equal(updateHiding(world, other, true, 0.5).type, 'hidden'); assert.equal(spot.occupantId, 'two');
+});
+
+test('occupied indicator is drawn for a different goblin and clears when the occupant leaves', async () => {
+  const { drawHidingSpots } = await import('../src/hiding-view.js');
+  const { world, player, spot } = scenario();
+  const labels = [], colors = [];
+  const ctx = { fillRect() { colors.push(this.fillStyle); }, strokeRect() {}, fillText(text) { labels.push(text); } };
+  enterHiding(world, player, spot);
+  drawHidingSpots(ctx, [spot], null, { id: 'other' }, 0, 0);
+  assert.ok(labels.includes('OCCUPIED')); assert.ok(colors.includes('#91c66c'));
+  leaveHiding(player); labels.length = 0; colors.length = 0;
+  drawHidingSpots(ctx, [spot], null, { id: 'other' }, 0, 0);
+  assert.ok(!labels.includes('OCCUPIED')); assert.ok(!colors.includes('#91c66c'));
 });

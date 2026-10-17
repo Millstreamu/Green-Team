@@ -254,7 +254,14 @@ test('lair crafting and stock connect to searching, packing, escape, guard loss 
     }
   }
   assert.match(elements.get('target-label').textContent, /Hiding barrel/);
-  tap('KeyE'); assert.match(elements.get('target-label').textContent, /Hidden in barrel/);
+  key('KeyE'); for (let i = 0; i < 12; i++) tick();
+  assert.match(elements.get('target-label').textContent, /Hiding…/);
+  release('KeyE'); tick(); assert.match(elements.get('target-label').textContent, /Hiding barrel/);
+  key('KeyE'); tick(); walk('KeyD', 3); release('KeyE'); tick();
+  assert.doesNotMatch(elements.get('target-label').textContent, /Hidden in barrel|Hiding…/);
+  walk('KeyA', 3);
+  key('KeyE'); for (let i = 0; i < 34; i++) tick(); release('KeyE'); tick();
+  assert.match(elements.get('target-label').textContent, /Hidden in barrel/);
   walk('KeyD', 80); tap('Tab'); tap('Space');
   doc.send('pointerdown', { target: elements.get('game'), clientX: 450, clientY: 300 }); tick();
   assert.match(elements.get('target-label').textContent, /Hidden in barrel/);

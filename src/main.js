@@ -1,4 +1,4 @@
-import { createHidingSpots, enterHiding, leaveHiding } from './hiding.js';
+import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
 import { seesPlayer } from './guard.js';
 import { selectJob } from './jobs.js';
 import { useSmoke, updateSmoke } from './smoke.js';
@@ -41,7 +41,7 @@ const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
   if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; return; }
-  const interaction = searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null, hidingSpots);
+  const interaction = player.enteringHide ? { kind: 'hide', item: player.enteringHide.spot } : searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null, hidingSpots);
   hideTarget = interaction?.kind === 'hide' ? interaction.item : null;
   target = interaction?.kind === 'loot' ? interaction.item : null;
   searchTarget = interaction?.kind === 'search' ? interaction.item : null;
@@ -94,7 +94,7 @@ const interactLair = () => {
 const showRunResult = (result, message) => {
   if (!result) return;
   if (bankEscape(camp, result, loot)) persistCamp();
-  cancelSearch(searchSession); leaveHiding(player);
+  cancelSearch(searchSession); cancelHiding(player); leaveHiding(player);
   input.clear(); dragStart = null; player.moving = false; player.phase = 0;
   cancelPlacement(placement); results.open(result); tell(message);
 };
@@ -119,7 +119,7 @@ document.addEventListener('pointerdown', e => {
   if (e.target !== canvas && e.target !== sackCanvas) return;
   e.preventDefault(); canvas.focus();
   if (placement.itemId) return;
-  cancelSearch(searchSession);
+  cancelSearch(searchSession); cancelHiding(player);
   const wasHolding = !!loot.held;
   if (e.target === sackCanvas) {
     if (loot.held) placeAtPointer();
@@ -146,8 +146,9 @@ document.addEventListener('pointerup', e => {
   if (e.target === sackCanvas) placeAtPointer();
   else if (e.target === canvas) drop();
 });
-window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); interruptPlacement(placement); });
+window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); cancelHiding(player); interruptPlacement(placement); });
 window.addEventListener('keyup', e => {
+  if (e.code === 'KeyE' && player?.enteringHide) { cancelHiding(player); tell('Hiding cancelled. Hold E to try again.'); }
   if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
 });
 window.addEventListener('keydown', e => {
@@ -163,6 +164,7 @@ window.addEventListener('keydown', e => {
     if (e.code === 'KeyE' && !e.repeat) { leaveHiding(player); input.clear(); tell('Out of hiding. Watch the guards before moving.'); }
     return;
   }
+  if (['Tab', 'Space', 'Escape'].includes(e.code)) cancelHiding(player);
   const dx = Number(e.code === 'KeyD' || e.code === 'ArrowRight') - Number(e.code === 'KeyA' || e.code === 'ArrowLeft');
   const dy = Number(e.code === 'KeyS' || e.code === 'ArrowDown') - Number(e.code === 'KeyW' || e.code === 'ArrowUp');
   if ((dx || dy) && sack.isNavigating()) { e.preventDefault(); sack.navigate(dx, dy); return; }
@@ -199,9 +201,9 @@ window.addEventListener('keydown', e => {
   updateTarget();
   if (hideTarget) {
     const witnesses = guards.filter(guard => seesPlayer(world, guard, player, ['chase', 'search'].includes(guard.state), clouds));
-    if (enterHiding(world, player, hideTarget, witnesses)) {
-      cancelSearch(searchSession); cancelPlacement(placement); input.clear(); sack.reset();
-      tell(witnesses.length ? 'A guard saw you hide! It is coming to pull you out.' : 'Hidden. E to come out; guards keep searching.');
+    if (beginHiding(world, player, hideTarget, witnesses)) {
+      cancelSearch(searchSession); cancelPlacement(placement); sack.reset();
+      tell('Hold E and stay still for half a second to hide.');
     }
     return;
   }
@@ -219,7 +221,7 @@ document.querySelector('#regenerate').addEventListener('click', reset);
 document.querySelector('#next-run').addEventListener('click', reset);
 document.querySelector('#sack-tab').addEventListener('click', () => {
   if (run.phase !== 'exploring' || player.hiding) return;
-  input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus();
+  cancelHiding(player); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus();
 });
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
@@ -241,9 +243,13 @@ const frame = time => {
     }
     if (events.exposed) { input.clear(); tell('The guard pulled you out! Run!'); }
     if (events.spotted) tell('Spotted! Get out of sight or make for the tunnel.');
-    if (events.hit) { interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Knocked back! Keep moving and dodge the next swing.`); }
+    if (events.hit) { cancelHiding(player); interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Knocked back! Keep moving and dodge the next swing.`); }
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
     else {
+      const hideWitnesses = player.enteringHide ? guards.filter(guard => seesPlayer(world, guard, player, ['chase', 'search'].includes(guard.state), clouds)) : [];
+      const hidden = updateHiding(world, player, input.held('KeyE'), dt, hideWitnesses, !!loot.held || !!placement.itemId || sack.isNavigating());
+      if (hidden?.type === 'hidden') { input.clear(); sack.reset(); tell(hidden.witnessed ? 'A guard saw you hide! It is coming to pull you out.' : 'Hidden. E to come out; guards keep searching.'); }
+      else if (hidden?.type === 'cancelled') tell('Hiding cancelled. Hold E and stay still to try again.');
       for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
       const placed = updatePlacement(placement, world, player, loot, traps, [...objects, ...hidingSpots], placement.aimPoint ?? placementPoint(player), input.held('KeyE') && !aiming, dt);
       if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
@@ -268,7 +274,8 @@ const frame = time => {
   else if (run.phase === 'setup') targetText = 'Choose your gear, then start the run';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (player.hiding) targetText = 'Hidden in barrel · E to exit · guards still active';
-  else if (hideTarget && !loot.held && !sack.isNavigating()) targetText = 'Hiding barrel · E to hide';
+  else if (player.enteringHide) targetText = 'Hiding… hold E and stay still';
+  else if (hideTarget && !loot.held && !sack.isNavigating()) targetText = 'Hiding barrel · hold E for half a second';
   else if (placement.itemId) targetText = 'WASD aim snare · hold E for 1 second · Esc cancel';
   else if (sack.isNavigating()) targetText = 'Sack · WASD select · E equip gear · Tab close';
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
@@ -283,7 +290,7 @@ const frame = time => {
   const guardText = world.lair ? 'Safe at home · craft and prepare' : run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard about to swing—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Watch guard pauses · a purple roamer links nearby rooms';
   if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
   if (time > messageUntil && run.phase === 'exploring') {
-    const hint = player.hiding ? 'Hidden · E to exit. A guard that saw you enter can pull you out.' : hideTarget ? 'E to hide in the barrel. Break guard sight before entering.' : placement.itemId ? 'WASD aim · hold E to place · Esc cancels · Tab opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
+    const hint = player.hiding ? 'Hidden · E to exit. A guard that saw you enter can pull you out.' : hideTarget ? 'Hold E for half a second to hide in the barrel. Break guard sight before entering.' : placement.itemId ? 'WASD aim · hold E to place · Esc cancels · Tab opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);

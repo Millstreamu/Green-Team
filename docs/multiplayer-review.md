@@ -114,9 +114,9 @@ Count alert events rather than every frame of pursuit. Precise re-alert/reset ru
 
 ## Hiding — playable local slice, team details pending
 
-Agreed: E enter/exit; no walking, searching or item use inside; guards that see entry approach and pull that goblin out; unseen entry is safe during nearby searches. V22 implements this locally with separate barrels and existing targeting/navigation/sight. Heat/reinforcements are still a follow-up.
+Agreed: hold E for 0.5 seconds to enter, tap E to exit; one goblin per spot with a visible occupied indicator; no walking, searching or item use inside; guards that see entry approach and pull that goblin out; unseen entry is safe during nearby searches. V22 implements this locally with separate barrels and existing targeting/navigation/sight. Heat/reinforcements are still a follow-up.
 
-Prototype stores stable spot IDs, occupant ID and per-guard witness knowledge tied to a goblin ID. One occupant per barrel is a local implementation choice, not a confirmed multiplayer capacity rule. Before shared play, confirm capacity; make reservation/release atomic; decide disconnect/downing cleanup and how a witness prioritises a visible teammate. A hidden goblin must not stop guards pursuing others, reveal its location to non-witnesses, or independently cool team heat while others are chased. Current guard update remains single-target; do not call it once for every player as a substitute for target selection.
+Prototype stores stable spot IDs, occupant ID and per-guard witness knowledge tied to a goblin ID. One occupant per barrel is now explicitly agreed. V23 also checks occupancy again at entry completion, so concurrent local attempts cannot both succeed. Before shared play, make reservation/release atomic on the server; decide disconnect/downing cleanup and how a witness prioritises a visible teammate. A hidden goblin must not stop guards pursuing others, reveal its location to non-witnesses, or independently cool team heat while others are chased. Current guard update remains single-target; do not call it once for every player as a substitute for target selection.
 
 ## Batch 7 — progress, difficulty and running the session
 

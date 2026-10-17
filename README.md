@@ -68,7 +68,7 @@ Start with [our working process](docs/working-process.md). Both Claude and Codex
 
 The first playable milestone is agreed: one goblin exploring a generated top-down dungeon locally in a browser, using WASD and a hopping movement animation, with wall collision and dungeon regeneration. See [project decisions](docs/decisions.md) for scope and checks.
 
-Next: playtest V22 hiding barrels. Try entering unseen after breaking guard sight, then deliberately let a guard see you enter. Heat and accumulating reinforcements are agreed follow-ups; multiplayer remains deferred.
+Next: playtest V23 hiding barrels with half-second entry and occupied indicators. Try entering unseen after breaking guard sight, then deliberately let a guard see you enter. Heat and accumulating reinforcements are agreed follow-ups; multiplayer remains deferred.
 
 
 ## V12: single-use snare
@@ -185,3 +185,12 @@ Entering unseen blocks guard sight, strikes and new invisible trail samples. Gua
 HIDING in src/config.js controls reach, room spacing and guard pull distance. src/hiding.js owns placement/entry/exit and src/hiding-view.js draws temporary barrels; existing interaction selection, collision, sight, navigation and HUD are reused. Spot IDs, occupant ID and guard knowledge tied to goblin ID prepare for shared state. The local prototype reserves one occupant per barrel; multiplayer capacity, disconnect/downing cleanup and target selection remain to confirm/implement on the server.
 
 Verified: 91 automated tests, including generated spot reachability, unseen searches, witnessed entry/pullout/attack, snare delay, occupancy and an actual keyboard/pointer event flow. Standalone build and bundled JavaScript syntax check pass. Rendered appearance and escape difficulty await user playtest. Review copy: green-team-hiding-v22.html.
+
+
+## V23: timed hiding and occupied spots
+
+Hold E beside a highlighted hiding barrel for 0.5 seconds to enter. The existing small pixel progress bar fills above the barrel. Releasing E, moving, getting hit or starting another interaction cancels and resets progress. You remain visible and vulnerable during entry; any guard seeing the attempt remembers the spot if entry completes. E exits immediately as before.
+
+One goblin per hiding spot is now explicitly agreed. Entry checks capacity again at completion; only the first successful goblin enters. An occupied barrel shows a small green goblin-head icon, visible to others, plus OCCUPIED (or HIDDEN · E EXIT for its occupant). Completion stores the same occupant ID already used by V22; leaving clears it. Networked atomic capacity checks and disconnect cleanup remain future server work.
+
+HIDING.enterTime in config.js is 0.5 seconds. Progress reuses drawPixelProgress and follows the same hold/cancel pattern as searching. Verified: 95 automated tests, standalone build and bundled syntax check. New coverage includes exact duration, cancellation/restart, witnessing during the hold, contested entry and indicator clearing, plus actual keyboard hold/release wiring. Browser feel/visuals await playtest. Review copy: green-team-hiding-v23.html.
