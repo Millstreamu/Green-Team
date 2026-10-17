@@ -350,3 +350,10 @@ User confirmed: if the team leaves before a disconnected player reconnects, that
 ## Last standing goblin disconnected — 17 October 2026
 
 User confirmed the explicit failure exception: if the only standing goblin is disconnected, the run remains open for the remainder of its existing 60-second grace. Reconnecting resumes play; expiry without a standing rescuer ends the run as a loss. Do not restart the timer or grant successful zero-player extraction. If multiple standing goblins disconnect, honor each existing timer and fail once none can still return. This exception does not revive downed/carried/caged goblins. Special disconnect-state cleanup and repeated disconnections remain pending. Documentation only; V24 unchanged.
+
+
+## Shared searching, floor exchange and pass-through movement approved — 17 October 2026
+
+User explicitly approved all three: one searching goblin per container, dropping items for teammates to pick up, and goblins walking through each other to prevent doorway blocking. Update active D1–D3 rules accordingly. Existing item identity/conservation and single-spill constraints apply regardless of networking architecture.
+
+User asked what backend is needed for dedicated server versus P2P. Added a pending architecture comparison: recommended Node.js/secure WebSocket game server with durable shared-lair storage versus WebRTC host-authoritative browser plus signaling/STUN/TURN and explicit save/host-migration policy. No stack, provider, party size, server budget or P2P topology chosen; no network implementation begun.

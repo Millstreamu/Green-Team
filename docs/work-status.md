@@ -319,3 +319,8 @@ User accepted returning a disconnected player to the lair without their dungeon 
 ## Last-standing disconnect grace accepted
 
 User accepted keeping the run alive for the existing remaining grace of the last disconnected standing goblin. Return resumes play; expiry with no eligible standing rescuer fails the run. Recorded this as an explicit exception to immediate no-free-standing failure, without resetting timers or treating zero-player departure as success. Review/decision docs updated. V24 remains approved playable baseline; no runtime changes/tests. Next move to the shared search/loot rules in a small batch; do not expand disconnect edge cases indefinitely. Special downed/carried/caged/hidden cleanup and repeated disconnect policy stay flagged for implementation review.
+
+
+## Shared interaction batch approved; backend options explained
+
+User approved one searcher per container, floor-drop item sharing and pass-through goblin movement. Active review and decisions updated. Added dedicated-server versus browser P2P requirements and official references as a pending architecture comparison. Recommend a single Node.js game process, secure WebSockets and durable lair storage for the original cheap-server goal; P2P still needs connection services and host-loss/save decisions. Choice remains open. Documentation only, no tests rerun, V24 remains current approved playable build.

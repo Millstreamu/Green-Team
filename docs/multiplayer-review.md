@@ -78,9 +78,9 @@ Agreed: disconnected goblins are excluded from the group departure counter throu
 
 | ID | Question | Recommended starting rule | Alternative |
 |---|---|---|---|
-| D1 | Can two goblins search the same container? | One active search per object, visible to others; it spills its contents once. | Shared searching speeds it up, with a specified limit. |
-| D2 | Can goblins exchange equipment and valuables? | Drop on the floor; another goblin picks it up using existing controls. | Direct handoff/trading screen. |
-| D3 | Should goblins collide with each other? | Let teammates pass through each other to avoid doorway blocking in this first version. | Solid collision or pushing. |
+| D1 | Can two goblins search the same container? | **Agreed:** one active searching goblin per object; contents spill once. | Cooperative speedup not selected. |
+| D2 | Can goblins exchange equipment and valuables? | **Agreed:** drop on the floor; teammate picks up using existing controls. | No direct trading screen needed. |
+| D3 | Should goblins collide with each other? | **Agreed:** goblins pass through each other to prevent doorway blocking. | Solid teammate collision not selected. |
 
 Engineering default to verify rather than ask as a game preference: two simultaneous pickup attempts cannot both receive the same item. A full sack never consumes someone else's pickup or loses floor loot. Another player's cursor/reticle is local UI, not a claim on an item.
 
@@ -161,3 +161,14 @@ Define crash/restart recovery and update timing before hosting. Recommended oper
 | input.js + stash-view.js | Menu focus/readiness/stack movement are local and need clear per-player ownership. |
 
 The current prototype remains useful to test feel, but these assumptions must not be treated as the agreed multiplayer rules. Follow the batches above before implementing their related team behavior. Revisit the checklist when adding a new feature; do not turn it into an endless precondition for unrelated small fixes.
+
+
+## Networking setup comparison — decision pending
+
+User raised P2P as a consideration; no transport/hosting architecture has been chosen or implemented. The agreed search, floor-sharing and pass-through rules are possible with either setup. Earlier server-responsibility notes describe the recommended dedicated-server direction, not a committed library/provider.
+
+Recommended dedicated setup: one continuously running Node.js game process using secure WebSockets, HTTPS delivery of browser files, and durable shared-lair storage (SQLite is a proposed small-session starting point, with backups). It owns guards, heat, counts, loot and saves independently of any player's browser. A small virtual server can host these together; actual capacity must be measured with growing guard populations. Colyseus is an existing framework candidate, not an adopted dependency. Static website hosting alone cannot run this continuously active game process.
+
+P2P candidate: browsers exchange gameplay over WebRTC; for this shared-rule game a practical design still chooses one browser as the authority. Provide website hosting, a small signaling service for room/connection introductions, STUN discovery and TURN relay fallback where direct connections fail. Durable shared saves still need an explicit ownership/storage policy. If the authoritative browser leaves, transferring its latest game state and authority requires a separate host-migration design. Relaying traffic also has hosting/bandwidth costs; do not promise server-free or always-cheaper P2P.
+
+References: https://webrtc.org/getting-started/peer-connections ; https://webrtc.org/getting-started/turn-server ; https://docs.colyseus.io/deployment ; https://docs.colyseus.io/server . This comparison is advice only; no deployment, purchase or networking implementation authorised by this question.
