@@ -1,3 +1,4 @@
+import { publicTreasure, unlockTreasure } from '../src/treasure.js';
 import { dungeonConfig, GENERATOR_PRESETS } from '../src/generator-settings.js';
 import { runTuning } from '../src/tuning.js';
 import { tickVitality } from '../src/guard.js';
@@ -34,7 +35,7 @@ export function createDungeonSession(launch, participants, camp) {
     const escaped = participants.filter(p => p.inRun && p.connected && p.state === 'active');
     const recovered = outcome === 'escaped' ? escaped.flatMap(p => p.bag.map(item => ({ ...item }))) : [];
     const recoveredIds = new Set(recovered.map(item => item.id));
-    const items = recovered.filter(item => !LOOT_TYPES[item.type].equipment);
+    const items = recovered.filter(item => !LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].runOnly);
     const result = { runId: launch.id, outcome, job: launch.job, items, count: items.reduce((n, item) => n + itemCount(item), 0),
       slots: items.reduce((sum, item) => sum + itemCells(item).length, 0), team: true,
       elapsed: Math.floor(elapsed), lostItems: [], ...(aborted ? { aborted: true } : {}) };
@@ -64,6 +65,10 @@ export function createDungeonSession(launch, participants, camp) {
         // Releasing E cancels hide entry, but keeps equipped traps available.
         p.enteringHide = null; danger.rescue.cancel(p); return true; }
       if (p.hiding && message.type !== 'hide') return false;
+      if (message.type === 'unlock') {
+        stopSearch(p); danger.cancel(p);
+        return unlockTreasure(world, p, p.loot);
+      }
       if (message.type === 'rescue') {
         if (typeof message.id !== 'string') return false;
         stopSearch(p); danger.cancel(p); return danger.rescue.start(p, message.id);
@@ -136,7 +141,7 @@ export function createDungeonSession(launch, participants, camp) {
       return null;
     },
     snapshot() {
-      return { ...danger.snapshot(), id: launch.id, seed: launch.seed, layout: world.layout, tuning: world.tuning, job: launch.job, entrance: run.entrance,
+      return { ...danger.snapshot(), id: launch.id, seed: launch.seed, layout: world.layout, tuning: world.tuning, treasure: publicTreasure(world), job: launch.job, entrance: run.entrance,
         objects: objects.map(o => {
           const searcher = participants.find(p => p.inRun && p.connected && p.search?.active?.id === o.id);
           return { id: o.id, type: o.type, x: o.x, y: o.y, tileX: o.tileX, tileY: o.tileY, width: o.width, height: o.height, facing: o.facing, approach: o.approach, searched: o.searched,

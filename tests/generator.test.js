@@ -10,7 +10,9 @@ import { selectJob } from '../src/jobs.js';
 import { findPath } from '../src/navigation.js';
 
 function checkLayout(p) {
-  const { world, objects, hidingSpots, cages } = p, used = new Set();
+  const { world: generatedWorld, objects, hidingSpots, cages } = p, used = new Set();
+  // Full-layout invariants apply once the optional treasure door is opened.
+  const world = { ...generatedWorld, lockedTiles: undefined };
   const queue = [Math.floor(world.spawn.y) * world.width + Math.floor(world.spawn.x)], reached = new Set(queue);
   for (let i = 0; i < queue.length; i++) {
     const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);

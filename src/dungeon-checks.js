@@ -1,3 +1,4 @@
+import { reachableTreasureTiles } from './treasure.js';
 import { CONFIG, COMBAT } from './config.js';
 import { canStand, isFloor, isWalkable } from './world.js';
 import { propCells, reservedRoomTiles } from './prop-placement.js';
@@ -6,7 +7,9 @@ import { createReinforcement } from './pressure.js';
 
 // Read-only checks of the actual generated world, not a second map generator.
 export function checkDungeon(preview) {
-  const { world, objects, hidingSpots, cages, doors, guards } = preview;
+  const { objects, hidingSpots, cages, doors, guards } = preview;
+  const actualWorld = preview.world;
+  const world = actualWorld.treasure ? { ...actualWorld, lockedTiles: undefined } : actualWorld;
   const issues = [], radius = Math.max(CONFIG.radius, COMBAT.guardRadius);
   const issue = (code, message, point, severity = 'error') => issues.push({ code, severity, message, ...(point ? { x: point.x, y: point.y } : {}) });
   const keyAt = p => Math.floor(p.y) * world.width + Math.floor(p.x);
@@ -79,8 +82,17 @@ export function checkDungeon(preview) {
   if (!cages.length) issue('missing-cages', 'No cages could fit in this layout.', null, 'warning');
   if (!doors.length) issue('missing-doors', 'No reinforcement entrances could fit in this layout.', null, 'warning');
   if (!hidingSpots.length) issue('missing-hides', 'No hiding spots could fit in this layout.', null, 'warning');
+  if (actualWorld.treasure) {
+    const door = actualWorld.treasure, room = world.rooms[door.roomIndex], closed = { ...actualWorld, lockedTiles: new Uint8Array(world.tiles.length) };
+    for (const cell of door.cells) closed.lockedTiles[cell.y * world.width + cell.x] = 1;
+    const lockedReach = reachableTreasureTiles(closed), inRoom = p => p.x >= room.x && p.x < room.x + room.w && p.y >= room.y && p.y < room.y + room.h;
+    const source = objects.find(o => o.id === door.keyContainerId);
+    if (!source?.contents.includes('treasureKey') || inRoom(source) || !lockedReach.has(keyAt(source.approach))) issue('treasure-key', 'Treasure key cannot be found before opening the door.', source?.approach ?? door);
+    if (lockedReach.has(room.cy * world.width + room.cx)) issue('treasure-bypass', 'Treasure room can be entered without its key.', door);
+    for (const key of reached) if (!inRoom({ x: key % world.width + .5, y: Math.floor(key / world.width) + .5 }) && !closed.lockedTiles[key] && !lockedReach.has(key)) issue('treasure-route', 'Locked door blocks another route or the way home.', { x: key % world.width + .5, y: Math.floor(key / world.width) + .5 });
+  } else if (world.rooms.length > 1) issue('missing-treasure', 'No safe optional treasure room could fit in this layout.', null, 'warning');
   const errors = issues.filter(i => i.severity === 'error').length, warnings = issues.length - errors;
-  return { seed: world.seed, errors, warnings, issues, walkable, reachable: reached.size, isolated };
+  return { seed: world.seed, treasure: !!actualWorld.treasure, errors, warnings, issues, walkable, reachable: reached.size, isolated };
 }
 
 export function dungeonCheckSummary(report) {

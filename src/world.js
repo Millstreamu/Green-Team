@@ -57,8 +57,11 @@ export function setSolidObjects(world, objects = []) {
     if (isFloor(world, x, y)) world.solidTiles[y * world.width + x] = 1;
   }
 }
+export function isSightOpen(world, x, y) {
+  return isFloor(world, x, y) && !world.lockedTiles?.[y * world.width + x];
+}
 export function isWalkable(world, x, y) {
-  return isFloor(world, x, y) && !world.solidTiles?.[y * world.width + x];
+  return isSightOpen(world, x, y) && !world.solidTiles?.[y * world.width + x];
 }
 
 export function canStand(world, x, y, radius = CONFIG.radius) {

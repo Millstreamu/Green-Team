@@ -1,3 +1,4 @@
+import { createTreasureRoom, unlockTreasure } from './treasure.js';
 import { itemLabel } from './loot.js';
 import { setupGameScreen } from './game-screen.js';
 import { loadProfile, saveProfile, awardPersonalXp, personalSearchRate } from './profile.js';
@@ -49,14 +50,15 @@ try {
 let pressure, cart, cartOutside = null;
 let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
 let hidingSpots = [], hideTarget = null;
-let objects = [], searchSession = createSearchSession(), searchTarget = null;
+let objects = [], searchSession = createSearchSession(), searchTarget = null, unlockTarget = null;
 let traps = [], placement = createPlacement(), clouds = [], quickType = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
-  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; return; }
+  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; unlockTarget = null; return; }
   const interaction = player.enteringHide ? { kind: 'hide', item: player.enteringHide.spot } : searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null, hidingSpots);
+  unlockTarget = interaction?.kind === 'unlock' ? interaction.item : null;
   hideTarget = interaction?.kind === 'hide' ? interaction.item : null;
   target = interaction?.kind === 'loot' ? interaction.item : null;
   searchTarget = interaction?.kind === 'search' ? interaction.item : null;
@@ -90,14 +92,14 @@ const launchRun = (selection) => {
   if (!bag) return false;
   world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = bag;
-  objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); createTreasureRoom(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#job-label').textContent = `${job.jobName} · ${job.difficultyName}`;
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
   document.querySelector('#regenerate').hidden = false; document.querySelector('#sack-tab').hidden = false;
-  tell(`${job.jobName} · ${job.difficultyName}. Search furniture, avoid guards, then escape through the tunnel.`);
+  tell(`${job.jobName} · ${job.difficultyName}. ${world.treasure ? 'Search for the treasure key and its locked room, or escape with what you find.' : 'Search furniture, avoid guards, then escape through the tunnel.'}`);
   return true;
 };
 const planning = createMapPlanningView(document.querySelector('#map-planning'), selection => {
@@ -235,6 +237,11 @@ window.addEventListener('keydown', e => {
     return;
   }
   updateTarget();
+  if (unlockTarget) {
+    cancelSearch(searchSession); cancelHiding(player);
+    tell(unlockTreasure(world, player, loot) ? 'Treasure room unlocked! The key is used. The door stays open for the team.' : 'Locked treasure room. Find its key by searching elsewhere in the dungeon.');
+    return;
+  }
   if (hideTarget) {
     const witnesses = guards.filter(guard => seesPlayer(world, guard, player, ['chase', 'search'].includes(guard.state), clouds));
     if (beginHiding(world, player, hideTarget, witnesses)) {
@@ -331,6 +338,7 @@ const frame = time => {
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
+  else if (unlockTarget) targetText = 'Locked treasure room · E to use its key';
   else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
   else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
   else targetText = 'Find a chest, cupboard or crate to search';

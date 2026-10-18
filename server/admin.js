@@ -80,7 +80,7 @@ export function createAdminController(session, backups) {
       if (kind === 'reset-all') for (const p of next.players) { p.bag = []; p.profile = createProfile(p.id); }
       if (kind === 'reset-goblin') { goblin.bag = []; goblin.profile = createProfile(goblin.id); }
       if (kind === 'set-stock') {
-        if (typeof command.item !== 'string' || !Object.hasOwn(LOOT_TYPES, command.item) || LOOT_TYPES[command.item].sellValue) throw new AdminError('Choose gold, a material or crafted gear.');
+        if (typeof command.item !== 'string' || !Object.hasOwn(LOOT_TYPES, command.item) || LOOT_TYPES[command.item].sellValue || LOOT_TYPES[command.item].runOnly) throw new AdminError('Choose gold, a material or crafted gear.');
         next.camp.counts[command.item] = amount(command.amount);
         syncStashSlots(next.camp);
       }

@@ -12,7 +12,7 @@ export function createGeneratorView(send) {
     $('generator-batch-status').textContent = ''; $('generator-batch-results').replaceChildren();
   }
   function showChecks(report) {
-    $('generator-check-summary').textContent = `${dungeonCheckSummary(report)} · ${report.reachable}/${report.walkable} floor tiles reachable`;
+    $('generator-check-summary').textContent = `${dungeonCheckSummary(report)} · ${report.reachable}/${report.walkable} floor tiles reachable${report.treasure ? ' after unlocking' : ''}`;
     const rows = report.issues.slice(0, 50).map(issue => {
       const row = document.createElement('li');
       row.textContent = `${issue.severity === 'warning' ? 'Warning: ' : ''}${issue.message}${Number.isFinite(issue.x) && Number.isFinite(issue.y) ? ` (tile ${Math.floor(issue.x)}, ${Math.floor(issue.y)})` : ''}`; return row;

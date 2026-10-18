@@ -12,7 +12,7 @@ export function createRoamingRoute(world, occupiedRooms = []) {
     const path = findPath(routineWorld, from, to);
     return path.length ? [{ ...from }, ...path] : [];
   };
-  const candidates = world.rooms.map((room, index) => ({ index, point: { x: room.cx + .5, y: room.cy + .5 } })).filter(entry => entry.index !== 0 && !occupiedRooms.includes(entry.index));
+  const candidates = world.rooms.map((room, index) => ({ index, point: { x: room.cx + .5, y: room.cy + .5 } })).filter(entry => entry.index !== 0 && entry.index !== world.treasure?.roomIndex && !occupiedRooms.includes(entry.index));
   const touched = path => world.rooms.map((room, index) => path.some(point => roomContains(room, point)) ? index : -1).filter(index => index >= 0);
   const pairs = candidates.flatMap((a, i) => candidates.slice(i + 1).map(b => ({ a, b, distance: Math.hypot(a.point.x - b.point.x, a.point.y - b.point.y) }))).sort((a, b) => a.distance - b.distance || a.a.index - b.a.index || a.b.index - b.b.index);
   for (const { a, b } of pairs) {

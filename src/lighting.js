@@ -1,5 +1,5 @@
 import { CONFIG } from './config.js';
-import { isFloor } from './world.js';
+import { isSightOpen } from './world.js';
 import { placeProp } from './prop-placement.js';
 
 // Visual balance only. These values never enter guard sight or server rules.
@@ -31,7 +31,7 @@ export function lightPolygon(world, light, radius = LIGHTING.radius) {
     let distance = LIGHTING.step;
     for (; distance < radius; distance += LIGHTING.step) {
       const cellX = Math.floor(light.x + dx * distance), cellY = Math.floor(light.y + dy * distance);
-      if (!isFloor(world, cellX, cellY)) {
+      if (!isSightOpen(world, cellX, cellY)) {
         const exitX = dx ? ((dx > 0 ? cellX + 1 : cellX) - light.x) / dx : Infinity;
         const exitY = dy ? ((dy > 0 ? cellY + 1 : cellY) - light.y) / dy : Infinity;
         distance = Math.min(radius, distance + .5, Math.min(exitX, exitY) - .001); break;
@@ -63,11 +63,15 @@ export function drawTorches(ctx, torches, ox, oy, seconds) {
 }
 
 export function createLightingRenderer(makeCanvas = () => document.createElement('canvas')) {
-  const scenes = new WeakMap(); let mask = null;
+  const scenes = new WeakMap(), versions = new WeakMap(); let mask = null;
   return {
     scene(world, obstacles) {
       if (world.lair) return null;
-      if (!scenes.has(world)) scenes.set(world, createTorches(world, obstacles).map(torch => ({ ...torch, polygon: lightPolygon(world, torch) })));
+      if (!scenes.has(world)) scenes.set(world, createTorches(world, obstacles));
+      if (versions.get(world) !== (world.sightVersion ?? 0)) {
+        scenes.set(world, scenes.get(world).map(torch => ({ ...torch, polygon: lightPolygon(world, torch) })));
+        versions.set(world, world.sightVersion ?? 0);
+      }
       return scenes.get(world);
     },
     draw(ctx, width, height, torches, ox, oy, seconds) {

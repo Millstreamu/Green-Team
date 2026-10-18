@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · V54</title>
+<title>Green Team · V55</title>
 <style>
 [hidden]{display:none!important}
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{min-width:0;min-height:0}#game{display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px;touch-action:none}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}.footer{flex-direction:column}}
@@ -60,7 +60,7 @@
 <section><h2>Create a lair</h2><form id="create-lair-form"><label>New lair name<input id="create-lair-name" maxlength="32" required autocomplete="off" placeholder="Moss Hollow"></label><button id="create-lair">Create lair</button></form><p>You’ll get a join code to share with friends.</p></section></div></div><p id="home-message" role="status" aria-live="polite">Connecting to the server…</p>
 </main>
 <main id="game-shell">
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><header class="game-toolbar"><div><h1>Green Team · V54</h1></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><details id="game-help" class="game-help"><summary>Help</summary><div class="help-panel"><h2>Controls &amp; tips</h2><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></div></details><button id="regenerate">Return to lair</button></header><div class="hud-top"><div id="lair-bar" hidden><span id="current-lair-name"></span> · Join code <code id="current-lair-code"></code><button id="leave-lair">Home screen</button></div><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><header class="game-toolbar"><div><h1>Green Team · V55</h1></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><details id="game-help" class="game-help"><summary>Help</summary><div class="help-panel"><h2>Controls &amp; tips</h2><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>A treasure key opens the optional locked room.<br>Carry it in your sack; E at the door unlocks it for everyone.<br>Keys take one slot and can be dropped for a teammate.<br>Unused keys stay behind when the run ends.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></div></details><button id="regenerate">Return to lair</button></header><div class="hud-top"><div id="lair-bar" hidden><span id="current-lair-name"></span> · Join code <code id="current-lair-code"></code><button id="leave-lair">Home screen</button></div><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
         <span id="heat-label" hidden></span></div></div><div id="quick-label" hidden role="status"></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section><aside class="map-panel" aria-label="Dungeon layout"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl class="map-info"><div><dt>Job</dt><dd id="job-label">At home</dd></div><div><dt>Rooms</dt><dd id="rooms"></dd></div><div><dt>Layout</dt><dd id="seed"></dd></div></dl></aside><div class="footer"><span id="status" role="status"></span><span id="save-status">LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div></div></div>
 </main><dialog id="lair-panel" class="results lair-dialog" aria-labelledby="lair-title"><div class="eyebrow" id="lair-eyebrow">LAIR PREPARATION</div><h2 id="lair-title">Central lair stash</h2><p id="lair-description"></p><p id="lair-gold"></p><div class="lair-workspace"><section id="stash-section"><div class="sack-title"><h2>SHARED STASH</h2><span id="stash-used"></span></div><canvas id="stash-grid" tabindex="0" aria-label="Six by six shared stash. WASD selects, E or click lifts and places whole stacks. Escape cancels a move."></canvas><p id="stash-selection" role="status"></p><button id="stash-move" class="secondary">Move whole stack · R</button></section><section id="sack-section"><div class="sack-title"><h2>YOUR SACK</h2><span id="lair-sack-used"></span></div><canvas id="lair-sack-grid" tabindex="0" aria-label="Your three by three prepared sack. WASD selects; E or click returns one item to the stash."></canvas><p id="lair-sack-selection" role="status"></p><p class="note">WASD selects · E transfers one · Q switches grids. Tab closes the stash; Esc closes either panel.</p><details><summary>Debug supplies</summary><button id="debug-pack-snare" class="secondary">Add free test snare</button><button id="debug-pack-smoke" class="secondary">Add free test smoke</button><button id="debug-pack-lunch" class="secondary">Add free Packed Lunch</button></details></section><section id="recipes"><h2>YOUR RECIPES</h2><p id="personal-xp"></p><div class="recipe-card"><h3>Snare trap</h3><p>Place it to hold a guard for three seconds.</p><p id="recipe-snare-state"></p><button id="craft-snare">Craft snare</button></div><div class="recipe-card"><h3>Smoke bomb</h3><p>Equip from the sack; Space drops smoke that blocks guard sight for five seconds.</p><p id="recipe-smoke-state"></p><button id="buy-smoke">Buy smoke recipe · 50 XP</button><button id="craft-smoke">Craft smoke bomb</button></div></section><section id="passives" hidden><h2>PERSONAL PASSIVES</h2><p id="campfire-xp"></p><div class="recipe-card"><h3>Quick fingers</h3><p id="passive-search-state">Permanent passive · 10% faster searching.</p><button id="buy-quick-search">Buy Quick fingers · 30 XP</button></div></section></div><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="map-planning" class="results" aria-labelledby="setup-title"><div class="eyebrow">AT THE MAP TABLE</div><h2 id="setup-title">Plan the next run</h2><label class="loadout-row" for="job-choice"><span>Job</span><select id="job-choice"><option value="manor">Human Manor</option><option value="hold">Dwarf Hold</option><option value="sanctuary">Elf Sanctuary</option></select></label><label class="loadout-row" for="difficulty-choice"><span>Difficulty</span><select id="difficulty-choice"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><p id="job-preview" role="status"></p><p>This sets the route. Board the separate minecart when you are ready to leave.</p><p id="planning-sack" role="status"></p><button id="confirm-job">Set destination</button><button id="close-map" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="result-job"></p><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><p id="result-xp"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
@@ -382,8 +382,11 @@ function setSolidObjects(world, objects = []) {
     if (isFloor(world, x, y)) world.solidTiles[y * world.width + x] = 1;
   }
 }
+function isSightOpen(world, x, y) {
+  return isFloor(world, x, y) && !world.lockedTiles?.[y * world.width + x];
+}
 function isWalkable(world, x, y) {
-  return isFloor(world, x, y) && !world.solidTiles?.[y * world.width + x];
+  return isSightOpen(world, x, y) && !world.solidTiles?.[y * world.width + x];
 }
 
 function canStand(world, x, y, radius = CONFIG.radius) {
@@ -545,6 +548,7 @@ function createInput(target, inventoryOpen = () => false) {
 const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
 // One definition supplies footprints and colours everywhere an item is shown.
 const LOOT_TYPES = Object.freeze({
+  treasureKey: { name: 'Treasure key', runOnly: true, color: '#ddcc80', cells: [[0, 0]], mark: 'K' },
   ruby: { sellValue: 25, name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
   coin: { sellValue: 3, stackLimit: 9, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: 'G' },
   silverCoin: { sellValue: 2, stackLimit: 9, name: 'Silver coin', color: '#c2ccd1', cells: [[0, 0]], mark: 'S' },
@@ -587,7 +591,7 @@ function bagItemAt(bag, x, y) {
 
 function clearPath(world, a, b) {
   const steps = Math.max(1, Math.ceil(Math.hypot(a.x - b.x, a.y - b.y) * 12));
-  for (let i = 0; i <= steps; i++) if (!isFloor(world, Math.floor(a.x + (b.x - a.x) * i / steps), Math.floor(a.y + (b.y - a.y) * i / steps))) return false;
+  for (let i = 0; i <= steps; i++) if (!isSightOpen(world, Math.floor(a.x + (b.x - a.x) * i / steps), Math.floor(a.y + (b.y - a.y) * i / steps))) return false;
   return true;
 }
 
@@ -687,6 +691,91 @@ function unitSaleValue(item) {
 }
 function itemSaleValue(item) { return unitSaleValue(item) * itemCount(item); }
 
+
+
+const inside = (room, p) => p.x >= room.x && p.x < room.x + room.w && p.y >= room.y && p.y < room.y + room.h;
+function reachableTreasureTiles(world) {
+  const start = Math.floor(world.spawn.y) * world.width + Math.floor(world.spawn.x), seen = new Set([start]), queue = [start];
+  for (let i = 0; i < queue.length; i++) {
+    const key = queue[i], x = key % world.width, y = Math.floor(key / world.width);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, next = ny * world.width + nx;
+      if (!seen.has(next) && isWalkable(world, nx, ny)) { seen.add(next); queue.push(next); }
+    }
+  }
+  return seen;
+}
+function applyTreasureState(world, state) {
+  const changed = world.treasure?.id !== state?.id || world.treasure?.unlocked !== state?.unlocked || !world.lockedTiles;
+  world.treasure = state ?? null;
+  if (!changed) return;
+  world.lockedTiles = new Uint8Array(world.tiles.length);
+  if (state && !state.unlocked) for (const cell of state.cells) world.lockedTiles[cell.y * world.width + cell.x] = 1;
+  world.sightVersion = (world.sightVersion ?? 0) + 1;
+}
+function publicTreasure(world) {
+  const door = world.treasure;
+  if (!door) return null;
+  const { id, keyId, roomIndex, cells, side, x, y, unlocked } = door;
+  return { id, keyId, roomIndex, cells, side, x, y, unlocked };
+}
+function createTreasureRoom(world, objects) {
+  if (world.treasure) return world.treasure;
+  const openWorld = { ...world, lockedTiles: undefined };
+  const candidates = world.rooms.map((room, roomIndex) => ({ room, roomIndex,
+    distance: findPath(openWorld, world.spawn, { x: room.cx + .5, y: room.cy + .5 }).length }))
+    .filter(c => c.roomIndex !== 0 && c.room.entrances?.length >= 1 && objects.some(o => inside(c.room, o)))
+    .sort((a, b) => Number(b.room.entrances.length === 1) - Number(a.room.entrances.length === 1) || b.distance - a.distance || a.roomIndex - b.roomIndex);
+  for (const candidate of candidates) {
+    const { room, roomIndex } = candidate, entrance = room.entrances[0];
+    // Gate the inside threshold, leaving passing hallway tiles completely clear.
+    const cells = [...new Map(room.entrances.flatMap(e => e.cells).map(p => {
+      const cell = { x: Math.max(room.x, Math.min(room.x + room.w - 1, p.x)), y: Math.max(room.y, Math.min(room.y + room.h - 1, p.y)) };
+      return [`${cell.x},${cell.y}`, cell];
+    })).values()];
+    const door = { id: `${world.seed}-treasure`, keyId: `${world.seed}-treasure-key`, roomIndex, cells, side: entrance.side,
+      x: cells.reduce((n, p) => n + p.x + .5, 0) / cells.length, y: cells.reduce((n, p) => n + p.y + .5, 0) / cells.length, unlocked: false };
+    const lockedTiles = new Uint8Array(world.tiles.length);
+    for (const cell of cells) lockedTiles[cell.y * world.width + cell.x] = 1;
+    const closedWorld = { ...world, lockedTiles }, reached = reachableTreasureTiles(closedWorld);
+    // An optional-room lock may remove only its own floor and the gate, never a bypass.
+    let safe = true;
+    for (let i = 0; i < world.tiles.length; i++) if (isWalkable(closedWorld, i % world.width, Math.floor(i / world.width))
+      && !inside(room, { x: i % world.width + .5, y: Math.floor(i / world.width) + .5 }) && !reached.has(i)) { safe = false; break; }
+    if (!safe || reached.has(room.cy * world.width + room.cx)) continue;
+    let sources = objects.filter(o => !inside(room, o) && o.approach && reached.has(Math.floor(o.approach.y) * world.width + Math.floor(o.approach.x)));
+    const awayFromEntrance = sources.filter(o => !inside(world.rooms[0], o));
+    if (awayFromEntrance.length) sources = awayFromEntrance;
+    if (!sources.length) continue;
+    const source = sources[(Math.imul(world.seed ^ 0x51a7, 2654435761) >>> 0) % sources.length];
+    door.keyContainerId = source.id; source.contents.push('treasureKey');
+    const prizes = ['ruby', 'candlestick', 'horn', 'sword'];
+    objects.filter(o => inside(room, o)).forEach((o, i) => { o.treasure = true; o.contents = [prizes[i % prizes.length]]; });
+    applyTreasureState(world, door);
+    return door;
+  }
+  return null; // Very constrained custom layouts skip the lock rather than trap progression.
+}
+function canApproachTreasure(world, player) {
+  const door = world.treasure;
+  if (!door || door.unlocked || player.hiding || player.state !== 'active') return false;
+  const room = world.rooms[door.roomIndex];
+  return door.cells.some(c => {
+    const centre = { x: c.x + .5, y: c.y + .5 };
+    return Math.hypot(player.x - centre.x, player.y - centre.y) <= 1.6 && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => {
+      const approach = { x: centre.x + dx, y: centre.y + dy };
+      return !inside(room, approach) && canStand(world, approach.x, approach.y) && clearPath(world, player, approach);
+    });
+  });
+}
+function unlockTreasure(world, player, loot) {
+  if (loot.held || !canApproachTreasure(world, player)) return false;
+  const index = loot.bag.findIndex(item => item.type === 'treasureKey' && item.keyId === world.treasure.keyId);
+  if (index < 0) return false;
+  loot.bag.splice(index, 1);
+  applyTreasureState(world, { ...world.treasure, unlocked: true });
+  return true;
+}
 
 
 function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null, aimPoint: null }; }
@@ -838,7 +927,7 @@ function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', profile);
 // Local preparation transfers conserve stock immediately; launch moves the
 // already-paid bag without withdrawing stock a second time.
 function takeStashItem(camp, loot, type, debug = false) {
-  if (!Object.hasOwn(LOOT_TYPES, type) || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
+  if (!Object.hasOwn(LOOT_TYPES, type) || LOOT_TYPES[type].runOnly || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
   const item = { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) };
   const target = loot.bag.find(p => matchingStack(p, item) && itemCount(p) < LOOT_TYPES[type].stackLimit);
   if (!packItem(loot.bag, item)) return null;
@@ -850,7 +939,7 @@ function returnStashItem(camp, loot, id) {
   const index = loot.bag.findIndex(item => item.id === id);
   if (index < 0) return false;
   const item = loot.bag[index];
-  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] > Number.MAX_SAFE_INTEGER - itemCount(item)) return false;
+  if (!Object.hasOwn(LOOT_TYPES, item.type) || LOOT_TYPES[item.type].runOnly || !item.debugSupply && camp.counts[item.type] > Number.MAX_SAFE_INTEGER - itemCount(item)) return false;
   loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type] += itemCount(item);
   camp.preparedBag = loot.bag; syncStashSlots(camp); return true;
 }
@@ -876,7 +965,7 @@ function takeSupplies(camp, quantities, seed, debug = false) {
 function bankEscape(camp, result, loot) {
   if (result.outcome !== 'escaped' || result.banked) return false;
   let gold = 0;
-  for (const item of loot.bag) if (!item.debugSupply) {
+  for (const item of loot.bag) if (!item.debugSupply && !LOOT_TYPES[item.type].runOnly) {
     if (LOOT_TYPES[item.type].sellValue) gold += itemSaleValue(item);
     else camp.counts[item.type]++;
   }
@@ -1067,11 +1156,12 @@ function canSearch(world, player, object) {
 function selectInteraction(world, player, ground, objects, pointer = null, hidingSpots = []) {
   if (player.hiding) return null;
   const candidates = [
+    ...(canApproachTreasure(world, player) ? [{ kind: 'unlock', item: world.treasure }] : []),
     ...ground.filter(item => reachable(world, player, item)).map(item => ({ kind: 'loot', item })),
     ...objects.filter(item => canSearch(world, player, item)).map(item => ({ kind: 'search', item })),
     ...hidingSpots.filter(item => canHide(world, player, item)).map(item => ({ kind: 'hide', item }))
   ];
-  const distance = (candidate, point) => Math.hypot(candidate.item.x - point.x, candidate.item.y - point.y);
+  const distance = (candidate, point) => candidate.kind === 'unlock' ? Math.min(...candidate.item.cells.map(c => Math.hypot(c.x + .5 - point.x, c.y + .5 - point.y))) : Math.hypot(candidate.item.x - point.x, candidate.item.y - point.y);
   if (pointer) {
     const hovered = candidates.filter(candidate => distance(candidate, pointer) <= 0.8);
     if (hovered.length) return hovered.sort((a, b) => distance(a, pointer) - distance(b, pointer))[0];
@@ -1097,7 +1187,7 @@ function spillContents(world, object, loot) {
     .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, origin, point));
   object.contents.forEach((type, i) => {
     const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? origin;
-    loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
+    loot.ground.push({ id: `${object.id}-loot-${i}`, type, ...(type === 'treasureKey' ? { keyId: world.treasure.keyId } : {}), rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
   });
 }
 
@@ -1156,7 +1246,7 @@ function followPath(world, actor, path, distance, radius = 0.26) {
 
 
 function createCages(world, obstacles = []) {
-  const rooms = world.rooms.map((room, index) => ({ ...room, index })).filter(r => r.index !== 0);
+  const rooms = world.rooms.map((room, index) => ({ ...room, index })).filter(r => r.index !== 0 && r.index !== world.treasure?.roomIndex);
   const selected = Array.from({ length: Math.min(RESCUE.cages, rooms.length) }, (_, i) => rooms[Math.floor((i + .5) * rooms.length / Math.min(RESCUE.cages, rooms.length))]);
   const cages = [];
   for (const room of [...selected, ...rooms.filter(r => !selected.includes(r))]) {
@@ -1201,7 +1291,7 @@ function createRoamingRoute(world, occupiedRooms = []) {
     const path = findPath(routineWorld, from, to);
     return path.length ? [{ ...from }, ...path] : [];
   };
-  const candidates = world.rooms.map((room, index) => ({ index, point: { x: room.cx + .5, y: room.cy + .5 } })).filter(entry => entry.index !== 0 && !occupiedRooms.includes(entry.index));
+  const candidates = world.rooms.map((room, index) => ({ index, point: { x: room.cx + .5, y: room.cy + .5 } })).filter(entry => entry.index !== 0 && entry.index !== world.treasure?.roomIndex && !occupiedRooms.includes(entry.index));
   const touched = path => world.rooms.map((room, index) => path.some(point => roomContains(room, point)) ? index : -1).filter(index => index >= 0);
   const pairs = candidates.flatMap((a, i) => candidates.slice(i + 1).map(b => ({ a, b, distance: Math.hypot(a.point.x - b.point.x, a.point.y - b.point.y) }))).sort((a, b) => a.distance - b.distance || a.a.index - b.a.index || a.b.index - b.b.index);
   for (const { a, b } of pairs) {
@@ -1243,7 +1333,7 @@ function hurtPlayer(player, damage = 1) {
 
 function createGuard(world, options = {}) {
   const combat = world.tuning?.combat ?? COMBAT;
-  const nearest = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
+  const nearest = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0 && entry.index !== world.treasure?.roomIndex)
     .sort((a, b) => Math.hypot(a.room.cx - world.rooms[0].cx, a.room.cy - world.rooms[0].cy) - Math.hypot(b.room.cx - world.rooms[0].cx, b.room.cy - world.rooms[0].cy));
   const roomIndex = options.roomIndex ?? nearest[0]?.index ?? 0;
   const homeRoom = world.rooms[roomIndex], behaviour = options.behaviour ?? 'room';
@@ -1263,7 +1353,7 @@ function createGuard(world, options = {}) {
 }
 
 function createGuards(world) {
-  const rooms = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
+  const rooms = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0 && entry.index !== world.treasure?.roomIndex)
     .map(entry => ({ ...entry, distance: findPath(world, world.spawn, { x: entry.room.cx + 0.5, y: entry.room.cy + 0.5 }).length }))
     .sort((a, b) => a.distance - b.distance);
   const count = Math.min(GUARD_PATTERNS.count, rooms.length);
@@ -1507,7 +1597,7 @@ function strikePlayer(world, guard, player) {
 function createReinforcementDoors(world, obstacles = []) {
   const doors = [];
   world.rooms.forEach((room, index) => {
-    if (!index || index % HEAT.doorRoomInterval !== 1) return;
+    if (!index || index === world.treasure?.roomIndex || index % HEAT.doorRoomInterval !== 1) return;
     const columns = Array.from({ length: room.w - 2 }, (_, i) => room.x + i + 1)
       .sort((a, b) => Math.abs(a - room.cx) - Math.abs(b - room.cx));
     const x = columns.find(x => !isFloor(world, x, room.y - 1) && canStand(world, x + .5, room.y + .5, COMBAT.guardRadius)
@@ -1522,7 +1612,7 @@ function createPressure(world, obstacles = []) {
 function createReinforcement(world, door, serial) {
   const start = { ...door.spawn }, stops = [start], outbound = [start];
   // Cache a sweep through the rooms; never path towards an unseen player.
-  const remaining = world.rooms.map((room, index) => ({ index, x: room.cx + .5, y: room.cy + .5 })).filter(p => p.index !== 0);
+  const remaining = world.rooms.map((room, index) => ({ index, x: room.cx + .5, y: room.cy + .5 })).filter(p => p.index !== 0 && p.index !== world.treasure?.roomIndex);
   let from = start;
   while (remaining.length) {
     remaining.sort((a, b) => Math.hypot(a.x - from.x, a.y - from.y) - Math.hypot(b.x - from.x, b.y - from.y) || a.index - b.index);
@@ -1584,7 +1674,7 @@ function atTunnel(run, world, player) {
 function finishRun(run, world, player, loot, now) {
   if (run.phase !== 'exploring' || loot.held || !atTunnel(run, world, player)) return null;
   // Snapshot only what was packed, never loose loot or an extra cursor item.
-  const items = loot.bag.filter(item => !LOOT_TYPES[item.type].equipment).map(item => ({ ...item }));
+  const items = loot.bag.filter(item => !LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].runOnly).map(item => ({ ...item }));
   run.result = { outcome: 'escaped', job: run.job, items, count: items.reduce((n, item) => n + itemCount(item), 0), slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
   run.phase = 'results';
   return run.result;
@@ -1976,7 +2066,7 @@ function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
     let x = guard.x, y = guard.y;
     for (let step = 0.15; step <= combat.sight; step += 0.15) {
       const nx = guard.x + Math.cos(angle) * step, ny = guard.y + Math.sin(angle) * step;
-      if (!isFloor(world, Math.floor(nx), Math.floor(ny)) || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
+      if (!isSightOpen(world, Math.floor(nx), Math.floor(ny)) || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
       x = nx; y = ny;
     }
     ctx.lineTo(x * t + ox, y * t + oy);
@@ -2328,7 +2418,7 @@ function lightPolygon(world, light, radius = LIGHTING.radius) {
     let distance = LIGHTING.step;
     for (; distance < radius; distance += LIGHTING.step) {
       const cellX = Math.floor(light.x + dx * distance), cellY = Math.floor(light.y + dy * distance);
-      if (!isFloor(world, cellX, cellY)) {
+      if (!isSightOpen(world, cellX, cellY)) {
         const exitX = dx ? ((dx > 0 ? cellX + 1 : cellX) - light.x) / dx : Infinity;
         const exitY = dy ? ((dy > 0 ? cellY + 1 : cellY) - light.y) / dy : Infinity;
         distance = Math.min(radius, distance + .5, Math.min(exitX, exitY) - .001); break;
@@ -2360,11 +2450,15 @@ function drawTorches(ctx, torches, ox, oy, seconds) {
 }
 
 function createLightingRenderer(makeCanvas = () => document.createElement('canvas')) {
-  const scenes = new WeakMap(); let mask = null;
+  const scenes = new WeakMap(), versions = new WeakMap(); let mask = null;
   return {
     scene(world, obstacles) {
       if (world.lair) return null;
-      if (!scenes.has(world)) scenes.set(world, createTorches(world, obstacles).map(torch => ({ ...torch, polygon: lightPolygon(world, torch) })));
+      if (!scenes.has(world)) scenes.set(world, createTorches(world, obstacles));
+      if (versions.get(world) !== (world.sightVersion ?? 0)) {
+        scenes.set(world, scenes.get(world).map(torch => ({ ...torch, polygon: lightPolygon(world, torch) })));
+        versions.set(world, world.sightVersion ?? 0);
+      }
       return scenes.get(world);
     },
     draw(ctx, width, height, torches, ox, oy, seconds) {
@@ -2394,6 +2488,26 @@ function createLightingRenderer(makeCanvas = () => document.createElement('canva
       ctx.restore();
     }
   };
+}
+
+
+function drawTreasureGateCell(ctx, door, cell, ox, oy) {
+  const t = CONFIG.tile, x = Math.round(cell.x * t + ox), y = Math.round(cell.y * t + oy);
+  ctx.fillStyle = '#a98b51'; ctx.fillRect(x + 1, y + 1, t - 2, 2); ctx.fillRect(x + 1, y + t - 3, t - 2, 2);
+  if (door.unlocked) return;
+  ctx.fillStyle = '#3c332e'; ctx.fillRect(x + 2, y + 3, t - 4, t - 6);
+  ctx.fillStyle = '#806244';
+  for (let dx = 3; dx < t - 3; dx += 5) ctx.fillRect(x + dx, y + 4, 3, t - 8);
+  ctx.fillStyle = '#b8ab7f'; ctx.fillRect(x + 2, y + 6, t - 4, 2); ctx.fillRect(x + 2, y + t - 8, t - 4, 2);
+  ctx.fillStyle = '#e8c773'; ctx.fillRect(x + t / 2 - 3, y + t / 2 - 3, 6, 6);
+  ctx.fillStyle = '#252b26'; ctx.fillRect(x + t / 2 - 1, y + t / 2 - 2, 2, 4);
+}
+function drawTreasureHint(ctx, world, active, ox, oy, player) {
+  const door = world.treasure;
+  if (!door || !active) return;
+  ctx.fillStyle = '#f0d68c'; ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  const cell = [...door.cells].sort((a, b) => Math.hypot(a.x + .5 - player.x, a.y + .5 - player.y) - Math.hypot(b.x + .5 - player.x, b.y + .5 - player.y))[0];
+  ctx.fillText('LOCKED TREASURE ROOM · E', (cell.x + .5) * CONFIG.tile + ox, cell.y * CONFIG.tile + oy - 5);
 }
 
 
@@ -2465,6 +2579,7 @@ async function createRenderer(canvas, mapCanvas) {
     ctx.fillText(world.lair ? 'DEPARTURE CART' : 'SECRET TUNNEL', tx, ty - 30);
     if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots, ...(run.cages ?? [])], placement, ox, oy);
+    for (const cell of world.treasure?.cells ?? []) add(cell.y + 1, () => drawTreasureGateCell(ctx, world.treasure, cell, ox, oy));
     for (const object of objects) add(propDepth(object), () => drawSearchables(ctx, [object], null, searchSession, ox, oy, 'body'));
     for (const spot of hidingSpots) add(propDepth(spot), () => drawHidingSpots(ctx, [spot], null, player, ox, oy, 'body'));
     for (const item of loot.ground) add(item.y, () => {
@@ -2511,6 +2626,7 @@ async function createRenderer(canvas, mapCanvas) {
     drawSmoke(ctx, world, clouds, ox, oy);
     lighting.draw(ctx, width, height, torches, ox, oy, seconds);
     for (const draw of overlays) draw();
+    drawTreasureHint(ctx, world, canApproachTreasure(world, player), ox, oy, player);
     // Labels, interaction outlines and progress remain readable above the scene.
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy, 'ui');
     drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy, 'ui');
@@ -2570,14 +2686,15 @@ try {
 let pressure, cart, cartOutside = null;
 let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
 let hidingSpots = [], hideTarget = null;
-let objects = [], searchSession = createSearchSession(), searchTarget = null;
+let objects = [], searchSession = createSearchSession(), searchTarget = null, unlockTarget = null;
 let traps = [], placement = createPlacement(), clouds = [], quickType = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
-  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; return; }
+  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; unlockTarget = null; return; }
   const interaction = player.enteringHide ? { kind: 'hide', item: player.enteringHide.spot } : searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null, hidingSpots);
+  unlockTarget = interaction?.kind === 'unlock' ? interaction.item : null;
   hideTarget = interaction?.kind === 'hide' ? interaction.item : null;
   target = interaction?.kind === 'loot' ? interaction.item : null;
   searchTarget = interaction?.kind === 'search' ? interaction.item : null;
@@ -2611,14 +2728,14 @@ const launchRun = (selection) => {
   if (!bag) return false;
   world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
   loot = createLoot(); loot.bag = bag;
-  objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); createTreasureRoom(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
   run = createRun(world, performance.now());
   input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);
   document.querySelector('#job-label').textContent = `${job.jobName} · ${job.difficultyName}`;
   document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
   document.querySelector('#regenerate').hidden = false; document.querySelector('#sack-tab').hidden = false;
-  tell(`${job.jobName} · ${job.difficultyName}. Search furniture, avoid guards, then escape through the tunnel.`);
+  tell(`${job.jobName} · ${job.difficultyName}. ${world.treasure ? 'Search for the treasure key and its locked room, or escape with what you find.' : 'Search furniture, avoid guards, then escape through the tunnel.'}`);
   return true;
 };
 const planning = createMapPlanningView(document.querySelector('#map-planning'), selection => {
@@ -2756,6 +2873,11 @@ window.addEventListener('keydown', e => {
     return;
   }
   updateTarget();
+  if (unlockTarget) {
+    cancelSearch(searchSession); cancelHiding(player);
+    tell(unlockTreasure(world, player, loot) ? 'Treasure room unlocked! The key is used. The door stays open for the team.' : 'Locked treasure room. Find its key by searching elsewhere in the dungeon.');
+    return;
+  }
   if (hideTarget) {
     const witnesses = guards.filter(guard => seesPlayer(world, guard, player, ['chase', 'search'].includes(guard.state), clouds));
     if (beginHiding(world, player, hideTarget, witnesses)) {
@@ -2852,6 +2974,7 @@ const frame = time => {
   else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
+  else if (unlockTarget) targetText = 'Locked treasure room · E to use its key';
   else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
   else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
   else targetText = 'Find a chest, cupboard or crate to search';

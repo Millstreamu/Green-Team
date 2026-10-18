@@ -1,3 +1,4 @@
+import { applyTreasureState } from './treasure.js';
 import { itemLabel } from './loot.js';
 import { setupGameScreen } from './game-screen.js';
 import { createHomeView } from './home-view.js';
@@ -129,6 +130,7 @@ function connect() {
     $('#current-lair-code').textContent = message.lair?.code ?? '';
     $('#leave-lair').disabled = message.location === 'dungeon';
     const equipped = message.placement?.itemId && message.placement.itemId !== state?.placement?.itemId || message.quickType && message.quickType !== state?.quickType;
+    const treasureOpened = message.dungeon?.treasure?.unlocked && state?.dungeon?.treasure?.unlocked === false;
     const oldRun = state?.dungeon?.id;
     const changed = oldRun !== message.dungeon?.id || state?.location !== message.location;
     state = message;
@@ -138,8 +140,10 @@ function connect() {
       else world = createLairWorld();
       $('#lair-panel').close(); $('#map-planning').close(); input.clear(); sack.reset(); dragStart = null;
       pointer.active = false; previous = 0;
-      tell(message.dungeon ? 'Same dungeon, shared loot. Hold E to search; gather at the tunnel to leave together.' : 'Back at the lair. Recovered loot is in the shared stash.');
+      tell(message.dungeon ? message.dungeon.treasure ? 'Search containers for the treasure key. Its room is optional; gather at the tunnel to leave together.' : 'Same dungeon, shared loot. Hold E to search; gather at the tunnel to leave together.' : 'Back at the lair. Recovered loot is in the shared stash.');
     }
+    if (message.dungeon) applyTreasureState(world, message.dungeon.treasure);
+    if (treasureOpened) tell('Treasure room unlocked for the team.');
     Object.assign(camp, message.camp); Object.assign(profile, message.profile);
     loot.bag = message.bag; loot.held = message.held; loot.ground = message.dungeon?.ground ?? [];
     $('#xp-label').textContent = `${message.name} · ${profile.xp} XP available`;
@@ -215,6 +219,10 @@ window.addEventListener('keydown', event => {
     const others = state.players.filter(p => !p.ghost && !p.waiting && p.state === 'active');
     if (others.some(p => !atTunnel(runView(), world, p))) { tell('Everyone needs to be together at the secret tunnel to leave.'); return; }
     send({ type: 'extract' }); return;
+  }
+  if (target?.kind === 'unlock') {
+    if (!loot.bag.some(i => i.type === 'treasureKey' && i.keyId === world.treasure?.keyId)) { tell('Locked treasure room. Search elsewhere for its key.'); return; }
+    send({ type: 'unlock' }); return;
   }
   if (target?.kind === 'hide') { send({ type: 'hide', id: target.item.id }); return; }
   if (target?.kind === 'search') {
@@ -295,7 +303,7 @@ function frame(time) {
     const rescuing = dungeon?.rescues?.find(a => a.actorId === player.id);
     const searching = dungeon?.objects.find(o => o.searcherId === player.id);
     $('#target-label').textContent = !connected ? 'Connection lost' : player.waiting ? 'Waiting in the lair for the next run' : dungeon
-      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · leave together' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${SEARCHABLE_TYPES[target.item.type].name}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
+      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · leave together' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${SEARCHABLE_TYPES[target.item.type].name}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
       : aboard ? `${state.cart.aboard.length}/${state.cart.participants.length} aboard · ${state.cart.countdown === null ? 'waiting for team' : `${Math.ceil(state.cart.countdown)}s`} · E hop out` : station ? `E · ${station.name}` : 'Tab · shared stash';
     sack.updateVisibility({ moving: player.moving && !sack.isNavigating(), targetId: target?.kind === 'loot' ? target.item.id : null, held: loot.held, pointer, active: !!dungeon && connected && player.state === 'active' && !player.hiding && !state.placement?.itemId && !modal() }, dt);
     sack.paint(loot, pointer);

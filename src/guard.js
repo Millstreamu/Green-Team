@@ -24,7 +24,7 @@ export function hurtPlayer(player, damage = 1) {
 
 export function createGuard(world, options = {}) {
   const combat = world.tuning?.combat ?? COMBAT;
-  const nearest = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
+  const nearest = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0 && entry.index !== world.treasure?.roomIndex)
     .sort((a, b) => Math.hypot(a.room.cx - world.rooms[0].cx, a.room.cy - world.rooms[0].cy) - Math.hypot(b.room.cx - world.rooms[0].cx, b.room.cy - world.rooms[0].cy));
   const roomIndex = options.roomIndex ?? nearest[0]?.index ?? 0;
   const homeRoom = world.rooms[roomIndex], behaviour = options.behaviour ?? 'room';
@@ -44,7 +44,7 @@ export function createGuard(world, options = {}) {
 }
 
 export function createGuards(world) {
-  const rooms = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0)
+  const rooms = world.rooms.map((room, index) => ({ room, index })).filter(entry => entry.index !== 0 && entry.index !== world.treasure?.roomIndex)
     .map(entry => ({ ...entry, distance: findPath(world, world.spawn, { x: entry.room.cx + 0.5, y: entry.room.cy + 0.5 }).length }))
     .sort((a, b) => a.distance - b.distance);
   const count = Math.min(GUARD_PATTERNS.count, rooms.length);

@@ -84,7 +84,7 @@ async function exportSettings() {
   finally { busy = false; controls(); }
 }
 $('#export-settings').addEventListener('click', exportSettings);
-options($('#admin-item'), Object.entries(LOOT_TYPES).filter(([, def]) => !def.sellValue).map(([id, def]) => [id, def.name]));
+options($('#admin-item'), Object.entries(LOOT_TYPES).filter(([, def]) => !def.sellValue && !def.runOnly).map(([id, def]) => [id, def.name]));
 $('#admin-item').value = 'gold';
 $('#admin-lair').addEventListener('change', refresh);
 $('#admin-item').addEventListener('change', () => { $('#stock-amount').value = state?.camp.counts[$('#admin-item').value] ?? 0; });

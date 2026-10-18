@@ -61,7 +61,7 @@ export function createHubAdminController(session, backups) {
         lair.state.camp = freshLairState().camp;
       }
       if (kind === 'set-stock') {
-        if (typeof command.item !== 'string' || !Object.hasOwn(LOOT_TYPES, command.item) || LOOT_TYPES[command.item].sellValue) throw new AdminError('Choose gold, a material or crafted gear.');
+        if (typeof command.item !== 'string' || !Object.hasOwn(LOOT_TYPES, command.item) || LOOT_TYPES[command.item].sellValue || LOOT_TYPES[command.item].runOnly) throw new AdminError('Choose gold, a material or crafted gear.');
         if (!Number.isSafeInteger(command.amount) || command.amount < 0) throw new AdminError('Enter a nonnegative whole quantity.');
         target.state.camp.counts[command.item] = command.amount; syncStashSlots(target.state.camp);
       }

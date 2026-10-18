@@ -1,3 +1,5 @@
+import { drawTreasureGateCell, drawTreasureHint } from './treasure-view.js';
+import { canApproachTreasure } from './treasure.js';
 import { createLightingRenderer, drawTorches } from './lighting.js';
 import { loadHumanTerrain, drawTerrainTile } from './terrain-art.js';
 import { drawCages, drawRescues } from './rescue-view.js';
@@ -82,6 +84,7 @@ export async function createRenderer(canvas, mapCanvas) {
     ctx.fillText(world.lair ? 'DEPARTURE CART' : 'SECRET TUNNEL', tx, ty - 30);
     if (highlightTunnel) { ctx.strokeStyle = '#e8d790'; ctx.strokeRect(tx - 16.5, ty - 12.5, 33, 25); }
     drawTraps(ctx, world, player, traps, [...objects, ...hidingSpots, ...(run.cages ?? [])], placement, ox, oy);
+    for (const cell of world.treasure?.cells ?? []) add(cell.y + 1, () => drawTreasureGateCell(ctx, world.treasure, cell, ox, oy));
     for (const object of objects) add(propDepth(object), () => drawSearchables(ctx, [object], null, searchSession, ox, oy, 'body'));
     for (const spot of hidingSpots) add(propDepth(spot), () => drawHidingSpots(ctx, [spot], null, player, ox, oy, 'body'));
     for (const item of loot.ground) add(item.y, () => {
@@ -128,6 +131,7 @@ export async function createRenderer(canvas, mapCanvas) {
     drawSmoke(ctx, world, clouds, ox, oy);
     lighting.draw(ctx, width, height, torches, ox, oy, seconds);
     for (const draw of overlays) draw();
+    drawTreasureHint(ctx, world, canApproachTreasure(world, player), ox, oy, player);
     // Labels, interaction outlines and progress remain readable above the scene.
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy, 'ui');
     drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy, 'ui');

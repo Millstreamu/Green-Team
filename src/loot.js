@@ -1,8 +1,9 @@
-import { canStand, isFloor } from './world.js';
+import { canStand, isSightOpen } from './world.js';
 
 export const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
 // One definition supplies footprints and colours everywhere an item is shown.
 export const LOOT_TYPES = Object.freeze({
+  treasureKey: { name: 'Treasure key', runOnly: true, color: '#ddcc80', cells: [[0, 0]], mark: 'K' },
   ruby: { sellValue: 25, name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
   coin: { sellValue: 3, stackLimit: 9, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: 'G' },
   silverCoin: { sellValue: 2, stackLimit: 9, name: 'Silver coin', color: '#c2ccd1', cells: [[0, 0]], mark: 'S' },
@@ -45,7 +46,7 @@ export function bagItemAt(bag, x, y) {
 
 export function clearPath(world, a, b) {
   const steps = Math.max(1, Math.ceil(Math.hypot(a.x - b.x, a.y - b.y) * 12));
-  for (let i = 0; i <= steps; i++) if (!isFloor(world, Math.floor(a.x + (b.x - a.x) * i / steps), Math.floor(a.y + (b.y - a.y) * i / steps))) return false;
+  for (let i = 0; i <= steps; i++) if (!isSightOpen(world, Math.floor(a.x + (b.x - a.x) * i / steps), Math.floor(a.y + (b.y - a.y) * i / steps))) return false;
   return true;
 }
 

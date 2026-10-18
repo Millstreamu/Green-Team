@@ -19,7 +19,7 @@ export function restoreSave(saved) {
   requireSave(saved?.version === 1 && saved.camp && Array.isArray(saved.players));
   // New denominations default to zero in old saves; existing required fields stay strict.
   const c = { ...saved.camp, counts: saved.camp.counts && { ...saved.camp.counts } };
-  if (c.counts) for (const type of ['silverCoin', 'copperCoin']) if (!Object.hasOwn(c.counts, type)) c.counts[type] = 0;
+  if (c.counts) for (const type of ['silverCoin', 'copperCoin', 'treasureKey']) if (!Object.hasOwn(c.counts, type)) c.counts[type] = 0;
   requireSave(c.counts && Object.keys(LOOT_TYPES).every(type => natural(c.counts[type]))
     && Number.isSafeInteger(c.nextItemId) && c.nextItemId >= 1
     && Array.isArray(c.slots) && c.slots.length === 36

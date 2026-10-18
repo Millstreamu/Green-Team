@@ -6,7 +6,7 @@ import { createGuard } from './guard.js';
 export function createReinforcementDoors(world, obstacles = []) {
   const doors = [];
   world.rooms.forEach((room, index) => {
-    if (!index || index % HEAT.doorRoomInterval !== 1) return;
+    if (!index || index === world.treasure?.roomIndex || index % HEAT.doorRoomInterval !== 1) return;
     const columns = Array.from({ length: room.w - 2 }, (_, i) => room.x + i + 1)
       .sort((a, b) => Math.abs(a - room.cx) - Math.abs(b - room.cx));
     const x = columns.find(x => !isFloor(world, x, room.y - 1) && canStand(world, x + .5, room.y + .5, COMBAT.guardRadius)
@@ -21,7 +21,7 @@ export function createPressure(world, obstacles = []) {
 export function createReinforcement(world, door, serial) {
   const start = { ...door.spawn }, stops = [start], outbound = [start];
   // Cache a sweep through the rooms; never path towards an unseen player.
-  const remaining = world.rooms.map((room, index) => ({ index, x: room.cx + .5, y: room.cy + .5 })).filter(p => p.index !== 0);
+  const remaining = world.rooms.map((room, index) => ({ index, x: room.cx + .5, y: room.cy + .5 })).filter(p => p.index !== 0 && p.index !== world.treasure?.roomIndex);
   let from = start;
   while (remaining.length) {
     remaining.sort((a, b) => Math.hypot(a.x - from.x, a.y - from.y) - Math.hypot(b.x - from.x, b.y - from.y) || a.index - b.index);

@@ -1,3 +1,4 @@
+import { createTreasureRoom } from '../src/treasure.js';
 import { createRescue } from './rescue.js';
 import { createGuards, createVitality, tickVitality, seesPlayer } from '../src/guard.js';
 import { createPressure, updatePressure } from '../src/pressure.js';
@@ -7,7 +8,9 @@ import { useSmoke, updateSmoke } from '../src/smoke.js';
 import { updateTeamGuard } from './team-guards.js';
 
 export function createDanger(world, participants, objects) {
-  const hidingSpots = createHidingSpots(world, objects), guards = createGuards(world), traps = [], clouds = [];
+  const hidingSpots = createHidingSpots(world, objects);
+  createTreasureRoom(world, objects);
+  const guards = createGuards(world), traps = [], clouds = [];
   const obstacles = [...objects, ...hidingSpots], pressure = createPressure(world, obstacles);
   for (const p of participants) {
     Object.assign(p, createVitality()); p.hiding = null; p.enteringHide = null;

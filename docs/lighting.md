@@ -17,3 +17,6 @@ This code is client rendering only. No server, AI, movement, room layout, collis
 ## Checks
 
 Placement/immutability tests cover45layouts across all architectures, including tile/wall anchors, reserved lanes, tall-prop/door clearance, deterministic results, unchanged guard sight and lair skip. Ray test contrasts a solid partition with an open doorway; flicker test bounds brightness and frame-to-frame change. Renderer tests check scene/mask reuse, composite restoration and gradient drawing. Existing rendering tests/entry DOM fixtures support gradients. Native Canvas renders of actual Human and Dwarf game scenes were visually inspected; this does not claim browser automation. Full results in work-status.md. User playtest: judge warmth/darkness/flicker and navigation readability before adding gameplay lighting rules.
+
+
+V55: locked treasure threshold cells also stop light rays. Opening the room advances the world's sight version and recomputes cached polygons from the same torch anchors; torch mounts do not move. The mask is still reused. Guard sight/clearPath use the same door-blocking predicate; furniture still does not block vision.

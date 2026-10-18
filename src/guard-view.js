@@ -1,6 +1,6 @@
 import { smokeBlocksSight } from './smoke.js';
 import { CONFIG, COMBAT } from './config.js';
-import { isFloor } from './world.js';
+import { isSightOpen } from './world.js';
 
 export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
   if (!guard.captiveId && !['patrol', 'suspicious', 'return', 'carry'].includes(guard.state)) return;
@@ -12,7 +12,7 @@ export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
     let x = guard.x, y = guard.y;
     for (let step = 0.15; step <= combat.sight; step += 0.15) {
       const nx = guard.x + Math.cos(angle) * step, ny = guard.y + Math.sin(angle) * step;
-      if (!isFloor(world, Math.floor(nx), Math.floor(ny)) || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
+      if (!isSightOpen(world, Math.floor(nx), Math.floor(ny)) || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
       x = nx; y = ny;
     }
     ctx.lineTo(x * t + ox, y * t + oy);

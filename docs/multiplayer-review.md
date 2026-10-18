@@ -319,3 +319,8 @@ V41 implementation: run tuning belongs to the selected lair, modified only throu
 
 
 V42: dungeon architecture remains a map-table team destination, independent of difficulty. Each lair saves three architecture presets via private admin; settings changed mid-run affect only future departures. Team snapshots contain the immutable launched layout config/seed so joining/reconnecting browsers regenerate identical tiles. Group resource/readiness/recovery rules are unchanged.
+
+
+## Locked treasure room — V55 implemented
+
+One searched key belongs to the carrying goblin's normal sack and can be shared by dropping it. All teammates see the same closed/open entrances. E beside an entrance uses a matching packed key once; simultaneous or repeated unlocks cannot consume another key or create rewards. Opening is shared for the run, never a vote. Downing/expired disconnect spills the key with ordinary items for teammate recovery. Unused keys cannot be banked/carried between runs; leaving without opening remains allowed. Key container contents/source remain hidden from player snapshots. Guard posts, cages and reinforcement entrances are outside the sealed room, and other escape routes remain connected.

@@ -46,7 +46,7 @@ export function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', pr
 // Local preparation transfers conserve stock immediately; launch moves the
 // already-paid bag without withdrawing stock a second time.
 export function takeStashItem(camp, loot, type, debug = false) {
-  if (!Object.hasOwn(LOOT_TYPES, type) || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
+  if (!Object.hasOwn(LOOT_TYPES, type) || LOOT_TYPES[type].runOnly || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
   const item = { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) };
   const target = loot.bag.find(p => matchingStack(p, item) && itemCount(p) < LOOT_TYPES[type].stackLimit);
   if (!packItem(loot.bag, item)) return null;
@@ -58,7 +58,7 @@ export function returnStashItem(camp, loot, id) {
   const index = loot.bag.findIndex(item => item.id === id);
   if (index < 0) return false;
   const item = loot.bag[index];
-  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] > Number.MAX_SAFE_INTEGER - itemCount(item)) return false;
+  if (!Object.hasOwn(LOOT_TYPES, item.type) || LOOT_TYPES[item.type].runOnly || !item.debugSupply && camp.counts[item.type] > Number.MAX_SAFE_INTEGER - itemCount(item)) return false;
   loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type] += itemCount(item);
   camp.preparedBag = loot.bag; syncStashSlots(camp); return true;
 }
@@ -84,7 +84,7 @@ export function takeSupplies(camp, quantities, seed, debug = false) {
 export function bankEscape(camp, result, loot) {
   if (result.outcome !== 'escaped' || result.banked) return false;
   let gold = 0;
-  for (const item of loot.bag) if (!item.debugSupply) {
+  for (const item of loot.bag) if (!item.debugSupply && !LOOT_TYPES[item.type].runOnly) {
     if (LOOT_TYPES[item.type].sellValue) gold += itemSaleValue(item);
     else camp.counts[item.type]++;
   }

@@ -4,7 +4,7 @@ import { findPath } from './navigation.js';
 import { clearPath } from './loot.js';
 
 export function createCages(world, obstacles = []) {
-  const rooms = world.rooms.map((room, index) => ({ ...room, index })).filter(r => r.index !== 0);
+  const rooms = world.rooms.map((room, index) => ({ ...room, index })).filter(r => r.index !== 0 && r.index !== world.treasure?.roomIndex);
   const selected = Array.from({ length: Math.min(RESCUE.cages, rooms.length) }, (_, i) => rooms[Math.floor((i + .5) * rooms.length / Math.min(RESCUE.cages, rooms.length))]);
   const cages = [];
   for (const room of [...selected, ...rooms.filter(r => !selected.includes(r))]) {

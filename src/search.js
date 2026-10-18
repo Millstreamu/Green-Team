@@ -1,3 +1,4 @@
+import { canApproachTreasure } from './treasure.js';
 import { placeProp } from './prop-placement.js';
 import { canHide } from './hiding.js';
 import { findPath } from './navigation.js';
@@ -57,11 +58,12 @@ export function canSearch(world, player, object) {
 export function selectInteraction(world, player, ground, objects, pointer = null, hidingSpots = []) {
   if (player.hiding) return null;
   const candidates = [
+    ...(canApproachTreasure(world, player) ? [{ kind: 'unlock', item: world.treasure }] : []),
     ...ground.filter(item => reachable(world, player, item)).map(item => ({ kind: 'loot', item })),
     ...objects.filter(item => canSearch(world, player, item)).map(item => ({ kind: 'search', item })),
     ...hidingSpots.filter(item => canHide(world, player, item)).map(item => ({ kind: 'hide', item }))
   ];
-  const distance = (candidate, point) => Math.hypot(candidate.item.x - point.x, candidate.item.y - point.y);
+  const distance = (candidate, point) => candidate.kind === 'unlock' ? Math.min(...candidate.item.cells.map(c => Math.hypot(c.x + .5 - point.x, c.y + .5 - point.y))) : Math.hypot(candidate.item.x - point.x, candidate.item.y - point.y);
   if (pointer) {
     const hovered = candidates.filter(candidate => distance(candidate, pointer) <= 0.8);
     if (hovered.length) return hovered.sort((a, b) => distance(a, pointer) - distance(b, pointer))[0];
@@ -87,7 +89,7 @@ function spillContents(world, object, loot) {
     .filter(point => canStand(world, point.x, point.y, 0.15) && clearPath(world, origin, point));
   object.contents.forEach((type, i) => {
     const point = points.find(p => loot.ground.every(item => Math.hypot(item.x - p.x, item.y - p.y) >= 0.3)) ?? points[0] ?? origin;
-    loot.ground.push({ id: `${object.id}-loot-${i}`, type, rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
+    loot.ground.push({ id: `${object.id}-loot-${i}`, type, ...(type === 'treasureKey' ? { keyId: world.treasure.keyId } : {}), rotation: 0, x: point.x, y: point.y, spillAge: 0, ...(LOOT_TYPES[type].sellValue ? { saleMultiplier: world.job?.goldMultiplier ?? 1 } : {}) });
   });
 }
 
