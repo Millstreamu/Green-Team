@@ -572,3 +572,8 @@ User requested solid hiding spots and established grid alignment for all future 
 ## V50 — drawing order and smoother wall corners
 
 User accepted drawing furniture/actors in grounded front-to-back order and requested less grabbing at wall corners. Shared renderer sorts searchable/hiding bodies by footprint front edge and guards/goblins/loot by ground position; hopping leaves order unchanged. Captives draw between cage back and bars; actors standing in front draw over bars. Interaction/status overlays stay above world bodies. Terrain/wall/torch placement is retained; this pass does not change wall art/geometry. Player walking and knockback use circular contact resolution that preserves tangential motion around convex corners, with bounded displacement, short substeps and final canStand validation. Same helper runs on the server. Collider size, speed, controls and solid footprints remain. Movement feel needs user playtest; no general auto-navigation or doorway teleport added.
+
+
+## V51 — red guard vision
+
+User requested reddish guard sight cones to distinguish them from yellow torches. Shared guard-view uses muted red for regular cones and stronger red for suspicious cones. Pure display change; shape, visibility states, wall/smoke clipping and guard detection stay the same.

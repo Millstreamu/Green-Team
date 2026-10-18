@@ -623,3 +623,10 @@ world.js replaces per-axis rejection with small-step circle/tile contact project
 Verified256 full tests pass. New tests cover all4corner directions, walls versus props, brushing offsets, flat walls, concave stops, one-cell doorway entry,30/60/120Hz movement and10,000random mixed contacts without illegal penetration or extra travel. Real renderer test covers goblins/guards/props/teammates, hop-independent ordering, UI above bodies and cage captive/front-actor order. Existing whole-game UI flows, real sockets, rescue/capture/reconnect, solid placement, saves/admin/export and lighting/art pass. Standalone built and all source/bundle syntax checked. Actual Human/Dwarf scenes rendered through Native Canvas; Human and paired behind/front cupboard views visually inspected. Browser feel still needs user playtest; no browser automation claim.
 
 Deliverables green-team-smoother-movement-v50.html and green-team-smoother-movement-v50.zip (green-team-v50). Keep previous whole data folder; no dependency/save migration. Source on prototype/dungeon-exploration; PR2 remains unmerged. Next user tests brushing corners/doorways while chased and front/behind readability.
+
+
+## V51 — red guard vision cones
+
+User requested reddish cones to separate guard sight from yellow torches. Updated the shared guard-view fill colours to muted red (#ed707b24) and stronger suspicious red (#ef596640). No gameplay/shape/occlusion/state rule changed. Rebuilt standalone, updated release labels and docs.24 relevant guard/lighting/actual-renderer tests pass; source and bundle syntax valid. Actual Human scene rendered and visually inspected with Native Canvas: red cones distinct from warm yellow torch pools. No new test added for this reversible colour edit; no browser automation claim.
+
+Deliverables green-team-red-vision-v51.html and green-team-red-vision-v51.zip (green-team-v51); previous whole data folder retained for server updates, no migration/dependency change. Source on prototype/dungeon-exploration, PR2 unmerged. Next user judges tint/readability.

@@ -17,7 +17,7 @@ export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
     }
     ctx.lineTo(x * t + ox, y * t + oy);
   }
-  ctx.closePath(); ctx.fillStyle = guard.state === 'suspicious' ? '#efc65e25' : '#e1d9a010'; ctx.fill();
+  ctx.closePath(); ctx.fillStyle = guard.state === 'suspicious' ? '#ef596640' : '#ed707b24'; ctx.fill();
 }
 
 export function drawGuard(ctx, guard, ox, oy, pass = 'all') {
