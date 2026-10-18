@@ -190,6 +190,7 @@ test('real socket clients start at menu, create/join by code, isolate lairs and 
   assert.equal(layoutEdit.status, 200); assert.equal((await layoutEdit.json()).state.generator.sanctuary.rooms, 16);
   assert.equal(controller.summary(lair.id).generator.sanctuary.rooms, 18);
   assert.equal((await fetch(origin + '/src/generator-view.js')).status, 200);
+  assert.equal((await fetch(origin + '/src/dungeon-checks.js')).status, 200);
 
 
   const edited = await fetch(origin + '/admin/api', { method: 'POST', headers, body: JSON.stringify({ type: 'set-stock', lairId: a.state.lair.id, item: 'gold', amount: 77 }) });

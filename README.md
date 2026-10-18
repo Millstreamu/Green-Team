@@ -4,6 +4,14 @@ A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loo
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Named persistent lairs are implemented; public hosting, account login and player limits remain future work.
 
+## Dungeon route checks · V52
+
+The existing private admin dungeon preview now checks connected floor, protected hallway/doorway lanes, prop alignment/overlap/approaches, guard patrols and cage/reinforcement routes using real navigation and collision. Problems have red outlines and descriptions; missing cage/hide/door locations are orange warnings. Check30 layouts runs the current architecture/difficulty and current form settings, yielding between maps. Listed problem layouts can be reopened by number. Edits cancel stale batches. Checking never saves settings or alters a live run.
+
+For source checks, `npm run check:dungeons -- 100` checks100 seeds per architecture/difficulty (600 maps). This tests walking routes, not every possible chase or subjective movement feel.
+
+Update with green-team-dungeon-checks-v52.zip, keep your whole old data folder, start the server and open its Private server admin link. Single-player gameplay is unchanged by these builder-only checks.
+
 ## Red guard vision · V51
 
 Guard vision cones now use a muted red tint, with a stronger red when suspicious, to distinguish them from yellow torchlight. Shared drawing applies to solo and online.
@@ -97,7 +105,7 @@ The Goblin selector on the home screen and above the game remembers local goblin
 
 Keep the **data folder** when updating to another version: stop the server, copy that folder into the new game folder, then start there. For backup, stop the server and copy data somewhere safe. Runtime saves are ignored by Git and are never included in downloads. A broken/unsupported save stops startup instead of silently replacing the home. A disk write failure pauses the live server and tells players. See [server saving](docs/server-saving.md) for recovery, optional save path and checks. Opening play.html remains the separate standalone solo game.
 
-For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v51 to distinguish it from older copies.
+For an update on Mac: stop the previous server with Control+C, unzip the new download, type `cd ` in Terminal and drag the new folder onto that line, press Return, then run npm ci and npm start. Node does not need reinstalling. Refresh both game tabs. The new archive folder is named green-team-v52 to distinguish it from older copies.
 
 `server/lair-session.js` owns home/run membership and routing; `server/dungeon-session.js` owns the active world, search reservations, loot transactions and outcome. `server/danger.js` reuses guard/pressure/hiding/snare/smoke rules; `server/team-guards.js` selects one focus per guard without advancing timers once per player. It retains the brief target trail without reading unseen teammates or ghosts for new clues. The browser regenerates the deterministic layout from the server-selected seed; all movement/collision, search duration and item ownership are still checked by the server. Snapshots conceal container contents and other players’ bags/profiles. Each active scene shares player poses and searchable/ground updates. Public deployment still needs HTTPS/WSS, authenticated group membership, transport heartbeat handling and production account recovery and group membership management. SQLite home persistence is implemented; one server process owns each save file. Server/rescue.js owns rescue claims/hold completion, captives and guard transport; src/rescue.js shares cage layout/reach targeting, and rescue-view.js reuses pixel progress bars for the temporary cage/body art.
 

@@ -577,3 +577,8 @@ User accepted drawing furniture/actors in grounded front-to-back order and reque
 ## V51 — red guard vision
 
 User requested reddish guard sight cones to distinguish them from yellow torches. Shared guard-view uses muted red for regular cones and stronger red for suspicious cones. Pure display change; shape, visibility states, wall/smoke clipping and guard detection stay the same.
+
+
+## V52 — inspect generated dungeon routes
+
+User accepted generator verification while making art: batch-generate maps, detect blocked/unreachable areas and guard/cage/reinforcement routing problems, show issues in existing builder. Shared read-only checker operates on actual preview generation/navigation/collision, and actual reinforcement construction. Preview outlines errors red and warnings orange and lists descriptions/tile coordinates. Check30 layouts snapshots current form settings/architecture/difficulty, yields between maps and lists affected seeds to inspect; edits/lair switches/locked state cancel stale work. It does not save draft settings or touch active runs. Missing cages/hides/doors are warnings, not claims of broken floor; normal lower requested room/loop counts remain preview information. Guard route/corner simulation is a deterministic navigation check, not a guarantee of every chase or movement feel.

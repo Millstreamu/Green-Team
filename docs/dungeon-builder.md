@@ -35,3 +35,12 @@ V48: searchables are solid movement obstacles. Hallway footprints (including wid
 
 
 V49: hiding barrels also register solid footprints, fit one source tile and use the same corridor/connectivity checks. All future static dungeon scenery must use shared whole-tile footprints/grid placement; use multiple tiles for larger props. Wall-mounted/flat art may explicitly remain non-solid.
+
+
+## Route checks — V52
+
+Every private generator preview now includes read-only checks via dungeon-checks.js. It floods actual walkable tile centres from the entrance, checks map boundary/room door access and static prop grid/overlap/reserved corridors/solid masks/back-wall cupboards. It verifies interaction approaches, guard patrol legs and roaming circuit legs, cage routes and jail/rescue points. It builds actual reinforcements for each door and tests their patrol legs. Paths run through existing findPath/followPath with the shared collider radius. Mutated data tests prove the checker detects deliberately blocked targets/routes and placement violations.
+
+Red outlines mark located errors; orange marks located warnings. Unlocated warnings (e.g. no cage could fit) appear in the list. Lists cap at50rows; all located issues remain marked. Check30 layouts checks consecutive unsigned seed numbers from the current example using the current architecture/difficulty/form draft. It yields between seeds, shows progress and lists affected seeds as buttons. Viewing a batch result keeps the list; editing settings/seed/architecture/lair cancels stale batches and clears old results. Switching grid visibility only redraws. Checking does not write settings, saves, stock or active runs. Requested counts being lower than requested is not automatically an error.
+
+Run `npm run check:dungeons -- 100` for all three current code presets on Normal/Hard using100 dispersed deterministic seeds per combination. It prints issue records with architecture/difficulty/seed and exits unsuccessfully if any layout has errors. Warnings remain visible without failing the command. Range1–1000 seeds per combination. This command and browser share the same checker. No extra dependencies. Walking/corner checks do not replace movement-feel/chase playtesting or art inspection.
