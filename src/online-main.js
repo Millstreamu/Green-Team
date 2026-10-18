@@ -1,3 +1,4 @@
+import { setupGameScreen } from './game-screen.js';
 import { createHomeView } from './home-view.js';
 import { createOnlineIdentity } from './online-identity.js';
 import { createCamp, createLairWorld, lairTarget } from './lair.js';
@@ -44,6 +45,7 @@ const camp = createCamp(), profile = createProfile(), loot = createLoot();
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const sack = createSackView($('#sack-grid'), $('#held-ghost'));
 const results = createResultsView($('#run-results'));
+setupGameScreen($('#game'));
 const render = await createRenderer($('#game'), $('#map'));
 const modal = () => state?.screen === 'home' || $('#lair-panel').open || $('#map-planning').open || $('#run-results').open;
 const input = createInput(window, () => modal() || !world.lair && sack.isNavigating());
@@ -167,7 +169,7 @@ function connect() {
   socket.addEventListener('error', () => {});
 }
 window.addEventListener('keydown', event => {
-  if (!connected || !state || modal() || event.target.closest?.('input,textarea,select,button')) return;
+  if (!connected || !state || modal() || event.target.closest?.('input,textarea,select,button,summary')) return;
   const player = self(); if (!player || player.waiting) return;
   if (world.lair) {
     if (event.code === 'Tab') { event.preventDefault(); if (!state.cart.aboard.includes(player.id)) { clear(); lair.open('stash'); } return; }

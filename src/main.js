@@ -1,3 +1,4 @@
+import { setupGameScreen } from './game-screen.js';
 import { loadProfile, saveProfile, awardPersonalXp, personalSearchRate } from './profile.js';
 import { createPressure, updatePressure } from './pressure.js';
 import { pressureLabel } from './pressure-view.js';
@@ -21,6 +22,7 @@ import { createGuards, updateGuard, createVitality, tickVitality } from './guard
 import { createSearchables, createSearchSession, selectInteraction, beginSearch, cancelSearch, updateSearch, SEARCHABLE_TYPES } from './search.js';
 
 const canvas = document.querySelector('#game');
+setupGameScreen(canvas);
 const sackCanvas = document.querySelector('#sack-grid');
 const input = createInput(window, () => sack.isNavigating());
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
@@ -184,7 +186,7 @@ window.addEventListener('keyup', e => {
   if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
 });
 window.addEventListener('keydown', e => {
-  if (!world || e.target.closest?.('input,textarea,select,button')) return;
+  if (!world || e.target.closest?.('input,textarea,select,button,summary')) return;
   if (run.phase === 'lair') {
     if (cart.aboard.has(player.id)) { if (e.code === 'Tab' || e.code === 'Space') e.preventDefault(); if (e.code === 'KeyE' && !e.repeat) { e.preventDefault(); boardCart(world.stations.find(s => s.kind === 'tunnel')); } return; }
     if (e.code === 'Tab') { e.preventDefault(); input.clear(); player.moving = false; run.phase = 'lair-panel'; lairView.open('stash'); }
