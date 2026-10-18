@@ -1,3 +1,4 @@
+import { itemLabel } from './loot.js';
 import { LOOT_TYPES, SACK, bagItemAt, itemCells } from './loot.js';
 import { STASH, syncStashSlots, moveStashStack } from './lair.js';
 import { drawInventoryGrid } from './inventory-grid.js';
@@ -51,7 +52,7 @@ export function createLairSackGrid(canvas, getLoot, onReturn) {
     drawInventoryGrid(ctx, SACK.width, SACK.height, cell, loot.bag, selected);
     const item = bagItemAt(loot.bag, selected.x, selected.y);
     document.querySelector('#lair-sack-used').textContent = `${loot.bag.reduce((n, item) => n + itemCells(item).length, 0)} / 9`;
-    document.querySelector('#lair-sack-selection').textContent = item ? `${LOOT_TYPES[item.type].name}${item.debugSupply ? ' (debug)' : ''} · E / click to return to stash` : 'Empty square · WASD select · E returns an item';
+    document.querySelector('#lair-sack-selection').textContent = item ? `${itemLabel(item)}${item.debugSupply ? ' (debug)' : ''} · E / click to return to stash` : 'Empty square · WASD select · E returns an item';
   };
   const activate = () => { const item = bagItemAt(getLoot().bag, selected.x, selected.y); if (item) onReturn(item); paint(); };
   canvas.addEventListener('keydown', event => {

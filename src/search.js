@@ -6,9 +6,9 @@ import { canStand, setSolidObjects } from './world.js';
 import { clearPath, reachable, LOOT_TYPES } from './loot.js';
 
 export const SEARCHABLE_TYPES = Object.freeze({
-  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['coin', 'horn'], rarePool: ['ruby', 'candlestick'] },
-  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'coin'], rarePool: ['candlestick', 'horn'] },
-  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['scroll', 'coin'], rarePool: ['sword', 'horn'] }
+  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['coin', 'silverCoin', 'copperCoin', 'horn'], rarePool: ['ruby', 'candlestick'] },
+  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'silverCoin', 'copperCoin', 'coin'], rarePool: ['candlestick', 'horn'] },
+  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['scroll', 'silverCoin', 'copperCoin', 'coin'], rarePool: ['sword', 'horn'] }
 });
 
 export function createSearchables(world) {

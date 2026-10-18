@@ -1,5 +1,6 @@
+import { itemLabel } from './loot.js';
 import { drawInventoryGrid } from './inventory-grid.js';
-import { bagItemAt, fits, itemCells, LOOT_TYPES, SACK } from './loot.js';
+import { bagItemAt, canPlaceItem, itemCells, LOOT_TYPES, SACK } from './loot.js';
 import { drawItem } from './item-view.js';
 import { createSackPanel, toggleSackPanel, revealSackPanel, stepSackPanel } from './sack-panel.js';
 
@@ -24,7 +25,7 @@ export function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) 
     if (chosen && !state.held) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(chosen.x * cell + 3, chosen.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
     if (state.held && hovered) {
       ctx.save(); ctx.globalAlpha = 0.7;
-      drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, fits(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
+      drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, canPlaceItem(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
       ctx.restore();
     }
     ghost.hidden = !state.held || !!hovered || !pointer.active;
@@ -35,7 +36,7 @@ export function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) 
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : equipmentEnabled ? 'Click loot to lift · select gear, E equip' : 'Click items to move · E packs nearby loot';
+    const heldText = state.held ? `Holding ${itemLabel(state.held)} · R rotate · E drop` : equipmentEnabled ? 'Click loot to lift · select gear, E equip' : 'Click items to move · E packs nearby loot';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {

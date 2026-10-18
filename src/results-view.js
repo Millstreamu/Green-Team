@@ -1,3 +1,4 @@
+import { itemCount } from './loot.js';
 import { renderItemList } from './item-list.js';
 
 export function createResultsView(dialog) {
@@ -13,11 +14,12 @@ export function createResultsView(dialog) {
       document.querySelector('#results-title').textContent = result.aborted ? 'The admin ended this run.' : result.leftBehind ? 'Your team escaped. You were left behind.' : down ? 'You went down.' : 'You made it out.';
       document.querySelector('#results-description').textContent = result.aborted ? 'Carried loot and supplies were lost. No gold or XP was awarded.' : result.leftBehind ? 'Your sack spilled when you went down. Anything teammates carried out is safe in the lair.' : down ? 'Nobody was left standing to recover the team. This run is over.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;
       list.setAttribute('aria-label', down ? 'Items lost in the dungeon' : 'Loot brought back');
+      const lostCount = (result.lostItems ?? []).reduce((n, item) => n + itemCount(item), 0);
       const shown = down ? result.lostItems : result.items;
       renderItemList(list, shown);
       document.querySelector('#empty-haul').hidden = shown.length > 0;
       document.querySelector('#empty-haul').textContent = down ? 'You were carrying no loot. You can return on the next run.' : 'You slipped out empty-handed. There is more to steal next time.';
-      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots}${result.team ? ' team sack squares' : ' / 9 sack squares'} · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      document.querySelector('#haul-total').textContent = down ? `${lostCount} ${lostCount === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots}${result.team ? ' team sack squares' : ' / 9 sack squares'} · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
       dialog.showModal();
       document.querySelector('#next-run').focus();
     },

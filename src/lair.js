@@ -1,7 +1,7 @@
 import { selectJob } from './jobs.js';
 import { PROGRESSION } from './config.js';
 import { knowsRecipe } from './profile.js';
-import { LOOT_TYPES, itemSaleValue, findSpace, fits } from './loot.js';
+import { LOOT_TYPES, itemSaleValue, fits, itemCount, validItemCount, packItem, matchingStack } from './loot.js';
 import { buildTrapLoadout } from './loadout.js';
 import { clearPath } from './loot.js';
 
@@ -47,18 +47,19 @@ export function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', pr
 // already-paid bag without withdrawing stock a second time.
 export function takeStashItem(camp, loot, type, debug = false) {
   if (!Object.hasOwn(LOOT_TYPES, type) || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
-  const item = findSpace(loot.bag, { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) });
-  if (!item) return null;
+  const item = { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) };
+  const target = loot.bag.find(p => matchingStack(p, item) && itemCount(p) < LOOT_TYPES[type].stackLimit);
+  if (!packItem(loot.bag, item)) return null;
   camp.nextItemId++; if (!debug) camp.counts[type]--;
-  loot.bag.push(item); camp.preparedBag = loot.bag; syncStashSlots(camp); return item;
+  camp.preparedBag = loot.bag; syncStashSlots(camp); return target ?? loot.bag.find(p => p.id === item.id);
 }
 export function returnStashItem(camp, loot, id) {
   if (loot.held) return false;
   const index = loot.bag.findIndex(item => item.id === id);
   if (index < 0) return false;
   const item = loot.bag[index];
-  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] >= Number.MAX_SAFE_INTEGER) return false;
-  loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type]++;
+  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] > Number.MAX_SAFE_INTEGER - itemCount(item)) return false;
+  loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type] += itemCount(item);
   camp.preparedBag = loot.bag; syncStashSlots(camp); return true;
 }
 export function craftForSack(camp, loot, type, profile) {
@@ -113,7 +114,7 @@ export function loadCamp(storage) {
       const bag = [], ids = new Set();
       for (const item of saved.preparedBag) {
         if (!item || typeof item.id !== 'string' || !item.id || ids.has(item.id) || !Object.hasOwn(LOOT_TYPES, item.type)
-          || !Number.isInteger(item.rotation) || item.rotation < 0 || item.rotation > 3 || !Number.isInteger(item.x) || !Number.isInteger(item.y) || !fits(bag, item, item.x, item.y)) return createCamp();
+          || !validItemCount(item) || !Number.isInteger(item.rotation) || item.rotation < 0 || item.rotation > 3 || !Number.isInteger(item.x) || !Number.isInteger(item.y) || !fits(bag, item, item.x, item.y)) return createCamp();
         bag.push({ ...item }); ids.add(item.id);
       }
       camp.preparedBag = bag; camp.nextItemId = saved.nextItemId;

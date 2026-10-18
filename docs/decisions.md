@@ -587,3 +587,10 @@ User accepted generator verification while making art: batch-generate maps, dete
 ## V53 — one viewport for the game
 
 User reported the side map/long page causing the sack to disappear below the viewport when maximising, and requested one game screen. Main gameplay frame now owns viewport height with map, reused sack/vitals/status and compact toolbar inside it. The long controls/tips sidebar becomes native Help with independent scrolling. Sack remains anchored lower-right and keeps the established slide/Tab controls. Map remains visible, moving lower-left in short windows to avoid the sack. Header/lair controls remain accessible inside the frame; home/forms/dialogs keep separate scrolling. Canvas viewport resize and coordinate conversion remain shared. Help is a live overlay, not a multiplayer pause; Escape closes it and returns keyboard focus.
+
+
+## V54 — coin denominations and stack limit
+
+User requested findable gold/silver/copper coins stacking up to9. Each metal uses a separate one-tile sack stack. E pickup tops up compatible partial stacks first, then a new slot; partial success leaves excess on floor. Manual placement combines same-metal compatible stacks with excess in hand. No new split-stack controls; existing drop shares whole held stack. Other sack items remain individual. Matching also preserves difficulty sale multiplier and debug status. Search rarity/empty chances and item-count rolls remain the existing settings; normal valuable pools now include all denominations.
+
+Provisional implementation prices (not user-chosen balance): existing gold coin keeps3gold, silver2, copper1. All auto-sell to central gold under the existing escape rule; difficulty rounds per unit before multiplication, and XP uses full sale totals. Legacy coin type is retained and missing count means1; new denomination stock defaults0 in old saves. Carried counts require whole numbers1–9 for coins,1 for other items. Shared item drawing owns badges across sack/stash/ghost.

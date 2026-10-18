@@ -143,7 +143,10 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   session.action(player, sent.findLast(m => m.type === 'lift')); sync();
   key('KeyE'); assert.equal(sent.at(-1).type, 'drop'); session.action(player, sent.at(-1)); sync();
   const dropped = session.snapshot(player).dungeon.ground.find(item => item.id === id);
-  player.x = dropped.x; player.y = dropped.y; sync();
+  // Stay at the legal approach: a dropped item can land inside tunnel reach,
+  // where E correctly means extract. Aim at the item to avoid other search loot.
+  Object.assign(player, chest.approach); sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450 + (dropped.x - player.x) * 48, clientY: 300 + (dropped.y - player.y) * 48 });
   key('Tab'); frames.shift()(80);
   key('KeyE'); assert.equal(sent.at(-1).type, 'pickup'); assert.equal(sent.at(-1).id, id);
   session.action(player, sent.at(-1)); sync();

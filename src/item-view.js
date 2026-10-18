@@ -15,4 +15,11 @@ export function drawItem(ctx, item, x, y, size, outline = null) {
     ctx.fillStyle = '#26302b'; ctx.font = `bold ${Math.floor(size * 0.46)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(type.mark, x + dx * size + size / 2, y + dy * size + size / 2);
   }
+  if (item.count !== undefined && size >= 18) {
+    const font = Math.max(7, Math.floor(size * .2)), count = item.count >= 10000 ? `${Math.floor(item.count / 1000)}k` : String(item.count);
+    ctx.font = `bold ${font}px monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillStyle = '#10191b'; ctx.fillRect(x + 3, y + size - font - 6, size - 6, font + 3);
+    ctx.fillStyle = '#f1e6bc'; ctx.fillText(count, x + size - 5, y + size - 4);
+  }
+
 }

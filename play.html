@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Green Team · V53</title>
+<title>Green Team · V54</title>
 <style>
 [hidden]{display:none!important}
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1450px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:5px 0}p{color:#a9b9b1;font-size:14px;line-height:1.6;margin:6px 0}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 20px;color:#1b2c20;cursor:pointer}button:hover{background:#d9f5ad}button:focus-visible,canvas:focus-visible{outline:2px solid #d1f69b;outline-offset:4px}.layout{min-width:0;min-height:0}#game{display:block;background:#101517;image-rendering:pixelated;border:1px solid #3c4947;border-radius:5px;touch-action:none}h2{font-size:12px;letter-spacing:2px;color:#b9d783;margin:0 0 15px}dl{font-size:13px}dt{color:#9aaba2;margin-top:18px}dd{margin:5px 0;font-variant-numeric:tabular-nums}kbd{display:inline-block;padding:3px 7px;border:1px solid #53605a;border-radius:3px;color:#e0e9d7;font-size:12px}.note{font-size:12px;margin-top:24px}.footer{display:flex;justify-content:space-between;gap:14px;padding-top:12px;color:#96aa9a;font-size:12px}#status{font-size:12px}@media(max-width:760px){main{padding:14px}header{align-items:flex-start}h1{font-size:22px}button{padding:10px}.footer{flex-direction:column}}
@@ -60,7 +60,7 @@
 <section><h2>Create a lair</h2><form id="create-lair-form"><label>New lair name<input id="create-lair-name" maxlength="32" required autocomplete="off" placeholder="Moss Hollow"></label><button id="create-lair">Create lair</button></form><p>You’ll get a join code to share with friends.</p></section></div></div><p id="home-message" role="status" aria-live="polite">Connecting to the server…</p>
 </main>
 <main id="game-shell">
-<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><header class="game-toolbar"><div><h1>Green Team · V53</h1></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><details id="game-help" class="game-help"><summary>Help</summary><div class="help-panel"><h2>Controls &amp; tips</h2><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></div></details><button id="regenerate">Return to lair</button></header><div class="hud-top"><div id="lair-bar" hidden><span id="current-lair-name"></span> · Join code <code id="current-lair-code"></code><button id="leave-lair">Home screen</button></div><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
+<div class="layout"><div class="stage"><canvas id="game" tabindex="0" aria-label="Dungeon exploration. WASD to move, E to pack highlighted loot. Click loot to lift it."></canvas><header class="game-toolbar"><div><h1>Green Team · V54</h1></div><label id="online-identity" hidden>Goblin <select id="goblin-choice" aria-label="Choose your saved goblin"></select></label><details id="game-help" class="game-help"><summary>Help</summary><div class="help-panel"><h2>Controls &amp; tips</h2><div class="controls"><kbd>Tab</kbd> open / close sack<br>WASD: select sack square<br><kbd>E</kbd> equip selected gear<br>WASD: aim floor preview<br>Hold <kbd>E</kbd> 1s to place<br><kbd>Esc</kbd> cancel placement<br><kbd>Space</kbd> use equipped smoke<br>Hold <kbd>E</kbd> search object<br>Hold <kbd>E</kbd> 0.5s to hide<br><kbd>E</kbd> exit hiding<br><kbd>E</kbd> pack spilled loot<br>Click loot to lift<br><kbd>R</kbd> rotate held item<br>Click sack to place<br><kbd>E</kbd> / click floor to drop<br><kbd>E</kbd> at tunnel to escape</div><p class="note">Lair: E at stash, workbench, campfire, map table or minecart.<br>Searches can come up empty.<br>Nearby containers favour materials.<br>Longer routes can lead to rarer valuables.<br>Occasional scrap and cloth help make traps.<br>2 scrap + 1 cloth makes a snare.<br>Valuables sell for shared gold.<br>Recovered valuables also earn personal XP.<br>Test rate: 1 XP per gold recovered.<br>Snares are known from the start.<br>Buy smoke recipe for 50 personal XP.<br>Buy Quick fingers for 30 XP at the campfire.<br>Crafting uses shared materials.<br>Gold and supplies stack in the lair.<br>Pack at the stash before each run.<br>Choose the route at the map table.<br>E boards the cart; E again hops out.<br>Departure starts after 3 seconds.<br>Step clear of a placed snare to arm it.<br>Goblins waste armed snares harmlessly.<br>Guards are held for 3 seconds.<br>The sack slides away as you move.<br>Tab or its edge tab opens it.<br>Highlighted loot and pickups reveal it.<br>Hold E to search furniture.<br>Gold map marker = your tunnel.<br>Blue lookouts turn between two directions.<br>Brown patrols pause inside one room.<br>A purple roamer repeats a short route through nearby rooms.<br>Many rooms have no assigned guard.<br>Every 3 guard alerts bring a reinforcement.<br>Guard doors cannot be used by goblins.<br>Long chases build heat; hiding lets it cool.<br>Chases can follow you into quiet areas.<br>Guards follow a short invisible trail after losing sight.<br>Quick directional swings push you back.<br>3 hits put you down. Solo: the run ends and loot is lost.</p></div></details><button id="regenerate">Return to lair</button></header><div class="hud-top"><div id="lair-bar" hidden><span id="current-lair-name"></span> · Join code <code id="current-lair-code"></code><button id="leave-lair">Home screen</button></div><div id="target-label"></div><div class="vitals"><span id="health-label" role="status"></span><span id="xp-label"></span><span id="destination-label" hidden></span><span id="alert-label" role="status"></span>
         <span id="heat-label" hidden></span></div></div><div id="quick-label" hidden role="status"></div><button id="sack-tab" class="sack-tab" aria-controls="sack-panel" aria-expanded="false" aria-label="Toggle sack inventory. Shortcut Tab.">‹ SACK · Tab</button><section id="sack-panel" class="sack" data-open="false" aria-hidden="true" inert aria-label="Your three by three loot sack"><div class="sack-title"><h2>YOUR SACK</h2><span id="sack-used">0 / 9</span></div><canvas id="sack-grid" tabindex="0" aria-label="3 by 3 sack. Click to lift and place items; R rotates a held item, E drops it."></canvas><p id="held-label">Click an item to lift it</p></section><aside class="map-panel" aria-label="Dungeon layout"><h2>THE LAYOUT</h2><canvas id="map" aria-label="Dungeon map; your goblin is the green marker"></canvas><dl class="map-info"><div><dt>Job</dt><dd id="job-label">At home</dd></div><div><dt>Rooms</dt><dd id="rooms"></dd></div><div><dt>Layout</dt><dd id="seed"></dd></div></dl></aside><div class="footer"><span id="status" role="status"></span><span id="save-status">LOCAL PROTOTYPE · KEYBOARD REQUIRED</span></div></div></div>
 </main><dialog id="lair-panel" class="results lair-dialog" aria-labelledby="lair-title"><div class="eyebrow" id="lair-eyebrow">LAIR PREPARATION</div><h2 id="lair-title">Central lair stash</h2><p id="lair-description"></p><p id="lair-gold"></p><div class="lair-workspace"><section id="stash-section"><div class="sack-title"><h2>SHARED STASH</h2><span id="stash-used"></span></div><canvas id="stash-grid" tabindex="0" aria-label="Six by six shared stash. WASD selects, E or click lifts and places whole stacks. Escape cancels a move."></canvas><p id="stash-selection" role="status"></p><button id="stash-move" class="secondary">Move whole stack · R</button></section><section id="sack-section"><div class="sack-title"><h2>YOUR SACK</h2><span id="lair-sack-used"></span></div><canvas id="lair-sack-grid" tabindex="0" aria-label="Your three by three prepared sack. WASD selects; E or click returns one item to the stash."></canvas><p id="lair-sack-selection" role="status"></p><p class="note">WASD selects · E transfers one · Q switches grids. Tab closes the stash; Esc closes either panel.</p><details><summary>Debug supplies</summary><button id="debug-pack-snare" class="secondary">Add free test snare</button><button id="debug-pack-smoke" class="secondary">Add free test smoke</button><button id="debug-pack-lunch" class="secondary">Add free Packed Lunch</button></details></section><section id="recipes"><h2>YOUR RECIPES</h2><p id="personal-xp"></p><div class="recipe-card"><h3>Snare trap</h3><p>Place it to hold a guard for three seconds.</p><p id="recipe-snare-state"></p><button id="craft-snare">Craft snare</button></div><div class="recipe-card"><h3>Smoke bomb</h3><p>Equip from the sack; Space drops smoke that blocks guard sight for five seconds.</p><p id="recipe-smoke-state"></p><button id="buy-smoke">Buy smoke recipe · 50 XP</button><button id="craft-smoke">Craft smoke bomb</button></div></section><section id="passives" hidden><h2>PERSONAL PASSIVES</h2><p id="campfire-xp"></p><div class="recipe-card"><h3>Quick fingers</h3><p id="passive-search-state">Permanent passive · 10% faster searching.</p><button id="buy-quick-search">Buy Quick fingers · 30 XP</button></div></section></div><p id="craft-status" role="status"></p><button id="close-lair" class="secondary">Back to lair · Esc</button></dialog><dialog id="map-planning" class="results" aria-labelledby="setup-title"><div class="eyebrow">AT THE MAP TABLE</div><h2 id="setup-title">Plan the next run</h2><label class="loadout-row" for="job-choice"><span>Job</span><select id="job-choice"><option value="manor">Human Manor</option><option value="hold">Dwarf Hold</option><option value="sanctuary">Elf Sanctuary</option></select></label><label class="loadout-row" for="difficulty-choice"><span>Difficulty</span><select id="difficulty-choice"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><p id="job-preview" role="status"></p><p>This sets the route. Board the separate minecart when you are ready to leave.</p><p id="planning-sack" role="status"></p><button id="confirm-job">Set destination</button><button id="close-map" class="secondary">Back to lair</button></dialog><dialog id="run-results" class="results" aria-labelledby="results-title"><div class="eyebrow" id="result-eyebrow">BACK THROUGH THE TUNNEL</div><h2 id="results-title">You made it out.</h2><p id="result-job"></p><p id="results-description">Here is what you brought back in your sack.</p><p id="haul-total"></p><p id="result-xp"></p><ul id="haul-list" class="item-list" aria-label="Loot brought back"></ul><p id="empty-haul" hidden>You slipped out empty-handed. There is more to steal next time.</p><button id="next-run">Return to lair →</button></dialog><canvas id="held-ghost" hidden aria-hidden="true"></canvas><script type="module">
 // Content values live together so a future builder can edit them.
@@ -546,7 +546,9 @@ const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
 // One definition supplies footprints and colours everywhere an item is shown.
 const LOOT_TYPES = Object.freeze({
   ruby: { sellValue: 25, name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
-  coin: { sellValue: 3, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: '●' },
+  coin: { sellValue: 3, stackLimit: 9, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: 'G' },
+  silverCoin: { sellValue: 2, stackLimit: 9, name: 'Silver coin', color: '#c2ccd1', cells: [[0, 0]], mark: 'S' },
+  copperCoin: { sellValue: 1, stackLimit: 9, name: 'Copper coin', color: '#bd8059', cells: [[0, 0]], mark: 'C' },
   candlestick: { sellValue: 12, name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
   scroll: { sellValue: 8, name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
   sword: { sellValue: 20, name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
@@ -607,13 +609,38 @@ function createLoot() {
   return { ground: [], bag: [], held: null };
 }
 
+function itemCount(item) { return item.count ?? 1; }
+function itemLabel(item) { return `${LOOT_TYPES[item.type].name}${itemCount(item) > 1 ? ` × ${itemCount(item)}` : ''}`; }
+function validItemCount(item) {
+  return Object.hasOwn(LOOT_TYPES, item.type) && Number.isInteger(itemCount(item)) && itemCount(item) >= 1 && itemCount(item) <= (LOOT_TYPES[item.type]?.stackLimit ?? 1);
+}
+function matchingStack(a, b) {
+  return a.type === b.type && (LOOT_TYPES[a.type]?.stackLimit ?? 1) > 1
+    && (a.saleMultiplier ?? 1) === (b.saleMultiplier ?? 1) && !!a.debugSupply === !!b.debugSupply;
+}
+// Shared packing for floor pickups and lair withdrawals. Returns units packed.
+function packItem(bag, item) {
+  if (!validItemCount(item)) return 0;
+  let remaining = itemCount(item);
+  for (const target of bag) if (matchingStack(target, item)) {
+    const amount = Math.min(remaining, LOOT_TYPES[item.type].stackLimit - itemCount(target));
+    if (amount > 0) { target.count = itemCount(target) + amount; remaining -= amount; }
+    if (!remaining) break;
+  }
+  if (remaining) {
+    const placement = findSpace(bag, { ...item, ...(LOOT_TYPES[item.type].stackLimit ? { count: remaining } : {}) });
+    if (placement) { bag.push(placement); remaining = 0; }
+  }
+  return itemCount(item) - remaining;
+}
 function autoPickup(state, id) {
   if (state.held) return false;
   const index = state.ground.findIndex(item => item.id === id);
   if (index < 0) return false;
-  const placement = findSpace(state.bag, state.ground[index]);
-  if (!placement) return false;
-  state.ground.splice(index, 1); state.bag.push(placement);
+  const item = state.ground[index], moved = packItem(state.bag, item);
+  if (!moved) return false;
+  if (moved === itemCount(item)) state.ground.splice(index, 1);
+  else item.count = itemCount(item) - moved;
   return true;
 }
 
@@ -626,9 +653,20 @@ function liftItem(state, source, id) {
   return true;
 }
 
+function canPlaceItem(bag, item, x, y) {
+  if (!validItemCount(item) || !Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= SACK.width || y >= SACK.height) return false;
+  const target = bagItemAt(bag, x, y);
+  return target ? matchingStack(target, item) && itemCount(target) < LOOT_TYPES[target.type].stackLimit : fits(bag, item, x, y);
+}
 function placeHeld(state, x, y) {
-  if (!state.held || !fits(state.bag, state.held, x, y)) return false;
-  state.bag.push({ ...state.held, x, y }); state.held = null;
+  if (!state.held || !canPlaceItem(state.bag, state.held, x, y)) return false;
+  const target = bagItemAt(state.bag, x, y);
+  if (target) {
+    const amount = Math.min(itemCount(state.held), LOOT_TYPES[target.type].stackLimit - itemCount(target));
+    target.count = itemCount(target) + amount;
+    const remaining = itemCount(state.held) - amount;
+    state.held = remaining ? { ...state.held, count: remaining } : null;
+  } else { state.bag.push({ ...state.held, x, y }); state.held = null; }
   return true;
 }
 
@@ -644,9 +682,11 @@ function dropHeld(state, world, player) {
 }
 
 // Sale price travels with a found item so floor hints, haul rows and gold agree.
-function itemSaleValue(item) {
+function unitSaleValue(item) {
   return Math.round((LOOT_TYPES[item.type].sellValue ?? 0) * (item.saleMultiplier ?? 1));
 }
+function itemSaleValue(item) { return unitSaleValue(item) * itemCount(item); }
+
 
 
 function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null, aimPoint: null }; }
@@ -799,18 +839,19 @@ function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', profile);
 // already-paid bag without withdrawing stock a second time.
 function takeStashItem(camp, loot, type, debug = false) {
   if (!Object.hasOwn(LOOT_TYPES, type) || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
-  const item = findSpace(loot.bag, { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) });
-  if (!item) return null;
+  const item = { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) };
+  const target = loot.bag.find(p => matchingStack(p, item) && itemCount(p) < LOOT_TYPES[type].stackLimit);
+  if (!packItem(loot.bag, item)) return null;
   camp.nextItemId++; if (!debug) camp.counts[type]--;
-  loot.bag.push(item); camp.preparedBag = loot.bag; syncStashSlots(camp); return item;
+  camp.preparedBag = loot.bag; syncStashSlots(camp); return target ?? loot.bag.find(p => p.id === item.id);
 }
 function returnStashItem(camp, loot, id) {
   if (loot.held) return false;
   const index = loot.bag.findIndex(item => item.id === id);
   if (index < 0) return false;
   const item = loot.bag[index];
-  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] >= Number.MAX_SAFE_INTEGER) return false;
-  loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type]++;
+  if (!Object.hasOwn(LOOT_TYPES, item.type) || !item.debugSupply && camp.counts[item.type] > Number.MAX_SAFE_INTEGER - itemCount(item)) return false;
+  loot.bag.splice(index, 1); if (!item.debugSupply) camp.counts[item.type] += itemCount(item);
   camp.preparedBag = loot.bag; syncStashSlots(camp); return true;
 }
 function craftForSack(camp, loot, type, profile) {
@@ -865,7 +906,7 @@ function loadCamp(storage) {
       const bag = [], ids = new Set();
       for (const item of saved.preparedBag) {
         if (!item || typeof item.id !== 'string' || !item.id || ids.has(item.id) || !Object.hasOwn(LOOT_TYPES, item.type)
-          || !Number.isInteger(item.rotation) || item.rotation < 0 || item.rotation > 3 || !Number.isInteger(item.x) || !Number.isInteger(item.y) || !fits(bag, item, item.x, item.y)) return createCamp();
+          || !validItemCount(item) || !Number.isInteger(item.rotation) || item.rotation < 0 || item.rotation > 3 || !Number.isInteger(item.x) || !Number.isInteger(item.y) || !fits(bag, item, item.x, item.y)) return createCamp();
         bag.push({ ...item }); ids.add(item.id);
       }
       camp.preparedBag = bag; camp.nextItemId = saved.nextItemId;
@@ -975,9 +1016,9 @@ function updateHiding(world, player, holdingE, dt, witnesses = [], blocked = fal
 
 
 const SEARCHABLE_TYPES = Object.freeze({
-  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['coin', 'horn'], rarePool: ['ruby', 'candlestick'] },
-  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'coin'], rarePool: ['candlestick', 'horn'] },
-  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['scroll', 'coin'], rarePool: ['sword', 'horn'] }
+  chest: { name: 'Chest', duration: SEARCH.chestTime, color: '#b79055', pool: ['coin', 'silverCoin', 'copperCoin', 'horn'], rarePool: ['ruby', 'candlestick'] },
+  cupboard: { name: 'Cupboard', duration: SEARCH.cupboardTime, color: '#889e86', pool: ['scroll', 'silverCoin', 'copperCoin', 'coin'], rarePool: ['candlestick', 'horn'] },
+  crate: { name: 'Crate', duration: SEARCH.crateTime, color: '#ab815c', pool: ['scroll', 'silverCoin', 'copperCoin', 'coin'], rarePool: ['sword', 'horn'] }
 });
 
 function createSearchables(world) {
@@ -1544,7 +1585,7 @@ function finishRun(run, world, player, loot, now) {
   if (run.phase !== 'exploring' || loot.held || !atTunnel(run, world, player)) return null;
   // Snapshot only what was packed, never loose loot or an extra cursor item.
   const items = loot.bag.filter(item => !LOOT_TYPES[item.type].equipment).map(item => ({ ...item }));
-  run.result = { outcome: 'escaped', job: run.job, items, count: items.length, slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
+  run.result = { outcome: 'escaped', job: run.job, items, count: items.reduce((n, item) => n + itemCount(item), 0), slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
   run.phase = 'results';
   return run.result;
 }
@@ -1575,6 +1616,13 @@ function drawItem(ctx, item, x, y, size, outline = null) {
     ctx.fillStyle = '#26302b'; ctx.font = `bold ${Math.floor(size * 0.46)}px monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(type.mark, x + dx * size + size / 2, y + dy * size + size / 2);
   }
+  if (item.count !== undefined && size >= 18) {
+    const font = Math.max(7, Math.floor(size * .2)), count = item.count >= 10000 ? `${Math.floor(item.count / 1000)}k` : String(item.count);
+    ctx.font = `bold ${font}px monospace`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillStyle = '#10191b'; ctx.fillRect(x + 3, y + size - font - 6, size - 6, font + 3);
+    ctx.fillStyle = '#f1e6bc'; ctx.fillText(count, x + size - 5, y + size - 4);
+  }
+
 }
 
 
@@ -1589,12 +1637,6 @@ function drawInventoryGrid(ctx, width, height, cell, items, selected = null, hel
     ctx.save();
     if (item.type === heldType) ctx.globalAlpha = .3;
     drawItem(ctx, item, item.x * cell, item.y * cell, cell);
-    if (item.count !== undefined) {
-      ctx.font = 'bold 11px monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-      const count = item.count >= 10000 ? `${Math.floor(item.count / 1000)}k` : String(item.count);
-      ctx.fillStyle = '#10191b'; ctx.fillRect(item.x * cell + 3, (item.y + 1) * cell - 17, cell - 6, 14);
-      ctx.fillStyle = '#f1e6bc'; ctx.fillText(count, (item.x + 1) * cell - 5, (item.y + 1) * cell - 4);
-    }
     ctx.restore();
   }
   if (selected) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(selected.x * cell + 3, selected.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
@@ -1606,7 +1648,7 @@ function renderItemList(list, items) {
   list.replaceChildren();
   const grouped = new Map();
   for (const item of items) {
-    const key = `${item.type}:${itemSaleValue(item)}`;
+    const key = `${item.type}:${unitSaleValue(item)}`;
     const group = grouped.get(key) ?? { item, count: 0 };
     group.count += item.count ?? 1; grouped.set(key, group);
   }
@@ -1614,8 +1656,8 @@ function renderItemList(list, items) {
     if (!count) continue;
     const row = document.createElement('li'); row.className = 'haul-row';
     const icon = document.createElement('canvas'); icon.width = 60; icon.height = 60;
-    icon.setAttribute('aria-hidden', 'true'); drawItem(icon.getContext('2d'), item, 3, 3, 18);
-    const name = document.createElement('span'); name.textContent = `${LOOT_TYPES[item.type].name}${LOOT_TYPES[item.type].sellValue ? ` · ${itemSaleValue(item)} gold each` : ''}`;
+    icon.setAttribute('aria-hidden', 'true'); drawItem(icon.getContext('2d'), { ...item, count: undefined }, 3, 3, 18);
+    const name = document.createElement('span'); name.textContent = `${LOOT_TYPES[item.type].name}${LOOT_TYPES[item.type].sellValue ? ` · ${unitSaleValue(item)} gold each` : ''}`;
     const quantity = document.createElement('strong'); quantity.textContent = `× ${count}`;
     row.append(icon, name, quantity); list.append(row);
   }
@@ -1671,7 +1713,7 @@ function createLairSackGrid(canvas, getLoot, onReturn) {
     drawInventoryGrid(ctx, SACK.width, SACK.height, cell, loot.bag, selected);
     const item = bagItemAt(loot.bag, selected.x, selected.y);
     document.querySelector('#lair-sack-used').textContent = `${loot.bag.reduce((n, item) => n + itemCells(item).length, 0)} / 9`;
-    document.querySelector('#lair-sack-selection').textContent = item ? `${LOOT_TYPES[item.type].name}${item.debugSupply ? ' (debug)' : ''} · E / click to return to stash` : 'Empty square · WASD select · E returns an item';
+    document.querySelector('#lair-sack-selection').textContent = item ? `${itemLabel(item)}${item.debugSupply ? ' (debug)' : ''} · E / click to return to stash` : 'Empty square · WASD select · E returns an item';
   };
   const activate = () => { const item = bagItemAt(getLoot().bag, selected.x, selected.y); if (item) onReturn(item); paint(); };
   canvas.addEventListener('keydown', event => {
@@ -1857,7 +1899,7 @@ function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) {
     if (chosen && !state.held) { ctx.strokeStyle = '#f2d383'; ctx.lineWidth = 3; ctx.strokeRect(chosen.x * cell + 3, chosen.y * cell + 3, cell - 6, cell - 6); ctx.lineWidth = 1; }
     if (state.held && hovered) {
       ctx.save(); ctx.globalAlpha = 0.7;
-      drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, fits(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
+      drawItem(ctx, state.held, hovered.x * cell, hovered.y * cell, cell, canPlaceItem(state.bag, state.held, hovered.x, hovered.y) ? '#c7ee7b' : '#ff6774');
       ctx.restore();
     }
     ghost.hidden = !state.held || !!hovered || !pointer.active;
@@ -1868,7 +1910,7 @@ function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) {
     }
     const used = state.bag.reduce((n, item) => n + itemCells(item).length, 0);
     document.querySelector('#sack-used').textContent = `${used} / 9`;
-    const heldText = state.held ? `Holding ${LOOT_TYPES[state.held.type].name} · R rotate · E drop` : equipmentEnabled ? 'Click loot to lift · select gear, E equip' : 'Click items to move · E packs nearby loot';
+    const heldText = state.held ? `Holding ${itemLabel(state.held)} · R rotate · E drop` : equipmentEnabled ? 'Click loot to lift · select gear, E equip' : 'Click items to move · E packs nearby loot';
     document.querySelector('#held-label').textContent = heldText;
   };
   const updateVisibility = ({ moving, targetId, held, pointer, active }, dt) => {
@@ -1910,11 +1952,12 @@ function createResultsView(dialog) {
       document.querySelector('#results-title').textContent = result.aborted ? 'The admin ended this run.' : result.leftBehind ? 'Your team escaped. You were left behind.' : down ? 'You went down.' : 'You made it out.';
       document.querySelector('#results-description').textContent = result.aborted ? 'Carried loot and supplies were lost. No gold or XP was awarded.' : result.leftBehind ? 'Your sack spilled when you went down. Anything teammates carried out is safe in the lair.' : down ? 'Nobody was left standing to recover the team. This run is over.' : `Valuables sold for ${result.soldGold ?? 0} shared gold. Materials and unused gear are in the central stash.`;
       list.setAttribute('aria-label', down ? 'Items lost in the dungeon' : 'Loot brought back');
+      const lostCount = (result.lostItems ?? []).reduce((n, item) => n + itemCount(item), 0);
       const shown = down ? result.lostItems : result.items;
       renderItemList(list, shown);
       document.querySelector('#empty-haul').hidden = shown.length > 0;
       document.querySelector('#empty-haul').textContent = down ? 'You were carrying no loot. You can return on the next run.' : 'You slipped out empty-handed. There is more to steal next time.';
-      document.querySelector('#haul-total').textContent = down ? `${result.lostItems.length} ${result.lostItems.length === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots}${result.team ? ' team sack squares' : ' / 9 sack squares'} · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
+      document.querySelector('#haul-total').textContent = down ? `${lostCount} ${lostCount === 1 ? 'item' : 'items'} lost · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s` : `${result.count} ${result.count === 1 ? 'loot item' : 'loot items'} · +${result.soldGold ?? 0} gold · ${result.slots}${result.team ? ' team sack squares' : ' / 9 sack squares'} · ${Math.floor(result.elapsed / 60)}m ${result.elapsed % 60}s`;
       dialog.showModal();
       document.querySelector('#next-run').focus();
     },
@@ -2695,7 +2738,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Tab') { e.preventDefault(); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
-    tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
+    tell(`${itemLabel(loot.held)} rotated. Click the sack to place.`);
   }
   if (e.code !== 'KeyE') return;
   e.preventDefault();
@@ -2810,7 +2853,7 @@ const frame = time => {
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
   else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
-  else if (target) targetText = `${LOOT_TYPES[target.type].name}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
+  else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
   else targetText = 'Find a chest, cupboard or crate to search';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
   const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;

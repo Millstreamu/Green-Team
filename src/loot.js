@@ -4,7 +4,9 @@ export const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
 // One definition supplies footprints and colours everywhere an item is shown.
 export const LOOT_TYPES = Object.freeze({
   ruby: { sellValue: 25, name: 'Ruby', color: '#d77581', cells: [[0, 0]], mark: '◆' },
-  coin: { sellValue: 3, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: '●' },
+  coin: { sellValue: 3, stackLimit: 9, name: 'Gold coin', color: '#e0bd5e', cells: [[0, 0]], mark: 'G' },
+  silverCoin: { sellValue: 2, stackLimit: 9, name: 'Silver coin', color: '#c2ccd1', cells: [[0, 0]], mark: 'S' },
+  copperCoin: { sellValue: 1, stackLimit: 9, name: 'Copper coin', color: '#bd8059', cells: [[0, 0]], mark: 'C' },
   candlestick: { sellValue: 12, name: 'Candlestick', color: '#dbba74', cells: [[0, 0], [0, 1]], mark: '†' },
   scroll: { sellValue: 8, name: 'Scroll case', color: '#b7cb9e', cells: [[0, 0], [1, 0]], mark: '≡' },
   sword: { sellValue: 20, name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
@@ -65,13 +67,38 @@ export function createLoot() {
   return { ground: [], bag: [], held: null };
 }
 
+export function itemCount(item) { return item.count ?? 1; }
+export function itemLabel(item) { return `${LOOT_TYPES[item.type].name}${itemCount(item) > 1 ? ` × ${itemCount(item)}` : ''}`; }
+export function validItemCount(item) {
+  return Object.hasOwn(LOOT_TYPES, item.type) && Number.isInteger(itemCount(item)) && itemCount(item) >= 1 && itemCount(item) <= (LOOT_TYPES[item.type]?.stackLimit ?? 1);
+}
+export function matchingStack(a, b) {
+  return a.type === b.type && (LOOT_TYPES[a.type]?.stackLimit ?? 1) > 1
+    && (a.saleMultiplier ?? 1) === (b.saleMultiplier ?? 1) && !!a.debugSupply === !!b.debugSupply;
+}
+// Shared packing for floor pickups and lair withdrawals. Returns units packed.
+export function packItem(bag, item) {
+  if (!validItemCount(item)) return 0;
+  let remaining = itemCount(item);
+  for (const target of bag) if (matchingStack(target, item)) {
+    const amount = Math.min(remaining, LOOT_TYPES[item.type].stackLimit - itemCount(target));
+    if (amount > 0) { target.count = itemCount(target) + amount; remaining -= amount; }
+    if (!remaining) break;
+  }
+  if (remaining) {
+    const placement = findSpace(bag, { ...item, ...(LOOT_TYPES[item.type].stackLimit ? { count: remaining } : {}) });
+    if (placement) { bag.push(placement); remaining = 0; }
+  }
+  return itemCount(item) - remaining;
+}
 export function autoPickup(state, id) {
   if (state.held) return false;
   const index = state.ground.findIndex(item => item.id === id);
   if (index < 0) return false;
-  const placement = findSpace(state.bag, state.ground[index]);
-  if (!placement) return false;
-  state.ground.splice(index, 1); state.bag.push(placement);
+  const item = state.ground[index], moved = packItem(state.bag, item);
+  if (!moved) return false;
+  if (moved === itemCount(item)) state.ground.splice(index, 1);
+  else item.count = itemCount(item) - moved;
   return true;
 }
 
@@ -84,9 +111,20 @@ export function liftItem(state, source, id) {
   return true;
 }
 
+export function canPlaceItem(bag, item, x, y) {
+  if (!validItemCount(item) || !Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= SACK.width || y >= SACK.height) return false;
+  const target = bagItemAt(bag, x, y);
+  return target ? matchingStack(target, item) && itemCount(target) < LOOT_TYPES[target.type].stackLimit : fits(bag, item, x, y);
+}
 export function placeHeld(state, x, y) {
-  if (!state.held || !fits(state.bag, state.held, x, y)) return false;
-  state.bag.push({ ...state.held, x, y }); state.held = null;
+  if (!state.held || !canPlaceItem(state.bag, state.held, x, y)) return false;
+  const target = bagItemAt(state.bag, x, y);
+  if (target) {
+    const amount = Math.min(itemCount(state.held), LOOT_TYPES[target.type].stackLimit - itemCount(target));
+    target.count = itemCount(target) + amount;
+    const remaining = itemCount(state.held) - amount;
+    state.held = remaining ? { ...state.held, count: remaining } : null;
+  } else { state.bag.push({ ...state.held, x, y }); state.held = null; }
   return true;
 }
 
@@ -102,6 +140,8 @@ export function dropHeld(state, world, player) {
 }
 
 // Sale price travels with a found item so floor hints, haul rows and gold agree.
-export function itemSaleValue(item) {
+export function unitSaleValue(item) {
   return Math.round((LOOT_TYPES[item.type].sellValue ?? 0) * (item.saleMultiplier ?? 1));
 }
+export function itemSaleValue(item) { return unitSaleValue(item) * itemCount(item); }
+

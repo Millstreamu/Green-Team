@@ -1,3 +1,4 @@
+import { itemLabel } from './loot.js';
 import { setupGameScreen } from './game-screen.js';
 import { loadProfile, saveProfile, awardPersonalXp, personalSearchRate } from './profile.js';
 import { createPressure, updatePressure } from './pressure.js';
@@ -216,7 +217,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Tab') { e.preventDefault(); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
-    tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
+    tell(`${itemLabel(loot.held)} rotated. Click the sack to place.`);
   }
   if (e.code !== 'KeyE') return;
   e.preventDefault();
@@ -331,7 +332,7 @@ const frame = time => {
   else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
   else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
   else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
-  else if (target) targetText = `${LOOT_TYPES[target.type].name}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
+  else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
   else targetText = 'Find a chest, cupboard or crate to search';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
   const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;

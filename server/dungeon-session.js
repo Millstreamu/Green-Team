@@ -3,7 +3,7 @@ import { runTuning } from '../src/tuning.js';
 import { tickVitality } from '../src/guard.js';
 import { createDanger } from './danger.js';
 import { generateDungeon, movePlayer } from '../src/world.js';
-import { createLoot, autoPickup, liftItem, placeHeld, dropHeld, reachable, LOOT_TYPES, itemCells } from '../src/loot.js';
+import { createLoot, autoPickup, liftItem, placeHeld, dropHeld, reachable, LOOT_TYPES, itemCells, itemCount } from '../src/loot.js';
 import { createSearchables, createSearchSession, beginSearch, cancelSearch, updateSearch } from '../src/search.js';
 import { createRun, atTunnel } from '../src/run.js';
 import { awardPersonalXp, personalSearchRate } from '../src/profile.js';
@@ -35,7 +35,7 @@ export function createDungeonSession(launch, participants, camp) {
     const recovered = outcome === 'escaped' ? escaped.flatMap(p => p.bag.map(item => ({ ...item }))) : [];
     const recoveredIds = new Set(recovered.map(item => item.id));
     const items = recovered.filter(item => !LOOT_TYPES[item.type].equipment);
-    const result = { runId: launch.id, outcome, job: launch.job, items, count: items.length,
+    const result = { runId: launch.id, outcome, job: launch.job, items, count: items.reduce((n, item) => n + itemCount(item), 0),
       slots: items.reduce((sum, item) => sum + itemCells(item).length, 0), team: true,
       elapsed: Math.floor(elapsed), lostItems: [], ...(aborted ? { aborted: true } : {}) };
     if (outcome === 'escaped') bankEscape(camp, result, { bag: recovered });

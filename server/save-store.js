@@ -5,7 +5,7 @@ import { mkdirSync, chmodSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createCamp, syncStashSlots } from '../src/lair.js';
 import { createProfile, PERSONAL_UPGRADES } from '../src/profile.js';
-import { LOOT_TYPES, fits } from '../src/loot.js';
+import { LOOT_TYPES, fits, validItemCount } from '../src/loot.js';
 import { selectJob } from '../src/jobs.js';
 
 const validId = value => typeof value === 'string' && value.length > 0 && value.length <= 128;
@@ -17,7 +17,9 @@ function requireSave(condition) { if (!condition) throw new Error('Invalid Green
 export function restoreSave(saved) {
   if (saved === null) return { camp: createCamp(), players: [] };
   requireSave(saved?.version === 1 && saved.camp && Array.isArray(saved.players));
-  const c = saved.camp;
+  // New denominations default to zero in old saves; existing required fields stay strict.
+  const c = { ...saved.camp, counts: saved.camp.counts && { ...saved.camp.counts } };
+  if (c.counts) for (const type of ['silverCoin', 'copperCoin']) if (!Object.hasOwn(c.counts, type)) c.counts[type] = 0;
   requireSave(c.counts && Object.keys(LOOT_TYPES).every(type => natural(c.counts[type]))
     && Number.isSafeInteger(c.nextItemId) && c.nextItemId >= 1
     && Array.isArray(c.slots) && c.slots.length === 36
@@ -38,7 +40,7 @@ export function restoreSave(saved) {
     const bag = [];
     for (const item of p.bag) {
       requireSave(validId(item?.id) && !itemIds.has(item.id) && Object.hasOwn(LOOT_TYPES, item.type)
-        && Number.isInteger(item.rotation) && item.rotation >= 0 && item.rotation <= 3
+        && validItemCount(item) && Number.isInteger(item.rotation) && item.rotation >= 0 && item.rotation <= 3
         && Number.isInteger(item.x) && Number.isInteger(item.y) && fits(bag, item, item.x, item.y)
         && (item.debugSupply === undefined || typeof item.debugSupply === 'boolean'));
       itemIds.add(item.id); bag.push(structuredClone(item));
