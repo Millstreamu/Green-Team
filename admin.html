@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Green Team · Server admin V55</title>
+<style>
+[hidden]{display:none!important}
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1b;color:#e5e9df}*{box-sizing:border-box}body{margin:0}main{max-width:1000px;margin:auto;padding:24px}.eyebrow{font-size:11px;letter-spacing:3px;color:#b9d783}h1{font-size:26px;margin:6px 0}h2{font-size:17px;margin:0 0 12px}p{color:#a9b9b1;font-size:14px;line-height:1.6}a{color:#c6e88f}header{display:flex;justify-content:space-between;gap:20px;align-items:center}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}section{border:1px solid #34413e;border-radius:5px;padding:20px;background:#192324}label{display:block;font-size:13px;margin:14px 0}select,input{display:block;font:inherit;width:100%;margin-top:7px;background:#111a1b;color:#e5e9df;border:1px solid #53605a;border-radius:4px;padding:10px}button{font:inherit;font-weight:650;background:#c6e88f;border:0;border-radius:5px;padding:12px 18px;color:#1b2c20;cursor:pointer;margin:4px 5px 4px 0}button.secondary{background:#34413e;color:#d7e1ca}button.danger{background:#a8584f;color:#fff0e3}button:disabled{opacity:.45;cursor:default}:focus-visible{outline:2px solid #d1f69b;outline-offset:3px}#admin-status{padding:14px 0;min-height:50px;border-bottom:1px solid #34413e}#admin-status[data-error=true]{color:#f1a49b}.muted{font-size:12px;color:#a9b9b1}.wide{grid-column:1/-1}#stock-summary{font-size:14px;line-height:1.8}#run-state{font-weight:650;color:#d1e7b0}@media(max-width:700px){main{padding:16px}.grid{grid-template-columns:1fr}header{align-items:flex-start}.wide{grid-column:auto}}
+</style>
+</head>
+<body><main>
+<header><div><div class="eyebrow">GREEN TEAM / SERVER TOOLS</div><h1>Server admin · V55</h1><p>Prepare tests, undo changes and recover a stuck run.</p></div><a href="/" target="_blank" rel="noopener">Open game</a></header>
+<p id="admin-status" role="status" aria-live="polite">Connecting to the saved home…</p>
+<label id="admin-lair-section" hidden>Selected lair<select id="admin-lair"></select>Join code: <code id="admin-lair-code"></code></label>
+<button id="export-settings" type="button" class="secondary">Export settings</button><p class="muted">Downloads the selected lair’s saved gameplay settings and all three dungeon layouts. Save your edits in both builder sections first, then attach the file in our chat to make them the GitHub defaults.</p>
+<p id="run-state">Checking the run…</p>
+<div class="grid">
+<section id="generator-section" class="wide" hidden><h2>Dungeon generator · floor-plan preview</h2>
+<p>Edit this lair’s Human, Dwarf or Elf layout. Difficulty stays separate. Choose that dungeon at the game’s map table when ready. Preview uses an example layout number; real runs choose fresh numbers. Changing settings keeps the example number for comparison.</p>
+<label>Dungeon architecture<select id="generator-job"></select></label>
+<form id="generator-form"><div id="generator-fields" class="grid"></div><button id="generator-save">Save this dungeon for next run</button><button id="generator-reset" type="button" class="secondary">Reset this architecture to defaults</button></form>
+<p id="generator-note" class="muted" role="status"></p>
+<div class="grid"><label>Example layout number<input id="generator-seed" type="number" min="0" max="4294967295" step="1" value="42"></label><label>Preview difficulty<select id="generator-difficulty"><option value="normal">Normal</option><option value="hard">Hard</option></select></label></div>
+<button id="generator-preview" type="button" class="secondary">Update preview</button><button id="generator-another" type="button" class="secondary">Generate another</button>
+<button id="generator-batch" type="button" class="secondary">Check 30 layouts</button>
+<p id="generator-batch-status" role="status" aria-live="polite"></p><div id="generator-batch-results"></div>
+<label><input id="generator-grid" type="checkbox" checked style="display:inline;width:auto"> Show tile grid</label>
+<p id="generator-summary" role="status"></p><div style="overflow:auto"><canvas id="generator-map" style="display:block;width:100%;height:auto;image-rendering:pixelated" aria-label="Dungeon floor plan"></canvas></div>
+<p id="generator-check-summary" role="status"></p><ul id="generator-check-issues"></ul>
+<p class="muted">Checks use walking routes and solid objects. Red outlines mark problems; orange outlines mark warnings. Corner checks follow guard routes; movement feel still needs playtesting. Checking layouts does not save settings or change a live run.</p>
+<p class="muted">Colours: cyan = entrance · gold = chests · blue = cupboards · brown = crates · green = hiding spots · pink = cages · orange = guard doors · small pale dots = original guards · gold doorway bars = locked treasure entrances. Dimensions are floor tiles. Requested room/loop counts may be lower when space or protected routes prevent placement. Extra bends: 0 = simple hall, 1 = winding hall. Furniture leaves doorway lanes clear.</p></section>
+<section id="tuning-section" class="wide" hidden><h2>Game builder · run settings</h2>
+<p>Tunes the selected lair only. Save during a run if you like: changes start on its next departure. Speeds use floor tiles per second. Loot still improves farther from the entrance, and map difficulty still adds its usual bonuses.</p>
+<form id="tuning-form"><div id="tuning-fields" class="grid"></div><button id="save-tuning">Save settings for next run</button><button id="reset-tuning" type="button" class="secondary">Reset settings to defaults</button></form>
+<p id="tuning-note" class="muted" aria-live="polite"></p></section>
+<section><h2>Shared stock</h2><div id="stock-summary"></div>
+<form id="stock-form"><label>Item<select id="admin-item"></select></label><label>Set quantity<input id="stock-amount" type="number" min="0" step="1" required value="0"></label><button id="set-stock" data-edit>Save quantity</button></form>
+<button id="reset-lair" class="danger" data-edit>Reset lair</button><p class="muted">Returns shared stock and map choice to starter values. Personal sacks and progress stay.</p></section>
+<section><h2>Goblins</h2><label>Choose goblin<select id="admin-goblin"></select></label><p id="goblin-summary"></p>
+<form id="xp-form"><label>Set available XP<input id="xp-amount" type="number" min="0" step="1" required value="0"></label><button id="set-xp" data-edit>Save XP</button></form>
+<button id="reset-goblin" class="danger" data-edit>Reset this goblin</button><p class="muted">Clears this goblin’s sacks in ALL lairs, XP and unlocks. Keeps its identity. Setting XP alone keeps owned unlocks.</p></section>
+<section><h2>Backups</h2><button id="make-backup">Make backup now</button><label>Saved backup<select id="admin-backup"></select></label><button id="restore-backup" class="secondary" data-edit>Restore selected backup</button><p class="muted">Every edit, reset, restore and forced run ending backs up ALL lairs and goblins first. Stored in the server’s data/backups folder. Backups restore the lair and personal saves; active dungeons are not saved.</p></section>
+<section><h2>Run and reset</h2><button id="end-run" class="danger">End run · return everyone home</button><p class="muted">Discards that run’s carried supplies and loot. Awards no gold or XP. Waiting goblins keep their home sacks.</p><button id="reset-all" class="danger" data-edit>Reset all progress</button><p class="muted">Resets ALL lairs’ stock and all goblin sacks, XP and unlocks. Keeps goblin identities. Backups stay available.</p></section>
+</div><p class="muted">Stock/progress edits and restores require no active run in any lair. Run settings can be saved at any time. Stock edits and End run use the selected lair; personal XP is shared across lairs. The private admin link changes when the server restarts; use the new link in Terminal.</p>
+<script type="module" src="src/admin-main.js"></script>
+</main></body></html>

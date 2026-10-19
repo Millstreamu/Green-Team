@@ -1,6 +1,6 @@
 # How we build this game together
 
-Status: agreed working method, version 1.
+Status: agreed working method; multiplayer review added 17 October 2026 at the user’s request.
 
 ## 1. Understand the intended experience
 
@@ -36,6 +36,14 @@ Inventory, crafting, upgrades and similar screens should share item displays, bu
 
 Extend shared pieces when the behaviour is shared. Do not force unrelated features into a complicated universal system. Explain meaningful exceptions briefly.
 
+### Dungeon grid rule
+
+All new static dungeon furniture, hiding spots, decorations and other placed scenery use the shared floor grid and placement rules. Define a whole-tile footprint (one32×32 source tile or a larger whole-tile rectangle), keep carved hallways/doorway lanes clear and preserve reachable approaches. Floor-standing props should default to solid movement obstacles; wall/floor-mounted art may be non-solid explicitly. Use PROP_RULES, placeProp and the shared world solid mask rather than a separate placement/collision system. Body art stays within its declared footprint; intentional vertical wall height and UI labels/indicators may extend upward. Grid placement concerns scenery, not free movement of goblins/guards or loose dropped loot. Keep server, browser and generator preview consistent.
+
+New floor-standing scenery joins the shared renderer's grounded drawing order: sort by footprint front edge, sort actors by feet position, and keep hopping/art offsets out of the sort key. Interaction labels and progress belong above bodies. Avoid adding a separate actor/furniture draw pass that always covers every goblin.
+
+Keep the gameplay HUD within the shared .stage viewport. Map, sack, status and controls must not introduce page-height sidebars or content below the scene that pushes overlays off-screen. Put long reference content in Help or an independently scrolling dialog; preserve home-screen scrolling. Reuse canvas resize/pointer conversion and established sack controls.
+
 ## 4. Keep planning bounded
 
 Describe the overall game briefly, then fully specify only the next playable slice. The agreed first slice is one goblin exploring a generated dungeon locally in a browser. See docs/decisions.md for current scope. Guards, loot, alarms, the lair and multiplayer testing follow later.
@@ -46,7 +54,11 @@ Before implementing a slice, establish:
 - The screens and feedback required.
 - The rules and editable values it needs.
 - What the server must coordinate between players.
+- For team play: who chooses/owns the action, what others see, what simultaneous use does, and what happens if someone joins/leaves or is downed. Do not silently turn a solo shortcut into a team rule.
+- For shared stock/rewards: when items are reserved, spent, returned or lost; who may spend; and how repeated actions avoid duplicate rewards.
 - Observable checks that tell us it works.
+
+Use [the multiplayer review](multiplayer-review.md) to track open team rules. Discuss a small batch at a time and distinguish user decisions from recommendations. Multiplayer implementation/testing can remain deferred while its behavior is clarified.
 
 Use temporary art where useful. Test the current slice before expanding. Multiplayer playtesting is deferred until the exploration milestone feels right. The builder grows to support this game; a general-purpose engine is outside the current goal.
 

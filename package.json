@@ -1,1 +1,17 @@
-{"name":"green-team","private":true,"type":"module","scripts":{"test":"node --test","build":"node scripts/build.mjs"}}
+{
+  "name": "green-team",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "node scripts/build.mjs",
+    "start": "node server/index.js",
+    "check:dungeons": "node scripts/check-dungeons.mjs"
+  },
+  "dependencies": {
+    "ws": "8.22.0"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

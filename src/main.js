@@ -1,13 +1,45 @@
+import { createTreasureRoom, unlockTreasure } from './treasure.js';
+import { itemLabel } from './loot.js';
+import { setupGameScreen } from './game-screen.js';
+import { loadProfile, saveProfile, awardPersonalXp, personalSearchRate } from './profile.js';
+import { createPressure, updatePressure } from './pressure.js';
+import { pressureLabel } from './pressure-view.js';
+import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
+import { seesPlayer } from './guard.js';
+import { selectJob, createDeparture, setDestination, toggleCartSeat, tickDeparture } from './jobs.js';
+import { useSmoke, updateSmoke } from './smoke.js';
+import { loadCamp, saveCamp, createLairWorld, lairTarget, departWithSack, bankEscape } from './lair.js';
+import { createLairView } from './lair-view.js';
+import { createMapPlanningView } from './loadout-view.js';
+import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, updatePlacement, updateTraps, moveTrapAim } from './traps.js';
+import { dungeonConfig, GENERATOR_PRESETS } from './generator-settings.js';
 import { generateDungeon, movePlayer } from './world.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
-import { createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld, bagItemAt, LOOT_TYPES } from './loot.js';
+import { createLoot, selectTarget, autoPickup, liftItem, placeHeld, dropHeld, bagItemAt, LOOT_TYPES, itemSaleValue } from './loot.js';
 import { createSackView } from './sack-view.js';
+import { createRun, atTunnel, finishRun, loseRun } from './run.js';
+import { createResultsView } from './results-view.js';
+import { createGuards, updateGuard, createVitality, tickVitality } from './guard.js';
+import { createSearchables, createSearchSession, selectInteraction, beginSearch, cancelSearch, updateSearch, SEARCHABLE_TYPES } from './search.js';
 
 const canvas = document.querySelector('#game');
+setupGameScreen(canvas);
 const sackCanvas = document.querySelector('#sack-grid');
-const input = createInput(window);
+const input = createInput(window, () => sack.isNavigating());
 const sack = createSackView(sackCanvas, document.querySelector('#held-ghost'));
+const results = createResultsView(document.querySelector('#run-results'));
+let campStorage;
+try { campStorage = window.localStorage; } catch {}
+const camp = loadCamp(campStorage);
+const profile = loadProfile(campStorage);
+let lairSaved = false, goblinSaved = false;
+const refreshSaveStatus = () => {
+  document.querySelector('#save-status').textContent = lairSaved && goblinSaved ? 'LAIR + GOBLIN SAVED IN THIS BROWSER'
+    : lairSaved ? 'LAIR SAVED · GOBLIN KEPT WHILE OPEN' : goblinSaved ? 'GOBLIN SAVED · LAIR KEPT WHILE OPEN' : 'LAIR + GOBLIN KEPT WHILE THIS GAME IS OPEN';
+};
+const persistCamp = () => { lairSaved = saveCamp(camp, campStorage); refreshSaveStatus(); };
+const persistProfile = () => { goblinSaved = saveProfile(profile, campStorage); refreshSaveStatus(); }; 
 let render;
 try {
   render = await createRenderer(canvas, document.querySelector('#map'));
@@ -15,23 +47,93 @@ try {
   document.querySelector('#status').textContent = 'Goblin art could not load. Download the game again, or keep assets/goblin.png alongside the source files.';
   throw error;
 }
-let world, player, loot, previous = 0, target = null, dragStart = null;
+let pressure, cart, cartOutside = null;
+let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
+let hidingSpots = [], hideTarget = null;
+let objects = [], searchSession = createSearchSession(), searchTarget = null, unlockTarget = null;
+let traps = [], placement = createPlacement(), clouds = [], quickType = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = text; messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
-  target = selectTarget(world, player, loot.ground, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null);
+  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; unlockTarget = null; return; }
+  const interaction = player.enteringHide ? { kind: 'hide', item: player.enteringHide.spot } : searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null, hidingSpots);
+  unlockTarget = interaction?.kind === 'unlock' ? interaction.item : null;
+  hideTarget = interaction?.kind === 'hide' ? interaction.item : null;
+  target = interaction?.kind === 'loot' ? interaction.item : null;
+  searchTarget = interaction?.kind === 'search' ? interaction.item : null;
+};
+const enterLair = () => {
+  results.close();
+  world = createLairWorld(); pressure = createPressure(world); cart = createDeparture(['goblin'], camp.destination); cartOutside = null;
+  player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
+  guards = []; objects = []; hidingSpots = []; hideTarget = null; loot = createLoot(); loot.bag = camp.preparedBag; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  run = createRun(world, performance.now()); run.phase = 'lair'; run.entrance = { ...world.stations.find(station => station.kind === 'tunnel') };
+  input.clear(); sack.reset(); dragStart = null; previous = 0;
+  pointer.active = false; pointer.overGame = false;
+  document.querySelector('#seed').textContent = 'Home'; document.querySelector('#rooms').textContent = 'Your little lair'; document.querySelector('#job-label').textContent = `${cart.selection.jobName} · ${cart.selection.difficultyName}`;
+  document.querySelector('#regenerate').hidden = true; document.querySelector('#sack-tab').hidden = true;
+  persistCamp(); persistProfile(); canvas.focus(); updateTarget();
+  tell('Welcome home. WASD to walk. E at the stash, workbench, campfire, map table or departure minecart.');
 };
 const reset = () => {
-  if (world && !window.confirm('Start a new dungeon? This resets the sack and all loot in this test.')) { canvas.focus(); return; }
-  world = generateDungeon(crypto.getRandomValues(new Uint32Array(1))[0]);
-  player = { ...world.spawn, facing: 1, phase: 0, moving: false };
-  loot = createLoot(world); dragStart = null;
-  input.clear();
+  if (run?.phase === 'exploring' && !window.confirm('Abandon this run? Carried loot and traps will be lost. Your lair stash is safe.')) return;
+  enterLair();
+};
+const closeLairPanel = () => { run.phase = 'lair'; input.clear(); canvas.focus(); };
+const lairView = createLairView(document.querySelector('#lair-panel'), camp, profile, () => loot, persistCamp, closeLairPanel, persistProfile);
+const launchRun = (selection) => {
+  if (!world.lair || run.phase !== 'lair') return false;
+  const job = selection && selectJob(selection.jobId, selection.difficultyId);
+  if (!job) return false;
+  const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+  const dungeon = generateDungeon(seed, dungeonConfig(GENERATOR_PRESETS[job.jobId]));
+  const bag = departWithSack(camp, loot);
+  if (!bag) return false;
+  world = dungeon; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), searchRate: personalSearchRate(profile), facing: 1, phase: 0, moving: false };
+  loot = createLoot(); loot.bag = bag;
+  objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); createTreasureRoom(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; quickType = null; searchSession = createSearchSession();
+  run = createRun(world, performance.now());
+  input.clear(); sack.reset(); previous = 0; pointer.active = false; pointer.overGame = false; canvas.focus(); persistCamp();
   document.querySelector('#seed').textContent = String(world.seed);
-  document.querySelector('#rooms').textContent = `${world.rooms.length} connected rooms`;
-  tell('Loot is scattered around your feet. E packs the highlighted item; click to place it yourself.');
-  canvas.focus(); updateTarget();
+  document.querySelector('#job-label').textContent = `${job.jobName} · ${job.difficultyName}`;
+  document.querySelector('#rooms').textContent = `${world.rooms.length} rooms · ${world.shortcuts.length} extra routes`;
+  document.querySelector('#regenerate').hidden = false; document.querySelector('#sack-tab').hidden = false;
+  tell(`${job.jobName} · ${job.difficultyName}. ${world.treasure ? 'Search for the treasure key and its locked room, or escape with what you find.' : 'Search furniture, avoid guards, then escape through the tunnel.'}`);
+  return true;
+};
+const planning = createMapPlanningView(document.querySelector('#map-planning'), selection => {
+  if (run.phase !== 'planning' || !setDestination(cart, selection.jobId, selection.difficultyId)) return false;
+  camp.destination = { jobId: selection.jobId, difficultyId: selection.difficultyId }; persistCamp();
+  closeLairPanel(); tell(`Destination set: ${selection.jobName} · ${selection.difficultyName}. Board the minecart when ready.`); return true;
+}, () => cart.selection, () => loot.bag, closeLairPanel);
+const boardCart = station => {
+  const aboard = toggleCartSeat(cart, player.id);
+  if (aboard === null) return;
+  input.clear(); player.moving = false; player.phase = 0;
+  if (aboard) {
+    cartOutside = { x: player.x, y: player.y }; player.x = station.x; player.y = station.y - .15;
+    tell('Aboard. E to hop out and cancel departure.');
+  } else {
+    if (cartOutside) Object.assign(player, cartOutside); cartOutside = null;
+    tell('Hopped out. Departure cancelled; your sack is still packed.');
+  }
+};
+const interactLair = () => {
+  const station = lairTarget(world, player);
+  if (!station) { tell('Walk close to the stash, workbench, campfire, map table or departure minecart, then press E.'); return; }
+  input.clear(); player.moving = false;
+  if (station.kind === 'tunnel') boardCart(station);
+  else if (station.kind === 'planning') { run.phase = 'planning'; planning.open(); }
+  else { run.phase = 'lair-panel'; lairView.open(station.kind); }
+};
+const showRunResult = (result, message) => {
+  if (!result) return;
+  if (bankEscape(camp, result, loot)) persistCamp();
+  result.personalXp = awardPersonalXp(profile, result); persistProfile();
+  cancelSearch(searchSession); cancelHiding(player); leaveHiding(player);
+  input.clear(); dragStart = null; player.moving = false; player.phase = 0;
+  cancelPlacement(placement); results.open(result); tell(message);
 };
 const drop = () => {
   const name = LOOT_TYPES[loot.held.type].name;
@@ -44,68 +146,211 @@ const placeAtPointer = () => {
   if (placeHeld(loot, cell.x, cell.y)) tell(`${name} packed.`);
   else tell('It will not fit there. R rotates; try another space, or E to drop it.');
 };
-const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; };
+const trackPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.overGame = e.target === canvas; if (placement.itemId && pointer.overGame) { placement.aimPoint = placementPoint(player, screenToWorld(canvas, player, pointer)); } if (e.target === sackCanvas) sack.selectAt(pointer); };
 // Boundaries for clicks are checked from event targets; cursor proximity never extends pickup reach.
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
 document.addEventListener('pointerdown', e => {
-  if (e.button !== 0 || !world) return;
+  if (e.button !== 0 || !world || player.hiding || run.phase !== 'exploring') return;
   trackPointer(e);
   if (e.target !== canvas && e.target !== sackCanvas) return;
   e.preventDefault(); canvas.focus();
+  if (placement.itemId) return;
+  cancelSearch(searchSession); cancelHiding(player);
   const wasHolding = !!loot.held;
   if (e.target === sackCanvas) {
     if (loot.held) placeAtPointer();
     else {
       const cell = sack.cellAt(pointer), item = cell && bagItemAt(loot.bag, cell.x, cell.y);
+      if (item && LOOT_TYPES[item.type].equipment) { sack.selectAt(pointer); tell(`${LOOT_TYPES[item.type].name} selected. Press E to equip.`); return; }
       if (item && liftItem(loot, 'bag', item.id)) tell(`${LOOT_TYPES[item.type].name} lifted. R rotates; click a sack square to place.`);
     }
   } else if (loot.held) drop();
   else {
-    updateTarget();
     const at = screenToWorld(canvas, player, pointer);
-    if (target && Math.hypot(target.x - at.x, target.y - at.y) <= 0.8) {
-      liftItem(loot, 'ground', target.id);
-      tell(`${LOOT_TYPES[target.type].name} lifted. R rotates; click the sack to place.`);
-    } else tell('Click loot within reach, or use E for the highlighted item.');
+    const clicked = selectTarget(world, player, loot.ground, at);
+    if (clicked && Math.hypot(clicked.x - at.x, clicked.y - at.y) <= 0.8) {
+      liftItem(loot, 'ground', clicked.id);
+      tell(`${LOOT_TYPES[clicked.type].name} lifted. R rotates; click the sack to place.`);
+    } else tell('Hold E beside a highlighted object to search. Click spilled loot to lift it.');
   }
   if (!wasHolding && loot.held) dragStart = { x: e.clientX, y: e.clientY, id: loot.held.id };
 });
 document.addEventListener('pointerup', e => {
   const start = dragStart; dragStart = null;
-  if (!start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
+  if (run.phase !== 'exploring' || !start || start.id !== loot.held?.id || Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
   trackPointer(e);
   if (e.target === sackCanvas) placeAtPointer();
   else if (e.target === canvas) drop();
 });
-window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; });
+window.addEventListener('blur', () => { pointer.active = false; pointer.overGame = false; dragStart = null; cancelSearch(searchSession); cancelHiding(player); interruptPlacement(placement); });
+window.addEventListener('keyup', e => {
+  if (e.code === 'KeyE' && player?.enteringHide) { cancelHiding(player); tell('Hiding cancelled. Hold E to try again.'); }
+  if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
+});
 window.addEventListener('keydown', e => {
-  if (!world || e.repeat || e.target.closest?.('input,textarea,select,button')) return;
+  if (!world || e.target.closest?.('input,textarea,select,button,summary')) return;
+  if (run.phase === 'lair') {
+    if (cart.aboard.has(player.id)) { if (e.code === 'Tab' || e.code === 'Space') e.preventDefault(); if (e.code === 'KeyE' && !e.repeat) { e.preventDefault(); boardCart(world.stations.find(s => s.kind === 'tunnel')); } return; }
+    if (e.code === 'Tab') { e.preventDefault(); input.clear(); player.moving = false; run.phase = 'lair-panel'; lairView.open('stash'); }
+    else if (e.code === 'KeyE' && !e.repeat) { e.preventDefault(); interactLair(); }
+    return;
+  }
+  if (run.phase !== 'exploring') return;
+  if (player.hiding) {
+    if (['KeyE', 'Tab', 'Space', 'KeyR'].includes(e.code)) e.preventDefault();
+    if (e.code === 'KeyE' && !e.repeat) { leaveHiding(player); input.clear(); tell('Out of hiding. Watch the guards before moving.'); }
+    return;
+  }
+  if (['Tab', 'Space', 'Escape'].includes(e.code)) cancelHiding(player);
+  const dx = Number(e.code === 'KeyD' || e.code === 'ArrowRight') - Number(e.code === 'KeyA' || e.code === 'ArrowLeft');
+  const dy = Number(e.code === 'KeyS' || e.code === 'ArrowDown') - Number(e.code === 'KeyW' || e.code === 'ArrowUp');
+  if ((dx || dy) && sack.isNavigating()) { e.preventDefault(); sack.navigate(dx, dy); return; }
+  if (e.code === 'Space') e.preventDefault();
+  if (e.repeat) return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (quickType === 'smoke' && !placement.itemId && !sack.isNavigating() && useSmoke(loot, player, clouds)) {
+      cancelSearch(searchSession); tell('Smoke deployed! Break sight and move away before it clears.');
+    } else tell(quickType === 'smoke' ? 'No smoke bomb ready. Close the sack and keep your hands free.' : 'Select a smoke bomb in the sack and press E to equip it, then Space to use.');
+    return;
+  }
+  if (e.code === 'Escape' && placement.itemId) { e.preventDefault(); cancelPlacement(placement); tell('Placement cancelled. Snare is still in your sack.'); return; }
+  if (e.code === 'Tab') { e.preventDefault(); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus(); return; }
   if (e.code === 'KeyR' && loot.held) {
     e.preventDefault(); loot.held.rotation = (loot.held.rotation + 1) % 4;
-    tell(`${LOOT_TYPES[loot.held.type].name} rotated. Click the sack to place.`);
+    tell(`${itemLabel(loot.held)} rotated. Click the sack to place.`);
   }
   if (e.code !== 'KeyE') return;
   e.preventDefault();
+  if (placement.itemId) return;
+  const chosen = sack.itemForEquip(loot, pointer);
+  if (chosen?.type === 'smoke' && !loot.held) {
+    quickType = 'smoke'; cancelPlacement(placement); cancelSearch(searchSession); input.clearMovement(); sack.reset();
+    tell('Smoke bomb equipped. Space uses one; each spare takes its own sack square.'); return;
+  }
+  if (chosen?.type === 'snare' && equipSnare(placement, loot, chosen.id)) { quickType = null; cancelSearch(searchSession); input.clearMovement(); sack.reset(); placement.aimPoint = placementPoint(player); tell('WASD aims the preview. Release E, then hold E for one second to place. Escape cancels.'); return; }
   if (loot.held) { drop(); return; }
+  if (atTunnel(run, world, player)) {
+    const result = finishRun(run, world, player, loot, performance.now());
+    showRunResult(result, 'You slipped back through the tunnel with your haul.');
+    return;
+  }
   updateTarget();
-  if (!target) { tell('No loot within reach. Move closer.'); return; }
+  if (unlockTarget) {
+    cancelSearch(searchSession); cancelHiding(player);
+    tell(unlockTreasure(world, player, loot) ? 'Treasure room unlocked! The key is used. The door stays open for the team.' : 'Locked treasure room. Find its key by searching elsewhere in the dungeon.');
+    return;
+  }
+  if (hideTarget) {
+    const witnesses = guards.filter(guard => seesPlayer(world, guard, player, ['chase', 'search'].includes(guard.state), clouds));
+    if (beginHiding(world, player, hideTarget, witnesses)) {
+      cancelSearch(searchSession); cancelPlacement(placement); sack.reset();
+      tell('Hold E and stay still for half a second to hide.');
+    }
+    return;
+  }
+  if (searchTarget) {
+    if (beginSearch(searchSession, world, player, loot, searchTarget)) tell(`Searching ${SEARCHABLE_TYPES[searchTarget.type].name}. Keep E held and stay still.`);
+    return;
+  }
+  if (!target) { tell('No loot or unsearched object within reach. Move closer.'); return; }
   const name = LOOT_TYPES[target.type].name;
+  sack.reveal();
   if (autoPickup(loot, target.id)) tell(`${name} packed into your sack.`);
   else tell(`Rearrange your sack to fit this: ${name}. It is still on the floor.`);
 });
 document.querySelector('#regenerate').addEventListener('click', reset);
+document.querySelector('#next-run').addEventListener('click', reset);
+document.querySelector('#sack-tab').addEventListener('click', () => {
+  if (run.phase !== 'exploring' || player.hiding) return;
+  cancelHiding(player); input.clear(); cancelPlacement(placement); sack.toggle(); canvas.focus();
+});
 const frame = time => {
   const dt = previous ? Math.min((time - previous) / 1000, 0.05) : 0;
   previous = time;
-  movePlayer(world, player, input.read(), dt);
-  updateTarget(); render(world, player, loot, target); sack.paint(loot, pointer);
-  const targetText = loot.held ? 'Item in hand · R rotate · E drop' : target ? `${LOOT_TYPES[target.type].name} · E pack / click to lift` : 'Walk closer to loot';
+  if (run.phase === 'lair') {
+    movePlayer(world, player, cart.aboard.has(player.id) ? { x: 0, y: 0 } : input.read(), dt);
+    const departure = tickDeparture(cart, dt);
+    if (departure) launchRun(departure);
+  }
+  if (run.phase === 'exploring') {
+    updateSmoke(clouds, dt);
+    const direction = input.read();
+    const aiming = !!placement.itemId && moveTrapAim(placement, player, direction, dt);
+    movePlayer(world, player, placement.itemId || sack.isNavigating() ? { x: 0, y: 0 } : direction, dt); tickVitality(player, dt, world);
+    for (const event of updateTraps(traps, [player], guards, dt)) {
+      if (event.type === 'goblin-triggered') tell('A goblin triggered the snare. No harm, but the trap is spent.');
+      if (event.type === 'guard-triggered') tell('Guard snared! You have three seconds to get away.');
+    }
+    const events = { hit: false, spotted: false, exposed: false };
+    for (const guard of guards) {
+      const event = updateGuard(world, guard, player, dt, clouds, pressure.heat);
+      events.hit ||= event.hit; events.spotted ||= event.spotted; events.exposed ||= event.exposed;
+    }
+    if (events.exposed) { input.clear(); tell('The guard pulled you out! Run!'); }
+    if (events.spotted) tell('Spotted! Get out of sight or make for the tunnel.');
+    if (events.hit) { cancelHiding(player); interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Knocked back! Keep moving and dodge the next swing.`); }
+    if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
+    else {
+      const hideWitnesses = player.enteringHide ? guards.filter(guard => seesPlayer(world, guard, player, ['chase', 'search'].includes(guard.state), clouds)) : [];
+      const hidden = updateHiding(world, player, input.held('KeyE'), dt, hideWitnesses, !!loot.held || !!placement.itemId || sack.isNavigating());
+      if (hidden?.type === 'hidden') { input.clear(); sack.reset(); tell(hidden.witnessed ? 'A guard saw you hide! It is coming to pull you out.' : 'Hidden. E to come out; guards keep searching.'); }
+      else if (hidden?.type === 'cancelled') tell('Hiding cancelled. Hold E and stay still to try again.');
+      for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
+      const placed = updatePlacement(placement, world, player, loot, traps, [...objects, ...hidingSpots], placement.aimPoint ?? placementPoint(player), input.held('KeyE') && !aiming, dt);
+      if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
+      const searched = !placement.itemId && updateSearch(searchSession, world, player, loot, input.held('KeyE'), dt);
+      if (searched?.type === 'completed') tell(searched.count === 0 ? 'Nothing worth taking. Try the next one.' : `Found ${searched.count} ${searched.count === 1 ? 'item' : 'items'}. Release E, then press again to pack loot, or click to lift it.`);
+      else if (searched?.type === 'cancelled') tell('Search cancelled. Hold E while standing still beside the object.');
+      updatePressure(world, pressure, guards, dt);
+    }
+  }
+  const tunnelReady = !player.hiding && atTunnel(run, world, player) && !loot.held && !placement.itemId;
+  updateTarget();
+  sack.updateVisibility({ moving: player.moving, targetId: !tunnelReady && !loot.held ? target?.id ?? null : null, held: loot.held, pointer, active: run.phase === 'exploring' && !placement.itemId && !player.hiding }, dt);
+  render(world, player, loot, target, run, tunnelReady, guards, objects, searchTarget, searchSession, traps, placement, clouds, hidingSpots, hideTarget, pressure); sack.paint(loot, pointer);
+  if (world.lair) document.querySelector('#job-label').textContent = `${cart.selection.jobName} · ${cart.selection.difficultyName}`;
+  const destinationLabel = document.querySelector('#destination-label'); destinationLabel.hidden = !world.lair;
+  if (world.lair) destinationLabel.textContent = `Planned: ${cart.selection.jobName} · ${cart.selection.difficultyName}`;
+  const xpText = `Your goblin · ${profile.xp} XP available`;
+  if (document.querySelector('#xp-label').textContent !== xpText) document.querySelector('#xp-label').textContent = xpText;
+  const heatLabel = document.querySelector('#heat-label');
+  heatLabel.hidden = world.lair;
+  heatLabel.textContent = pressureLabel(pressure);
+  heatLabel.style.background = `linear-gradient(90deg, #6d392c ${Math.round(pressure.heat * 100)}%, #10191be6 0)`;
+  const quickLabel = document.querySelector('#quick-label');
+  quickLabel.hidden = run.phase !== 'exploring' || !quickType || !!player.hiding;
+  quickLabel.textContent = quickType ? `Smoke bomb × ${loot.bag.filter(item => item.type === quickType).length} · Space` : '';
+  let targetText;
+  if (world.lair && run.phase === 'lair') {
+    const station = lairTarget(world, player);
+    targetText = cart.aboard.has(player.id) ? `Aboard ${cart.aboard.size}/${cart.participants.length} · leaving in ${Math.ceil(cart.countdown ?? 0)}s · ${cart.selection.jobName} · ${cart.selection.difficultyName} · E to hop out` : station ? `${station.name} · E to ${station.kind === 'tunnel' ? 'board' : 'open'}` : 'Lair · WASD walk · E at stations · Tab stash';
+  }
+  else if (run.phase === 'lair-panel') targetText = 'Lair station · Esc to return';
+  else if (run.phase === 'planning') targetText = 'Map table · choose destination and difficulty';
+  else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
+  else if (player.hiding) targetText = 'Hidden in barrel · E to exit · guards still active';
+  else if (player.enteringHide) targetText = 'Hiding… hold E and stay still';
+  else if (hideTarget && !loot.held && !sack.isNavigating()) targetText = 'Hiding barrel · hold E for half a second';
+  else if (placement.itemId) targetText = 'WASD aim snare · hold E for 1 second · Esc cancel';
+  else if (sack.isNavigating()) targetText = 'Sack · WASD select · E equip gear · Tab close';
+  else if (loot.held) targetText = 'Item in hand · R rotate · E drop';
+  else if (tunnelReady) targetText = 'Secret tunnel · E to leave with your sack';
+  else if (searchSession.active) targetText = `Searching ${SEARCHABLE_TYPES[searchSession.active.type].name} · hold E and stay still`;
+  else if (unlockTarget) targetText = 'Locked treasure room · E to use its key';
+  else if (searchTarget) targetText = `${SEARCHABLE_TYPES[searchTarget.type].name} · hold E to search`;
+  else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
+  else targetText = 'Find a chest, cupboard or crate to search';
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;
-  if (time > messageUntil) {
-    const hint = loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : 'WASD move · E pack highlighted loot · Click loot or sack contents to lift';
+  const healthText = `Health ${'●'.repeat(player.health)}${'○'.repeat(player.maxHealth - player.health)}`;
+  if (document.querySelector('#health-label').textContent !== healthText) document.querySelector('#health-label').textContent = healthText;
+  const guardText = world.lair ? 'Safe at home · craft and prepare' : run.phase === 'results' ? 'Run ended' : guards.some(g => g.windup > 0) ? 'Guard about to swing—move!' : guards.some(g => g.state === 'chase') ? 'GUARDS CHASING · get to safety' : guards.some(g => g.state === 'search' && (g.trailLeft > 0 || g.trail.length)) ? 'A guard is following your fading trail' : guards.some(g => g.state === 'search') ? 'A guard is searching where the trail ended' : guards.some(g => g.state === 'suspicious') ? 'A guard is noticing you… break its sight' : 'Watch guard pauses · a purple roamer links nearby rooms';
+  if (document.querySelector('#alert-label').textContent !== guardText) document.querySelector('#alert-label').textContent = guardText;
+  if (time > messageUntil && run.phase === 'exploring') {
+    const hint = player.hiding ? 'Hidden · E to exit. A guard that saw you enter can pull you out.' : hideTarget ? 'Hold E for half a second to hide in the barrel. Break guard sight before entering.' : placement.itemId ? 'WASD aim · hold E to place · Esc cancels · Tab opens sack' : loot.held ? 'Click the sack to place. R rotates. E or click the dungeon to drop nearby.' : tunnelReady ? 'E leaves through the tunnel. Step away to search objects or pack loot.' : 'Hold E to search · E packs spilled loot · Release E or move to cancel a search';
     if (document.querySelector('#status').textContent !== hint) document.querySelector('#status').textContent = hint;
   }
   requestAnimationFrame(frame);
 };
-reset(); requestAnimationFrame(frame);
+enterLair(); requestAnimationFrame(frame);
