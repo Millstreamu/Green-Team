@@ -1,3 +1,11 @@
+# GitHub Pages solo release
+
+The current solo release, title page and creator workshop are ready to publish from [`docs/`](docs/). After merging, set **Settings → Pages → Deploy from a branch → main → /docs**. Start with [publishing instructions](docs/PUBLISHING.md).
+
+The static game keeps normal progression and browser saves. The workshop and disposable room trials are secondary creator pages. Multiplayer still needs the existing Node server. The current release's complete source and templates are downloadable from `docs/downloads/`; existing server entry points and source files are preserved by this PR.
+
+---
+
 # Goblin Game
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
@@ -398,3 +406,4 @@ E at the minecart boards/marks ready; E again hops out and cancels the countdown
 jobs.js owns the small departure coordinator; the existing loadout-view.js is repurposed as map-planning UI. Existing lair targeting/drawing/dialog styles and prepared-sack flow are reused. Camp save schema4 accepts an optional destination field; old saves default to Normal without losing stock. Stock, profile XP and passive effects remain unchanged.
 
 Verified:125 automated tests, standalone build, bundled syntax and unique HTML IDs. Coordinator tests cover all-aboard waiting, excluded waiting arrivals, cancellation/restart, preserved readiness through destination changes, single frozen departure and persisted selection without readiness. Real main flow plans/cancels drafts, boards/cancels/waits/reboards, checks no early world generation or stock spend and a single generated run, then retains crafting/XP/gear/guards/heat/hiding coverage. No rendered browser or online test; station placement and countdown readability await playtest. Review copy: green-team-cart-v30.html.
+
