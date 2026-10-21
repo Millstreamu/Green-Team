@@ -686,3 +686,11 @@ Verified275 full tests pass (test-concurrency2, v55-release-tests.log), includin
 Final600-map dispersed batch (3cultures x2difficulties x100seeds, v55-batch-release.log) reports0errors/0warnings, each with one optional room. First leaf-only attempt found one Elf layout lacking any non-entrance leaf; addressed with safe multi-entry fallback, verified same seed. Native Canvas actual closed/open game scene rendered and inspected after moving gates inside thresholds; hallway remains clear, door art and label visible, open rims remain. No browser automation or full HTML visual QA claimed.
 
 Deliverables green-team-treasure-room-v55.html first and green-team-treasure-room-v55.zip (green-team-v55). Keep old whole data folder; no dependency/database migration. Source on prototype/dungeon-exploration; PR2 stays unmerged. Next user explores searches to find key, opens optional room and judges loot reward/difficulty; dedicated key/door art can replace placeholders later.
+
+
+## GitHub Pages solo release PR — 21 October 2026
+
+Added the current tested solo/workshop release as a self-contained static site in docs/, targeting GitHub Pages main /docs. Includes a player-first title page, classic terrain on all maps/lair, creator workshop, disposable trials, drawing templates and a full-source download. Root index/server/source remain intact at their existing versions. The source download contains the newer game/workshop implementation and its build:pages command; this PR does not silently replace the existing multiplayer source tree.
+
+Validation: 466 automated checks passed in the release source, including an actual generated Pages-game startup with normal stock/XP, storage save/restore and all three map launches while network is forbidden. 39 local links/assets and HTML IDs/structure checked. Source download independently rebuilt successfully. Browser/physical-phone visual review remains pending. Publishing requires selecting main /docs in repository Pages settings after merge; this PR does not publish, merge or change repository visibility.
+
