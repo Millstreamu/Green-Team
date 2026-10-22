@@ -556,6 +556,9 @@ body{background:#0c110e}button,summary{ -webkit-tap-highlight-color:transparent 
 .sack-tab{right:var(--safe-right);bottom:calc(var(--safe-bottom) + 150px);min-width:0;width:28px;min-height:0;height:64px;padding:0;display:grid;place-items:center;writing-mode:vertical-rl;letter-spacing:2px;font-size:11px;border-right:0;border-radius:4px 0 0 4px;transition:right .2s ease}
 .sack-tab[aria-expanded="true"]{right:calc(var(--sack-inset) + var(--sack-width))}
 @media(prefers-reduced-motion:reduce){.sack-tab{transition:none}}
+/* Touch screens use the same edge tab instead of a round Sack button. */
+@media(any-pointer:coarse){#game-shell #touch-sack{display:none}.sack-tab{display:grid;bottom:calc(var(--safe-bottom) + 120px)}}
+@media(any-pointer:coarse) and (orientation:landscape){.sack-tab[aria-expanded="true"]{right:calc(var(--safe-right) + 206px + var(--sack-width))}}
 </style>
 </head>
 <body><main id="home-screen" hidden>
