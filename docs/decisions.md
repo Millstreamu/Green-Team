@@ -1000,3 +1000,9 @@ Publishing format: ready-made root-level index/game/creator HTML, relative asset
 **Agreed behaviour:** user asked for the plain Chest, Cupboard and Crate to join the workshop Furniture section, following the room-furniture pattern. These are the searchables in rooms without a purpose (the entrance room). New slots baseChest_1x1, baseCupboard_1x1 and baseCrate_1x1 sit alongside the 25 room-furniture slots, with blank, example and guide PNGs. Chest and crate are 32 × 32. The cupboard is 32 × 64: the bottom tile is its solid footprint and the top tile rises up the back wall, matching the original cupboard's height. Searched art fades like other furniture. The storage room's Supply crate keeps its own separate slot.
 
 **Still experimenting:** the cupboard's one-tile wall height is an AI choice made to fit the existing art; hiding barrels, torches, cages and guard doors still have no art slots.
+
+## Campfire ability icons in the workshop — 23 October 2026
+
+**Agreed behaviour:** user asked to edit menu items in the workshop, choosing menu words, ability icons, menu look and new items, and agreed to start with campfire ability icons. Items & audio now has an Ability icons picker for all six abilities, with blank, example and guide PNGs. An uploaded icon replaces the drawing in the campfire grid and detail panel, and Quick fingers at the workbench. Icons are keyed by ability, so Quiet hands and Lucky goblin no longer have to share the Vanish potion and coin item art. Effects, costs and slots are unchanged. Icons are included in project export/import; older exports load with no ability icons.
+
+**Still experimenting:** icon size is 32 × 40 px to match the existing menu icon canvas (an AI choice; item art stays 32 × 32). Next agreed steps, one at a time: menu words, menu look, then new items reusing existing behaviours.

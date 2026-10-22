@@ -10,6 +10,7 @@ import { PERSONAL_UPGRADES } from '../src/profile.js';
 import { LOOT_TYPES } from '../src/loot.js';
 import { FEEDBACK_SOUNDS } from '../src/feedback.js';
 import { LAIR_ART_SLOTS } from './lair-art.js';
+import { ABILITY_ART_SLOTS } from './ability-art.js';
 export const WORKSHOP_MAPS = ['manor', 'hold', 'sanctuary'];
 export const WORKSHOP_TILES = ['floor', 'wall_top_horz', 'wall_vert', 'wall_corner_top_left', 'wall_bottom_horz'];
 export const WORKSHOP_MATERIALS = ['scrap', 'cloth', 'meat', 'berries', 'mushroom'];
@@ -18,7 +19,7 @@ export function createWorkshopDraft() {
   return { format: 'green-team-workshop', version: 2, tuning: {...DEFAULT_TUNING}, generator: structuredClone(GENERATOR_PRESETS),
     maps: Object.fromEntries(WORKSHOP_MAPS.map(id => [id, { loot: {...SEARCH_LOOT}, weights: structuredClone(RESOURCE_PROFILES[id].containers), tiles: null }])),
     costs: Object.fromEntries(Object.entries(PERSONAL_UPGRADES).map(([id,p])=>[id,p.cost])),
-    materials: Object.fromEntries(Object.entries(RECIPES).map(([id,r])=>[id,{...r.materials}])), sprites: {}, audio: {}, furniture: {}, lair: { tiles: null, props: {} } };
+    materials: Object.fromEntries(Object.entries(RECIPES).map(([id,r])=>[id,{...r.materials}])), sprites: {}, audio: {}, furniture: {}, abilities: {}, lair: { tiles: null, props: {} } };
 }
 function exact(value, keys, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== keys.length || keys.some(k=>!Object.hasOwn(value,k))) throw Error(`Invalid ${label}.`);
@@ -30,10 +31,12 @@ function asset(value,kind) {
 export function validateWorkshopDraft(value) {
   // Accept only the exact earlier format before adding the optional new domain.
   if(value?.format==='green-team-workshop'&&value.version===1){
-    exact(value,Object.keys(createWorkshopDraft()).filter(k=>k!=='lair'&&k!=='furniture'),'version 1 workshop project');
-    value={...value,version:2,lair:{tiles:null,props:{}},furniture:{}};
+    exact(value,Object.keys(createWorkshopDraft()).filter(k=>!['lair','furniture','abilities'].includes(k)),'version 1 workshop project');
+    value={...value,version:2,lair:{tiles:null,props:{}},furniture:{},abilities:{}};
   }
-  if(value?.version===2&&!Object.hasOwn(value,'furniture')){exact(value,Object.keys(createWorkshopDraft()).filter(k=>k!=='furniture'),'earlier workshop project');value={...value,furniture:{}};}
+  // Version 2 gained optional artwork lists over time; earlier exports get empty ones.
+  const missing=value?.version===2?['furniture','abilities'].filter(k=>!Object.hasOwn(value,k)):[];
+  if(missing.length){exact(value,Object.keys(createWorkshopDraft()).filter(k=>!missing.includes(k)),'earlier workshop project');value={...value,...Object.fromEntries(missing.map(k=>[k,{}]))};}
   const defaults=createWorkshopDraft(); exact(value,Object.keys(defaults),'workshop project');
   if(value.format!==defaults.format || value.version!==2) throw Error('This is not a supported Green Team Workshop project.');
   exact(value.lair,['tiles','props'],'lair artwork');
@@ -45,6 +48,8 @@ export function validateWorkshopDraft(value) {
   }
   if(!value.furniture||typeof value.furniture!=='object'||Array.isArray(value.furniture))throw Error('Invalid furniture artwork.');
   for(const[id,src]of Object.entries(value.furniture)){if(!Object.hasOwn(FURNITURE_ART_SLOTS,id))throw Error('Unknown furniture artwork slot.');asset(src,'image');}
+  if(!value.abilities||typeof value.abilities!=='object'||Array.isArray(value.abilities))throw Error('Invalid ability icons.');
+  for(const[id,src]of Object.entries(value.abilities)){if(!Object.hasOwn(ABILITY_ART_SLOTS,id))throw Error('Unknown ability icon slot.');asset(src,'image');}
   validateTuning(value.tuning); generatorSettings(value.generator); exact(value.maps,WORKSHOP_MAPS,'maps');
   for(const id of WORKSHOP_MAPS) {
     const map=value.maps[id]; exact(map,['loot','weights','tiles'],'map'); exact(map.loot,WORKSHOP_LOOT_FIELDS,'loot rules');

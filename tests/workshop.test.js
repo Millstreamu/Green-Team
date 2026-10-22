@@ -13,7 +13,7 @@ import { LAIR_ART_SLOTS, lairArtBounds } from '../workshop/lair-art.js';
 import { createCamp,createLairWorld,lairTarget } from '../src/lair.js';
 
 test('old workshop exports migrate without losing choices and invalid lair assets are rejected',()=>{
- const current=createWorkshopDraft(),old=structuredClone(current);delete old.lair;delete old.furniture;old.version=1;old.costs.smoke=9;
+ const current=createWorkshopDraft(),old=structuredClone(current);delete old.lair;delete old.furniture;delete old.abilities;old.version=1;old.costs.smoke=9;
  const upgraded=validateWorkshopDraft(old);assert.equal(upgraded.version,2);assert.equal(upgraded.costs.smoke,9);assert.deepEqual(upgraded.lair,{tiles:null,props:{}});assert.equal(old.version,1);assert.equal(old.lair,undefined);
  for(const change of [d=>d.lair.props.unknown='data:image/png;base64,AAAA',d=>d.lair.tiles='http://invalid',d=>d.lair.props=[],d=>d.version=99]){const bad=structuredClone(current);change(bad);assert.throws(()=>validateWorkshopDraft(bad));}
  const old2=structuredClone(current);delete old2.furniture;old2.costs.smoke=13;const migrated=validateWorkshopDraft(old2);assert.deepEqual(migrated.furniture,{});assert.equal(migrated.costs.smoke,13);
@@ -216,4 +216,16 @@ test('base chest, cupboard and crate have their own artwork slots; the cupboard 
  assert.equal(drawFurnitureArt(ctx,images,{type:'chest',tileX:2,tileY:3},0,0,24),true);assert.deepEqual(calls.pop(),[48,72,24,24]);
  assert.equal(drawFurnitureArt(ctx,images,{type:'crate',tileX:2,tileY:3},0,0,24),false);
  const draft=createWorkshopDraft();draft.furniture.baseCupboard_1x1='data:image/png;base64,AAAA';assert.deepEqual(validateWorkshopDraft(draft),draft);
+});
+
+test('campfire ability icons have their own slots, survive export and replace only the menu drawing',async()=>{
+ const {ABILITY_ART_SLOTS}=await import('../workshop/ability-art.js'),{PASSIVE_IDS}=await import('../src/profile.js');
+ assert.deepEqual(Object.keys(ABILITY_ART_SLOTS),[...PASSIVE_IDS]);
+ const manifest=JSON.parse(readFileSync(new URL('../workshop/templates/ability-manifest.json',import.meta.url)));assert.deepEqual(manifest,JSON.parse(JSON.stringify(ABILITY_ART_SLOTS)));
+ for(const id of PASSIVE_IDS)assert.ok(readFileSync(new URL(`../workshop/templates/abilities/${id}-example.png`,import.meta.url)).length>0);
+ const draft=createWorkshopDraft();assert.deepEqual(draft.abilities,{});draft.abilities.panicSprint='data:image/png;base64,AAAA';assert.deepEqual(validateWorkshopDraft(JSON.parse(JSON.stringify(draft))),draft);
+ const bad=structuredClone(draft);bad.abilities.fake='data:image/png;base64,AAAA';assert.throws(()=>validateWorkshopDraft(bad),/Unknown ability/);
+ const older=structuredClone(createWorkshopDraft());delete older.abilities;delete older.furniture;const migrated=validateWorkshopDraft(older);assert.deepEqual(migrated.abilities,{});assert.deepEqual(migrated.furniture,{});
+ const game=readFileSync(new URL('../build/workshop-game-check.mjs',import.meta.url),'utf8');
+ assert.match(game,/if\(!workshopDrawAbility\(get\('passive-sprite'\),id\)\)drawStationSprite/);assert.match(game,/if\(!workshopDrawAbility\(get\(`passive-icon-\$\{id\}`\),id\)\)/);
 });

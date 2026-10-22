@@ -1251,3 +1251,11 @@ Verification: 466/466 full tests pass (`pages-full-tests.log`); 21 targeted edit
 Task: let the workshop Furniture section replace the plain chest, cupboard and crate artwork. Changed src/furniture-art.js (three base-container slots; the art id falls back to the container type when there is no room furniture; supports wall height above the footprint), workshop/game-adapter.js (base containers draw an uploaded PNG in playtests), workshop/furniture-editor.js (size label), scripts/build-furniture-templates.mjs (draws examples from the original container art, outlines only the solid tile), the new template PNGs and manifest, and a workshop test. Rebuilt docs/ with npm run build:pages.
 
 Checks: 467/467 tests pass. In a room playtest built with bright test PNGs for all three slots, each drew in place of the original, and the cupboard's top half sat on the back wall. Existing furniture template PNGs were left unchanged (re-rendering them with a newer canvas library only changed bytes). Phone playtesting not done.
+
+## Campfire ability icons in the workshop — 23 October 2026
+
+Task: first slice of "edit menu items" — uploadable campfire ability icons. Added workshop/ability-art.js (six 32 × 40 slots from the real ability list), workshop/ability-editor.js and an Ability icons card in workshop/shell.html. Changed workshop/model.js (new abilities list; older version 2 exports without furniture/abilities get empty lists), workshop/game-adapter.js (campfire grid, detail panel and workbench Quick fingers draw uploaded icons), workshop/editor.js (import checks/preview), scripts/build-workshop.mjs, and the new scripts/build-ability-templates.mjs with templates in workshop/templates/abilities and ability-manifest.json. Rebuilt docs/.
+
+Checks: 468/468 tests pass (new test covers slots, manifest, export round trip, migration and the game hooks). In a lair playtest with bright test icons for three abilities, the campfire grid and detail panel showed them, the other three kept their originals, workbench Quick fingers used the new icon, and the Vanish potion item kept its own art. The workshop page's Ability icons card was checked in the browser. Not checked: an actual PNG upload through the file picker (browser tools can't choose files), and phones.
+
+Next: menu words (names, effect and limits text) as the second slice, after the user confirms.

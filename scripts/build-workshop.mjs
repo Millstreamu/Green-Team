@@ -3,6 +3,7 @@ import {ROOM_TYPES,roomLootPools,roomMaterialContainer} from '../src/room-types.
 import {readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import * as model from '../workshop/model.js';
+import {ABILITY_ART_SLOTS} from '../workshop/ability-art.js';
 import {adaptWorkshopGame} from '../workshop/game-adapter.js';
 import {DEFAULT_TUNING,TUNING_FIELDS,validateTuning,runTuning} from '../src/tuning.js';
 import {GENERATOR_PRESETS,GENERATOR_FIELDS,generatorSettings,validateGenerator} from '../src/generator-settings.js';
@@ -33,7 +34,7 @@ const defaultTerrainSource='data:image/png;base64,'+(await readFile(new URL('wor
 game='const WORKSHOP_TERRAIN_SOURCE='+JSON.stringify(defaultTerrainSource)+';\n'+'const WORKSHOP_HUMAN_METADATA='+JSON.stringify(humanMeta)+';\nfunction workshopRunTuning(draft,id){const t=runTuning(draft.tuning);t.loot={...draft.maps[id].loot};return t;}\n'+game;
 let html=(await read('index.html')).replaceAll('src="assets/goblin.png"','src="data:image/png;base64,'+goblin.toString('base64')+'"').replace('<script type="module" src="src/main.js"></script>','<!--WORKSHOP_SCRIPT-->');
 html=html.replace('</head>',`<script>window.addEventListener('error',e=>parent.postMessage({type:'workshop-error',message:e.message},'*'));window.addEventListener('unhandledrejection',e=>parent.postMessage({type:'workshop-error',message:String(e.reason?.message??e.reason)},'*'));</script></head>`);
-const values={FURNITURE_ART_SLOTS,ROOM_TYPES,CONFIG,DEFAULT_TUNING,TUNING_FIELDS,GENERATOR_PRESETS,GENERATOR_FIELDS,RESOURCE_PROFILES,SEARCH_LOOT,SEARCHABLE_TYPES,RECIPES,PERSONAL_UPGRADES,LOOT_TYPES,FEEDBACK_SOUNDS,COMBAT,HEAT,SEARCH,DEEP_TERRAIN_NAMES};
+const values={FURNITURE_ART_SLOTS,ABILITY_ART_SLOTS,ROOM_TYPES,CONFIG,DEFAULT_TUNING,TUNING_FIELDS,GENERATOR_PRESETS,GENERATOR_FIELDS,RESOURCE_PROFILES,SEARCH_LOOT,SEARCHABLE_TYPES,RECIPES,PERSONAL_UPGRADES,LOOT_TYPES,FEEDBACK_SOUNDS,COMBAT,HEAT,SEARCH,DEEP_TERRAIN_NAMES};
 let js=Object.entries(values).map(([key,value])=>'const '+key+'='+JSON.stringify(value)+';').join('\n');
 js+='\n'+[furnitureArtId,drawFurnitureArt,roomLootPools,roomMaterialContainer,validateTuning,runTuning,generatorSettings,validateGenerator,searchRewardProfile,itemCells,isFloor,terrainTile,terrainLayers,drawTerrainTile,classicTerrainNames,classicTerrainLayers,deepTerrainNames,workshopTerrainArt,deepWallParts,drawDeepFrame,deepWallOpacity,drawDeepWall,drawTerrainOverview,drawItem,drawStationItem].map(f=>f.toString()).join('\n');
 js+='\n'+(await read('src/station-art.js')).replace(/^export /gm,'');
@@ -50,12 +51,14 @@ for(const id of Object.keys(lairManifest)){
  asset.lair[id]={};for(const kind of ['blank','guide','test'])asset.lair[id][kind]='data:image/png;base64,'+(await readFile(new URL(`workshop/templates/lair/${id}-${kind}.png`,base))).toString('base64');
 }
 asset.furniture={};for(const id of Object.keys(FURNITURE_ART_SLOTS)){asset.furniture[id]={};for(const kind of ['blank','guide','example'])asset.furniture[id][kind]='data:image/png;base64,'+(await readFile(new URL(`workshop/templates/furniture/${id}-${kind}.png`,base))).toString('base64');}
+asset.abilities={};for(const id of Object.keys(ABILITY_ART_SLOTS)){asset.abilities[id]={};for(const kind of ['blank','guide','example'])asset.abilities[id][kind]='data:image/png;base64,'+(await readFile(new URL(`workshop/templates/abilities/${id}-${kind}.png`,base))).toString('base64');}
 const lairWorld=createLairWorld(createCamp());
 js+='\nconst WORKSHOP_LAIR_LAYOUT='+JSON.stringify({width:lairWorld.width,height:lairWorld.height,lair:true,stations:lairWorld.stations,tiles:Array.from(lairWorld.tiles)})+';\n';
 js+='\nconst WORKSHOP_ASSETS='+JSON.stringify(asset)+';\nconst WORKSHOP_GAME_HTML='+JSON.stringify(Buffer.from(html).toString('base64'))+';\nconst WORKSHOP_GAME_CODE='+JSON.stringify(Buffer.from(game).toString('base64'))+';\n';
 js+=await read('workshop/editor.js');
 js+='\n'+await read('workshop/lair-editor.js');
 js+='\n'+await read('workshop/furniture-editor.js');
+js+='\n'+await read('workshop/ability-editor.js');
 const shell=await read('workshop/shell.html'),fragment=shell.replace('/* WORKSHOP_BUNDLE */',js.replaceAll('</script','<\\/script'));
 const out=new URL('../build/green-team-workshop-tidy.html',import.meta.url);
 await writeFile(out,fragment);await writeFile(new URL('workshop/workshop.html',base),'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Green Team Workshop</title></head><body style="margin:0">'+fragment+'</body></html>');

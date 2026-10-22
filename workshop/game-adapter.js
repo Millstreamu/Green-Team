@@ -1,4 +1,5 @@
 import { FURNITURE_ART_SLOTS } from '../src/furniture-art.js';
+import { ABILITY_ART_SLOTS } from './ability-art.js';
 // Build-time adapter for an isolated V97 solo sandbox. Production source/save rules
 // remain untouched. Every source patch fails closed when its expected anchor changes.
 export function adaptWorkshopGame(source) {
@@ -9,6 +10,9 @@ const workshopImages = new Map();
 for (const [id, src] of Object.entries(workshopDraft.sprites)) { const img=new Image(); img.src=src; await img.decode(); workshopImages.set(id,img); }
 const workshopFurnitureImages = new Map();
 for(const[id,src]of Object.entries(workshopDraft.furniture??{})){const img=new Image();img.src=src;await img.decode();const slot=${JSON.stringify(FURNITURE_ART_SLOTS)}[id];if(!slot||img.naturalWidth!==slot.width||img.naturalHeight!==slot.height)throw Error('Furniture PNG has the wrong size.');workshopFurnitureImages.set(id,img);}
+const workshopAbilityImages = new Map();
+for(const[id,src]of Object.entries(workshopDraft.abilities??{})){const img=new Image();img.src=src;await img.decode();const slot=${JSON.stringify(ABILITY_ART_SLOTS)}[id];if(!slot||img.naturalWidth!==slot.width||img.naturalHeight!==slot.height)throw Error('Ability icon PNG has the wrong size.');workshopAbilityImages.set(id,img);}
+function workshopDrawAbility(canvas,id){const im=workshopAbilityImages.get(id);if(!im)return false;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.imageSmoothingEnabled=false;c.drawImage(im,0,0,canvas.width,canvas.height);return true;}
 const workshopTerrain = {};
 for(const id of ['manor','hold','sanctuary']) {
  const img=new Image();img.src=workshopDraft.maps[id].tiles??WORKSHOP_TERRAIN_SOURCE;await img.decode();
@@ -30,10 +34,13 @@ function workshopDrawItem(ctx,item,x,y,size) {
 `;
   swap("export function drawRoomFurniture(ctx,object,ox,oy) {", "export function drawRoomFurniture(ctx,object,ox,oy) {\n if(drawFurnitureArt(ctx,workshopFurnitureImages,object,ox,oy))return;");
   swap("if (pass !== 'ui' && !object.roomFurniture) {", "if (pass !== 'ui' && !object.roomFurniture && !drawFurnitureArt(ctx,workshopFurnitureImages,object,ox,oy)) {");
+  // Ability icons are keyed by ability, so Quiet hands and Lucky goblin need not share the Vanish/coin item art.
+  swap("drawStationSprite(get(`passive-icon-${id}`),PASSIVE_DETAILS[id].sprite);", "if(!workshopDrawAbility(get(`passive-icon-${id}`),id))drawStationSprite(get(`passive-icon-${id}`),PASSIVE_DETAILS[id].sprite);");
+  swap("drawStationSprite(get('passive-sprite'),info.sprite);", "if(!workshopDrawAbility(get('passive-sprite'),id))drawStationSprite(get('passive-sprite'),info.sprite);");
   swap("const slot = sounds[cue];","const slot = sounds[cue] && { ...sounds[cue], src: workshopDraft.audio[cue] ?? sounds[cue].src };");
   swap("export function drawItem(ctx, item, x, y, size, outline = null) {", "export function drawItem(ctx, item, x, y, size, outline = null) {\n  if(workshopDrawItem(ctx,item,x,y,size)) return;");
   swap("export function drawStationItem(ctx, item, x, y, size) {", "export function drawStationItem(ctx, item, x, y, size) {\n  if(workshopDrawItem(ctx,item,x,y,size)) return;");
-  swap("export function drawStationSprite(canvas, type) {", "export function drawStationSprite(canvas, type) {\n if(workshopImages.has(type)){const c=canvas.getContext('2d'),im=workshopImages.get(type);c.clearRect(0,0,canvas.width,canvas.height);c.imageSmoothingEnabled=false;const s=Math.min(canvas.width/im.width,canvas.height/im.height);c.drawImage(im,(canvas.width-im.width*s)/2,(canvas.height-im.height*s)/2,im.width*s,im.height*s);return;}");
+  swap("export function drawStationSprite(canvas, type) {", "export function drawStationSprite(canvas, type) {\n if(type==='quickSearch'&&workshopDrawAbility(canvas,type))return;\n if(workshopImages.has(type)){const c=canvas.getContext('2d'),im=workshopImages.get(type);c.clearRect(0,0,canvas.width,canvas.height);c.imageSmoothingEnabled=false;const s=Math.min(canvas.width/im.width,canvas.height/im.height);c.drawImage(im,(canvas.width-im.width*s)/2,(canvas.height-im.height*s)/2,im.width*s,im.height*s);return;}");
   swap("const terrainArt = !world.lair && world.job?.jobId === 'manor' ? humanTerrain : null;", "const terrainArt = world.lair ? workshopTerrain.lair ?? null : workshopTerrain[world.job?.jobId] ?? (world.job?.jobId === 'manor' ? humanTerrain : null);");
   swap("if (station.kind === 'stash') {", "if (workshopLairImages.has(station.kind)) {} else if (station.kind === 'stash') {");
   swap("  ctx.fillStyle = built ? '#62533d'", "  if(drawLairArt(ctx,workshopLairImages,world,built?'potion':'potionSite',ox,oy))return;\n  ctx.fillStyle = built ? '#62533d'");

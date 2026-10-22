@@ -1,0 +1,32 @@
+{
+  "quickSearch": {
+    "name": "Quick fingers",
+    "width": 32,
+    "height": 40
+  },
+  "quietHands": {
+    "name": "Quiet Hands",
+    "width": 32,
+    "height": 40
+  },
+  "luckyGoblin": {
+    "name": "Lucky Goblin",
+    "width": 32,
+    "height": 40
+  },
+  "panicSprint": {
+    "name": "Panic Sprint",
+    "width": 32,
+    "height": 40
+  },
+  "hideSense": {
+    "name": "Hideout Sense",
+    "width": 32,
+    "height": 40
+  },
+  "searchVeil": {
+    "name": "Fade Away",
+    "width": 32,
+    "height": 40
+  }
+}
