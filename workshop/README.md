@@ -60,7 +60,7 @@ All lair images are included in Export project. New exports use version 2; exact
 
 ## Items and sound
 
-Choose an item to see its required PNG dimensions. Most are 32 × 32. A 1 × 2 item uses 32 × 64, a 2 × 1 item 64 × 32, the sword 32 × 96, and the L-shaped horn 64 × 64 with an unused transparent corner. Matching blank files and footprint guides are in templates/items. Sprite uploads are used by floor/sack/station item drawing and retain the original footprint, rotation and stack behavior. Existing ability icons, goblin/guard animations and dungeon furniture art remain outside this import pass; lair stations have their own section above.
+Choose an item to see its required PNG dimensions. Most are 32 × 32. A 1 × 2 item uses 32 × 64, a 2 × 1 item 64 × 32, the sword 32 × 96, and the L-shaped horn 64 × 64 with an unused transparent corner. Matching blank files and footprint guides are in templates/items. Sprite uploads are used by floor/sack/station item drawing and retain the original footprint, rotation and stack behavior. Existing ability icons and goblin/guard animations remain outside this import pass. Lair stations have their own section above, and dungeon furniture its own Furniture section, including the plain chest, cupboard and crate. The cupboard PNG is 32 × 64: its bottom tile is solid and its top tile rises up the back wall.
 
 Choose a sound cue, upload WAV/MP3/OGG/WebM and Listen. Clip playback uses the game's existing 18% volume. Keep clips short; maximum input file size is 5 MB. Audio still requires a user gesture in browsers. Original synthesized effects remain available by removing a replacement.
 

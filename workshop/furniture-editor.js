@@ -5,7 +5,7 @@ async function validateFurnitureImages(project){
 }
 async function furniturePreview(){
  const serial=++furniturePreviewSerial,id=furnitureSlot(),slot=FURNITURE_ART_SLOTS[id];
- $('furniture-size').textContent=`${slot.width} × ${slot.height} px · ${slot.tilesWide} × ${slot.tilesHigh} solid floor tiles`;
+ $('furniture-size').textContent=`${slot.width} × ${slot.height} px · ${slot.tilesWide} × ${slot.tilesHigh} solid floor tiles${slot.wallTilesAbove?' · top tile rises up the back wall':''}${slot.container?' · used in the entrance room and other rooms without a purpose':''}`;
  $('furniture-guide-image').src=WORKSHOP_ASSETS.furniture[id].guide;
  $('furniture-state').textContent=draft.furniture[id]?'Custom PNG saved in this draft':'Original placeholder artwork';
  const img=await image(draft.furniture[id]??WORKSHOP_ASSETS.furniture[id].example);if(serial!==furniturePreviewSerial)return;

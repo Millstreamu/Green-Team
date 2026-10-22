@@ -205,3 +205,15 @@ test('Pages solo uses real browser saves and normal progression, launches every 
  }
  assert.ok(html.includes('const terrainArt = humanTerrain;'));assert.ok(html.includes('href="index.html"'));
 });
+
+test('base chest, cupboard and crate have their own artwork slots; the cupboard rises one tile up its back wall',async()=>{
+ const {FURNITURE_ART_SLOTS,furnitureArtId,drawFurnitureArt}=await import('../src/furniture-art.js');
+ const manifest=JSON.parse(readFileSync(new URL('../workshop/templates/furniture/manifest.json',import.meta.url)));assert.deepEqual(manifest,JSON.parse(JSON.stringify(FURNITURE_ART_SLOTS)));
+ assert.equal(furnitureArtId({type:'crate',tileX:2,tileY:3}),'baseCrate_1x1');assert.equal(furnitureArtId({type:'crate',roomFurniture:'crate'}),'crate_1x1');
+ for(const type of ['chest','cupboard','crate'])assert.equal(FURNITURE_ART_SLOTS[furnitureArtId({type})].container,type);
+ const calls=[],ctx={save(){},restore(){},globalAlpha:1,drawImage:(...a)=>calls.push(a.slice(1))},images=new Map([['baseCupboard_1x1',{}],['baseChest_1x1',{}]]);
+ assert.equal(drawFurnitureArt(ctx,images,{type:'cupboard',tileX:2,tileY:3},0,0,24),true);assert.deepEqual(calls.pop(),[48,48,24,48]);
+ assert.equal(drawFurnitureArt(ctx,images,{type:'chest',tileX:2,tileY:3},0,0,24),true);assert.deepEqual(calls.pop(),[48,72,24,24]);
+ assert.equal(drawFurnitureArt(ctx,images,{type:'crate',tileX:2,tileY:3},0,0,24),false);
+ const draft=createWorkshopDraft();draft.furniture.baseCupboard_1x1='data:image/png;base64,AAAA';assert.deepEqual(validateWorkshopDraft(draft),draft);
+});

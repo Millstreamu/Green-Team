@@ -198,5 +198,32 @@
     "height": 32,
     "tilesWide": 1,
     "tilesHigh": 1
+  },
+  "baseChest_1x1": {
+    "container": "chest",
+    "name": "Chest · base container · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1,
+    "wallTilesAbove": 0
+  },
+  "baseCupboard_1x1": {
+    "container": "cupboard",
+    "name": "Cupboard · base container · 1 × 1 tiles",
+    "width": 32,
+    "height": 64,
+    "tilesWide": 1,
+    "tilesHigh": 1,
+    "wallTilesAbove": 1
+  },
+  "baseCrate_1x1": {
+    "container": "crate",
+    "name": "Crate · base container · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1,
+    "wallTilesAbove": 0
   }
 }

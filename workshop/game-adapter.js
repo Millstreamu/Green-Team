@@ -29,6 +29,7 @@ function workshopDrawItem(ctx,item,x,y,size) {
 }
 `;
   swap("export function drawRoomFurniture(ctx,object,ox,oy) {", "export function drawRoomFurniture(ctx,object,ox,oy) {\n if(drawFurnitureArt(ctx,workshopFurnitureImages,object,ox,oy))return;");
+  swap("if (pass !== 'ui' && !object.roomFurniture) {", "if (pass !== 'ui' && !object.roomFurniture && !drawFurnitureArt(ctx,workshopFurnitureImages,object,ox,oy)) {");
   swap("const slot = sounds[cue];","const slot = sounds[cue] && { ...sounds[cue], src: workshopDraft.audio[cue] ?? sounds[cue].src };");
   swap("export function drawItem(ctx, item, x, y, size, outline = null) {", "export function drawItem(ctx, item, x, y, size, outline = null) {\n  if(workshopDrawItem(ctx,item,x,y,size)) return;");
   swap("export function drawStationItem(ctx, item, x, y, size) {", "export function drawStationItem(ctx, item, x, y, size) {\n  if(workshopDrawItem(ctx,item,x,y,size)) return;");
