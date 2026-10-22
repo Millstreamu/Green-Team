@@ -1,8 +1,9 @@
-import { CONFIG, TRAPS } from './config.js';
+import { breakDisguise } from './potions.js';
+import { CONFIG, TRAPS, DART, BELL, BERRY } from './config.js';
 import { canStand } from './world.js';
 import { clearPath } from './loot.js';
 
-export function createPlacement() { return { itemId: null, elapsed: 0, ready: false, point: null, origin: null, aimPoint: null }; }
+export function createPlacement() { return { itemId: null, kind: null, elapsed: 0, ready: false, point: null, origin: null, aimPoint: null }; }
 export function cancelPlacement(placement) { Object.assign(placement, createPlacement()); }
 export function interruptPlacement(placement) { placement.elapsed = 0; placement.ready = false; placement.origin = null; }
 export function equipSnare(placement, loot, id) {
@@ -11,9 +12,9 @@ export function equipSnare(placement, loot, id) {
   // Keep the sack cell reserved until completion, so cancel never loses an item.
   return true;
 }
-export function placementPoint(player, pointer = null) {
+export function placementPoint(player, pointer = null, reach = TRAPS.reach) {
   const dx = pointer ? pointer.x - player.x : player.facing || 1, dy = pointer ? pointer.y - player.y : 0;
-  const distance = Math.hypot(dx, dy), scale = distance > TRAPS.reach ? TRAPS.reach / distance : 1;
+  const distance = Math.hypot(dx, dy), scale = distance > reach ? reach / distance : 1;
   return { x: player.x + dx * scale, y: player.y + dy * scale };
 }
 export function validTrapPosition(world, player, point, traps, objects = []) {
@@ -22,7 +23,7 @@ export function validTrapPosition(world, player, point, traps, objects = []) {
     && objects.every(object => Math.hypot(object.x - point.x, object.y - point.y) >= 0.65);
 }
 export function updatePlacement(placement, world, player, loot, traps, objects, point, heldE, dt) {
-  if (!placement.itemId) return null;
+  if (!placement.itemId || ['dart', 'bell', 'berries'].includes(placement.kind)) return null;
   if (player.hiding || player.state === 'down' || !loot.bag.some(item => item.id === placement.itemId)) { cancelPlacement(placement); return null; }
   if (placement.point && Math.hypot(placement.point.x - point.x, placement.point.y - point.y) > 0.1) { placement.elapsed = 0; placement.origin = null; }
   placement.point = { ...point };
@@ -34,6 +35,7 @@ export function updatePlacement(placement, world, player, loot, traps, objects, 
   if (placement.elapsed + 0.000001 < TRAPS.placeTime) return null;
   const index = loot.bag.findIndex(item => item.id === placement.itemId);
   const trap = { id: placement.itemId, ...point, phase: 'arming', ownerId: player.id ?? 'goblin', ownerClear: false, armLeft: TRAPS.armDelay };
+  breakDisguise(player);
   loot.bag.splice(index, 1); traps.push(trap); cancelPlacement(placement);
   return { type: 'placed', trap };
 }
@@ -63,7 +65,7 @@ export function moveTrapAim(placement, player, direction, dt) {
   const length = Math.hypot(direction.x, direction.y);
   if (!length) return false;
   const current = placement.aimPoint ?? placement.point ?? placementPoint(player);
-  placement.aimPoint = placementPoint(player, { x: current.x + direction.x / length * 2.5 * dt, y: current.y + direction.y / length * 2.5 * dt });
+  placement.aimPoint = placementPoint(player, { x: current.x + direction.x / length * 2.5 * dt, y: current.y + direction.y / length * 2.5 * dt }, placement.kind === 'dart' ? DART.range : placement.kind === 'bell' ? BELL.range : placement.kind === 'berries' ? BERRY.range : TRAPS.reach);
   placement.elapsed = 0; placement.origin = null;
   return true;
 }

@@ -8,16 +8,19 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
     constructor(id = '') { this.id = id; this.listeners = {}; this.style = {}; this.dataset = {}; this.width = 0; this.height = 0; this.textContent = ''; }
     addEventListener(type, callback) { (this.listeners[type] ??= []).push(callback); }
     send(type, properties = {}) {
-      const event = { target: this, code: '', button: 0, preventDefault() {}, ...properties };
+      const event = { target: this, code: '', button: 0, preventDefault() {}, stopPropagation() {}, ...properties };
       for (const callback of this.listeners[type] ?? []) callback(event);
     }
     getBoundingClientRect() { return this.id === 'sack-grid' ? { left: 700, top: 370, right: 868, bottom: 538, width: 168, height: 168 } : { left: 0, top: 0, right: 900, bottom: 600, width: 900, height: 600 }; }
     getContext() { return new Proxy({}, { get: (obj, key) => obj[key] ?? (key === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}) }); }
+    dispatchEvent(event) { this.send(event.type, event); if (this.id === 'game') win.send(event.type, event); return true; }
     closest() { return null; }
     focus() { this.focused = true; }
+    setPointerCapture() {}
     append(...children) { (this.children ??= []).push(...children); }
-    replaceChildren() { this.children = []; }
+    replaceChildren(...children) { this.children = children; }
     setAttribute() {}
+    show() { this.open = true; this.nonModal = true; }
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
@@ -82,10 +85,15 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   const stock = session.snapshot(player).camp.counts.snare;
   const slot = session.snapshot(player).camp.slots.indexOf('snare');
   element('stash-grid').send('pointerdown', { clientX: (slot % 6 + .5) * 150, clientY: (Math.floor(slot / 6) + .5) * 100 });
+  element('stash-action').send('click');
   const command = sent.at(-1); assert.equal(command.type, 'take'); assert.equal(command.item, 'snare');
   assert.equal(session.snapshot(player).camp.counts.snare, stock);
+  assert.equal(element('lair-station-shell').dataset.feedback, undefined, 'request alone must not confirm success');
   assert.equal(session.action(player, command), true); sync();
   assert.equal(player.bag.length, 1); assert.equal(other.bag.length, 0);
+  receive({ type: 'action-feedback', action: 'take', feedbackId: command.feedbackId, ok: true });
+  assert.equal(element('stash-action-icon').dataset.feedback, 'lair');
+  assert.equal(element('lair-station-shell').dataset.feedback, undefined);
   element('lair-sack-grid').send('keydown', { code: 'KeyE' });
   assert.equal(sent.at(-1).type, 'return');
   assert.equal(session.action(player, sent.at(-1)), true); sync();
@@ -93,7 +101,7 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.equal(element('lair-panel').open, false);
   player.x = 5; player.y = 2.5; sync(); key('KeyE');
   assert.equal(element('map-planning').open, true);
-  element('difficulty-choice').value = 'hard'; element('confirm-job').send('click');
+  element('difficulty-choice').value = 'hard'; element('difficulty-choice').send('change'); element('confirm-job').send('click');
   assert.equal(sent.at(-2).type, 'destination');
   assert.equal(session.action(player, sent.at(-2)), true); sync();
   assert.equal(session.snapshot(other).cart.selection.difficultyId, 'hard');
@@ -102,7 +110,17 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.match(element('destination-label').textContent, /Hard/);
   assert.equal(stored.get('green-team-test-token'), player.token);
   assert.equal(session.action(player, { type: 'take', item: 'snare' }), true);
-  for (const p of [player, other]) { p.x = 9; p.y = 2.5; session.action(p, { type: 'board' }); }
+  player.x = 9; player.y = 2.5; sync(); key('KeyE');
+  assert.equal(element('departure-panel').open,true);
+  element('departure-board').send('click');
+  const boardCommand = sent.at(-1); assert.equal(boardCommand.type,'board');
+  const beforeDuplicate = sent.length; element('departure-board').send('click'); assert.equal(sent.length,beforeDuplicate);
+  assert.equal(session.action(player,boardCommand),true); sync(); frames.shift()();
+  assert.equal(element('departure-board').textContent,'Hop out');
+  element('departure-board').send('click'); assert.equal(session.action(player,sent.at(-1)),true); sync(); frames.shift()();
+  assert.equal(session.snapshot(other).cart.countdown,null);
+  element('departure-board').send('click'); assert.equal(session.action(player,sent.at(-1)),true); sync(); frames.shift()();
+  other.x=9;other.y=2.5;session.action(other,{type:'board'});
   for (let i = 0; i < 61; i++) session.tick(.05);
   // Keep random patrol combat out of this UI fixture; real combat is checked separately.
   player.invulnerable = other.invulnerable = 1000;
@@ -127,8 +145,11 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   player.moving = true; sync(); frames.shift()(64);
   assert.equal(element('sack-panel').dataset.open, 'true');
   player.moving = false;
-  doc.send('pointerdown', { target: element('sack-grid'), clientX: 728, clientY: 398 });
-  doc.send('pointerup', { target: element('sack-grid'), clientX: 744, clientY: 398 });
+  const beforeTouch = sent.filter(m => m.type === 'lift').length;
+  element('sack-grid').send('pointerdown', { pointerType: 'touch', clientX: 728, clientY: 398 });
+  element('sack-grid').send('pointerup', { pointerType: 'touch', clientX: 744, clientY: 398 });
+  assert.equal(sent.filter(m => m.type === 'lift').length, beforeTouch, 'touch selects equipment without an accidental drag');
+  element('game').send('touchlift');
   const lift = sent.findLast(m => m.type === 'lift');
   const id = player.bag[0].id;
   assert.ok(lift);
@@ -153,8 +174,8 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.equal(player.bag[0].id, id);
   player.bag.splice(0, player.bag.length, { id: 'ui-haul-a', type: 'ruby', rotation: 0, x: 0, y: 0 }, { id: 'ui-haul-b', type: 'ruby', rotation: 0, x: 1, y: 0 });
   Object.assign(player, dungeon.entrance); Object.assign(other, dungeon.entrance); sync();
-  key('KeyE'); assert.equal(sent.at(-1).type, 'extract');
-  assert.equal(session.action(player, sent.at(-1)), true); sync();
+  key('KeyE');assert.equal(element('raid-cart-panel').open,true);await new Promise(resolve=>setTimeout(resolve,1050));win.send('keyup',{code:'KeyE'});assert.equal(sent.at(-1).type,'cart-board');
+  assert.equal(session.action(player,sent.at(-1)),true);assert.equal(session.action(other,{type:'cart-board',active:true}),true);for(let n=0;n<61;n++)session.tick(.05);sync();
   assert.equal(element('run-results').open, true);
   assert.match(element('haul-total').textContent, /team sack squares/);
   assert.match(element('result-xp').textContent, /\+50 XP/);
@@ -165,16 +186,31 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.equal(element('sack-tab').hidden, true);
   session.action(other, { type: 'dismiss-result' });
   let consumed = sent.length;
-  const flush = () => { for (const message of sent.slice(consumed)) session.action(player, message); consumed = sent.length; };
-  player.x = 9; player.y = 11.5; sync(); key('KeyE'); flush(); sync();
-  assert.equal(element('passives').hidden, false);
-  assert.equal(element('buy-quick-search').disabled, false);
-  element('buy-quick-search').send('click'); flush(); sync();
+  const flush = () => { for (const message of sent.slice(consumed)) { const ok=!!session.action(player,message); if(message.feedbackId) receive({type:'action-feedback',action:message.type,feedbackId:message.feedbackId,ok}); } consumed=sent.length; };
+  player.x = 13; player.y = 6; sync(); key('KeyE'); flush(); sync();
+  assert.equal(element('station-book').hidden,false);element('choose-lunch').send('click');
+  session.snapshot(player).camp.counts.meat=1;session.snapshot(player).camp.counts.berries=1;sync();
+  assert.equal(element('book-action').disabled,false);element('book-action').send('click');flush();sync();
+  assert.equal(player.bag[0].type,'lunch');assert.equal(session.snapshot(other).camp.counts.meat,0);assert.equal(session.snapshot(other).camp.counts.berries,0);
+  const cookedLunch=player.bag[0].id;assert.ok(session.action(player,{type:'return',id:cookedLunch}));sync();
+
+  element('close-lair').send('click');flush();player.x=9;player.y=11.5;sync();key('KeyE');flush();sync();
+  element('passive-quickSearch').send('pointerdown',{button:0}); await new Promise(resolve=>setTimeout(resolve,1050)); element('passive-quickSearch').send('pointerup'); element('passive-quickSearch').send('click'); flush(); sync();
   assert.equal(player.profile.xp, 20); assert.equal(other.profile.xp, 50);
-  assert.match(element('buy-quick-search').textContent, /Owned/);
+  assert.equal(element('station-passives').hidden,false);element('passive-quickSearch').send('click');flush();sync();assert.deepEqual(player.profile.activePassives,['quickSearch']);
   assert.match(element('xp-label').textContent, /20 XP available/);
   element('close-lair').send('click'); flush();
-  key('Tab'); element('debug-pack-snare').send('click'); flush(); sync();
+  win.send('keydown', { code: 'Tab', repeat: true, target: element('game') });
+  assert.equal(element('lair-panel').open, false, 'repeat cannot reopen a closed lair panel');
+  key('Tab'); element('lair-panel').send('keydown', { code: 'Tab', repeat: true });
+  assert.equal(element('lair-panel').open, true, 'repeat cannot close an open lair panel');
+  const guideCommandCount=sent.length;
+  element('station-guide').send('click');assert.equal(element('gear-guide').hidden,false);
+  element('guide-tab-costs').send('click');assert.equal(element('guide-cost-rows').children.length,10);
+  element('guide-tab-loadouts').send('click');assert.match(element('guide-loadout-space').textContent,/6 free/);
+  assert.equal(sent.length,guideCommandCount,'guide browsing sends no server mutations');
+  element('station-guide').send('click');assert.equal(element('station-inventory').hidden,false);
+  element('debug-pack-snare').send('click'); flush(); sync();
   element('debug-pack-smoke').send('click'); flush(); sync();
   element('debug-pack-lunch').send('click'); flush(); sync();
   assert.deepEqual(player.bag.map(i => i.type), ['snare', 'smoke', 'lunch']);
@@ -197,9 +233,67 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   assert.deepEqual({ x: player.x, y: player.y }, beforeAim);
   win.send('keyup', { code: 'KeyW', target: element('game') });
   key('Escape'); flush(); sync(); assert.equal(player.placement.itemId, null);
+  player.bag.push({ id: 'ui-dart', type: 'dart', rotation: 0, x: 0, y: 1 }); sync();
+  key('Tab'); frames.shift()(136); key('KeyS'); key('KeyE'); flush(); sync();
+  assert.equal(player.dartId, 'ui-dart'); assert.equal(player.placement.itemId, null);
+  const moveStart = { x: player.x, y: player.y };
+  key('KeyD'); intervals[0](); flush(); session.tick(.05); sync();
+  assert.notDeepEqual({ x: player.x, y: player.y }, moveStart, 'can move after equipping');
+  win.send('keyup', { code: 'KeyD', target: element('game') });
+  key('Space'); flush(); sync(); assert.equal(player.placement.kind, 'dart'); assert.ok(player.bag.some(i => i.id === 'ui-dart'));
+  key('Escape'); flush(); sync(); assert.equal(player.placement.itemId, null); assert.equal(player.dartId, 'ui-dart');
+  key('Space'); flush(); sync(); assert.equal(player.placement.kind, 'dart');
+  key('Space'); assert.equal(sent.at(-1).type, 'fire-dart'); flush(); sync();
+  assert.ok(!player.bag.some(i => i.id === 'ui-dart')); assert.equal(player.placement.kind, null); assert.equal(player.dartId, null);
+  player.bag.push({id:'ui-bell',type:'bell',rotation:0,x:0,y:1}); sync();
+  key('Tab'); frames.shift()(140); key('KeyS'); key('KeyE'); flush(); sync();
+  assert.equal(player.bellId,'ui-bell'); assert.equal(player.placement.itemId,null);
+  key('Space'); flush(); sync(); assert.equal(player.placement.kind,'bell');
+  key('Escape'); flush(); sync(); assert.equal(player.bellId,'ui-bell'); assert.ok(player.bag.some(i=>i.id==='ui-bell'));
+  key('Space'); flush(); sync();
+  const { validBellPosition } = await import('../src/bells.js');
+  const {generateDungeon,setSolidObjects}=await import('../src/world.js');
+  const bellSnap=session.snapshot(player).dungeon;
+  const runWorld=generateDungeon(bellSnap.seed,bellSnap.layout); setSolidObjects(runWorld,[...bellSnap.objects,...bellSnap.hidingSpots]);
+  const bellPoint = [[.5,0],[0,.5],[-.5,0],[0,-.5]].map(([x,y])=>({x:player.x+x,y:player.y+y})).find(at=>validBellPosition(runWorld,player,at));
+  assert.ok(bellPoint);
+  doc.send('pointermove',{target:element('game'),clientX:450+(bellPoint.x-player.x)*48,clientY:300+(bellPoint.y-player.y)*48});
+  key('Space'); assert.equal(sent.at(-1).type,'throw-bell'); flush(); sync();
+  assert.ok(!player.bag.some(i=>i.id==='ui-bell')); assert.equal(player.bellId,null);
+  assert.equal(session.snapshot(other).dungeon.bells.length,1);
+  player.bag.push({id:'ui-potion',type:'disguise',rotation:0,x:0,y:1});sync();
+  key('Tab');frames.shift()(142);key('KeyS');key('KeyE');flush();sync();
+  assert.equal(player.potionId,'ui-potion');assert.equal(player.placement.itemId,null);
+  key('Space');assert.equal(sent.at(-1).type,'drink-potion');flush();sync();frames.shift()(143);
+  assert.equal(player.disguiseLeft,10);assert.equal(player.potionId,null);assert.ok(!player.bag.some(i=>i.id==='ui-potion'));
+  assert.equal(session.snapshot(other).players.find(p=>p.id===player.id).disguiseLeft,10);
+  assert.match(element('disguise-status').textContent,/DISGUISE 10s/);
+  player.disguiseLeft=0;player.bag.push({id:'ui-vanish',type:'vanish',rotation:0,x:0,y:1});sync();
+  key('Tab');frames.shift()(143.01);key('KeyS');key('KeyE');flush();sync();assert.equal(player.potionId,'ui-vanish');
+  key('Space');assert.equal(sent.at(-1).type,'drink-potion');flush();sync();frames.shift()(143.02);
+  assert.equal(player.vanishLeft,8);assert.equal(player.potionId,null);assert.ok(!player.bag.some(i=>i.id==='ui-vanish'));
+  assert.equal(session.snapshot(other).players.find(p=>p.id===player.id).vanishLeft,8);assert.match(element('disguise-status').textContent,/VANISH 8s/);
+  player.bag.push({id:'ui-lucky',type:'lucky',rotation:0,x:0,y:1});sync();
+  key('Tab');frames.shift()(143.03);key('KeyS');key('KeyE');flush();sync();assert.equal(player.potionId,'ui-lucky');
+  key('Space');assert.equal(sent.at(-1).type,'drink-potion');flush();sync();frames.shift()(143.04);
+  assert.equal(player.lucky,true);assert.equal(player.vanishLeft,0);assert.equal(player.potionId,null);assert.ok(!player.bag.some(i=>i.id==='ui-lucky'));
+  assert.equal(session.snapshot(other).players.find(p=>p.id===player.id).lucky,true);assert.equal(element('lucky-status').hidden,false);
+  player.bag.push({id:'ui-orb',type:'orb',rotation:0,x:0,y:1});sync();
+  key('Tab');frames.shift()(143.2);key('KeyS');key('KeyE');flush();sync();assert.equal(player.orbId,'ui-orb');
+  intervals[0]();flush();session.tick(.05);sync();assert.equal(player.orbId,'ui-orb','movement ticks preserve readiness');
+  key('Space');assert.equal(sent.at(-1).type,'use-orb');flush();sync();frames.shift()(143.5);
+  const ownPing=session.snapshot(player).dungeon.scryPings,peerPing=session.snapshot(other).dungeon.scryPings;
+  assert.equal(ownPing.length,1);assert.equal(ownPing[0].marks.length,3);assert.deepEqual(ownPing,peerPing);
+  assert.equal(player.lucky,true,'orb use preserves luck');assert.equal(player.vanishLeft,0,'orb use ends Vanish');assert.equal(player.orbId,null);assert.equal(player.disguiseLeft,0,'orb is gear use and breaks disguise');
+  player.bag.push({id:'ui-berry',type:'berries',rotation:0,x:0,y:1});sync();
+  key('Tab');frames.shift()(143.6);key('KeyS');key('KeyE');flush();sync();assert.equal(player.berryId,'ui-berry');
+  key('Space');flush();sync();assert.equal(player.placement.kind,'berries');key('Escape');flush();sync();assert.equal(player.berryId,'ui-berry');
+  key('Space');flush();sync();key('Space');assert.equal(sent.at(-1).type,'throw-berry');flush();sync();
+  assert.equal(player.berryId,null);assert.ok(!player.bag.some(i=>i.id==='ui-berry'));assert.equal(session.snapshot(other).dungeon.berryShots.length,1);
   key('Tab'); flush(); frames.shift()(144); key('KeyD'); key('KeyE'); flush(); sync();
   assert.equal(player.quickType, 'smoke'); key('Space'); flush(); sync(); frames.shift()(160);
   assert.equal(session.snapshot(other).dungeon.clouds.length, 1);
+  assert.equal(player.disguiseLeft,0,'using smoke breaks disguise');
   assert.ok(!player.bag.some(i => i.type === 'smoke'));
   const spot = session.snapshot(player).dungeon.hidingSpots[0];
   Object.assign(player, spot.approach); sync();
@@ -211,8 +305,9 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   const beforeTab = sent.length; key('Tab'); assert.equal(sent.length, beforeTab);
   key('KeyE'); flush(); sync(); assert.equal(player.hiding, null);
   other.state = 'down'; other.health = 0; session.tick(.05);
-  player.x = other.x + .5; player.y = other.y; sync();
-  doc.send('pointermove', { target: element('game'), clientX: 450 - .5 * 24 * 2, clientY: 300 });
+  player.x = other.x + .5; player.y = other.y; sync();key('KeyE');assert.equal(element('raid-cart-panel').open,true);element('close-raid-cart').send('click');flush();
+  player.x=other.x+.9;sync();
+  doc.send('pointermove', { target: element('game'), clientX: 450 - .9 * 24 * 2, clientY: 300 });
   key('KeyE'); assert.equal(sent.at(-1).type, 'rescue'); flush(); sync(); frames.shift()(184);
   assert.match(element('target-label').textContent, /Rescuing/);
   for (let i = 0; i < 41; i++) { intervals[0](); flush(); session.tick(.05); }
@@ -222,7 +317,7 @@ test('online entry connects shared loot, equipment, hiding and downed results wi
   player.x = cage.entry.x; player.y = cage.entry.y; player.invulnerable = 10; sync();
   doc.send('pointermove', { target: element('game'), clientX: 450, clientY: 300 });
   key('KeyE'); assert.equal(sent.at(-1).type, 'rescue'); flush(); sync(); frames.shift()(188);
-  for (let i = 0; i < 61; i++) { intervals[0](); flush(); session.tick(.05); }
+  for (let i = 0; i < 61; i++) { other.invulnerable = 1000; intervals[0](); flush(); session.tick(.05); }
   sync(); assert.equal(other.state, 'active'); assert.equal(other.health, 1); assert.equal(cage.prisoners.length, 0);
   other.invulnerable = 10; // Isolate the following downed-control UI check from jailer damage.
   player.state = 'down'; player.health = 0; session.tick(.05); sync(); frames.shift()(192);

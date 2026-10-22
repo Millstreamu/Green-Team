@@ -1,16 +1,339 @@
-# GitHub Pages solo release
-
-The current solo release, title page and creator workshop are ready to publish from [`docs/`](docs/). After merging, set **Settings → Pages → Deploy from a branch → main → /docs**. Start with [publishing instructions](docs/PUBLISHING.md).
-
-The static game keeps normal progression and browser saves. The workshop and disposable room trials are secondary creator pages. Multiplayer still needs the existing Node server. The current release's complete source and templates are downloadable from `docs/downloads/`; existing server entry points and source files are preserved by this PR.
-
----
-
 # Goblin Game
 
 A lightweight 2D browser multiplayer game for friends: goblins steal dungeon loot, evade guards, escape together, and improve a shared lair.
 
 A playable local loop now includes a small lair, stash, crafting, dungeon runs, searchable furniture, a sack, guards and return-to-tunnel escapes. The local server now supports a shared multiplayer dungeon test. Named persistent lairs are implemented; public hosting, account login and player limits remain future work.
+
+
+
+
+## Where things are
+
+- `src/`, `server/`, `index.html`: the game source. `npm start` runs the multiplayer server; `npm test` runs the checks.
+- `docs/`: the public GitHub Pages website (title page, `game.html` solo game, workshop, trials) plus design notes. The website pages are generated; do not edit them by hand.
+- `pages-src/`, `workshop/`: sources for the website's title/creator pages and the workshop.
+- `build/`: temporary build output (ignored by Git).
+
+## Static website / GitHub Pages release
+
+Run `npm run build:pages` to regenerate the website in `docs/`, then commit it. GitHub Pages serves **main → /docs**. See `pages-src/PUBLISHING.md`. Multiplayer still needs the separate server. Normal solo progress saves in the browser; workshop projects are exported separately.
+
+## Dining and storage room layout trial
+
+The local workshop now arranges longer dining tables and benches, and storage shelf rows with walking aisles. Use `green-team-workshop-room-layouts.html` → Playtest → Room to try → Dining hall/Storage room → Try room type. The source/template kit includes direct trials and the full game. Existing searchable counts and loot rules are retained; compact rooms fall back safely. 462 automated checks pass; physical phone playtesting remains pending.
+
+## Compact lair station and map pass · V97
+
+Campfire, workbench and potion station now match the tidier stash treatment: smaller inset paper windows with the lair visible, centred titles,44pxtop-left X and no footer toolbar. The established compact grids/placeholders, active-slot count, recipe costs, hold-to-unlock/build and tap-to-activate/craft/brew remain. Removed recipe i controls; short important item limits are visible with the selected effect. Action feedback stays beside the action rather than in a footer. Escape closes with normal hold cleanup.
+
+Map planning now fits its contents, with centred title/top-left X, destination cards, common finds, difficulty and one E/Set route action. The difficulty tradeoff is directly visible; the saved destination has a small tick and accessible current-route label. Removed info/duplicate status/footer controls. Changing a draft still does not commit until Set route; closing discards the draft. Shared route authority and departure rules are unchanged. Departure and dungeon UIs are unchanged.
+
+Use green-team-compact-lair-v97.html or green-team-compact-lair-v97.zip (folder green-team-v97). Preserve the whole data folder, npm ci/start:lan and refresh old tabs. V96 remains fallback. Actual browser/physical-phone playtesting remains deferred.
+
+## Tighter, automatically sorted stash · V96
+
+Stash paper now fits its contents rather than filling a tall window: smaller desktop/phone widths, no bottom tool row, no i button, centred Lair stash title and top-left X. Escape/Tab still closes it. Grids and the packing action remain, with the lair visible around the window.
+
+Shared supplies display alphabetically by item name automatically. No manual Arrange control or R arrangement mode in the player stash. Display sorting preserves authoritative shared stock/save positions and amounts; selections follow their item when stock changes. Packing a stack's last copy clears the selection so the next press cannot take another type accidentally. Packing quantities, shared transfers, phone pages, WASD crossing and actual fit previews are unchanged.
+
+Use green-team-tidy-stash-v96.html or green-team-tidy-stash-v96.zip (folder green-team-v96). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V95 remains fallback. Actual browser/physical-phone playtesting remains deferred.
+
+## Packing-first lair stash · V95
+
+The approved stash preview is now in the game: an inset paper panel with the lair visible around it, vertically centred stash/sack grids and one selected-item name/effect/action strip. Removed visible storage headings/counters and unrelated currency; accessibility labels still distinguish shared stock and your sack. Item counts remain on shared stacks. Selecting does not transfer; E or the action packs1, returns the selected whole stack (Return×N), or removes a debug test item. Arrange is secondary in the footer; details remain optional.
+
+WASD crosses directly between grids: D at the stash's visible right edge enters the sack, A at the sack's left edge returns. The closest facing row is based on actual screen positions. Phone navigation respects the visible3x3stash page, and crossing back keeps that page. Q remains an optional shortcut. Only the active grid shows a selection. A dashed sack destination uses actual shape/rotation/stack packing rules without spending stock. Non-fitting items show Won’t fit; server confirmation still owns shared transfers. Real36-slot storage capacity and personal3x3sack, save format and economy are unchanged.
+
+Use green-team-packing-stash-v95.html or green-team-packing-stash-v95.zip (folder green-team-v95). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V94 remains fallback. Actual browser/physical-phone playtesting remains deferred.
+
+## Matching station panels and filling grids · V94
+
+Workbench, potion station and campfire now share the campfire's panel proportions. Workbench details use the same right-panel space; campfire icons use the compact workbench slot sizes. Both left panels fill available rows/columns with faint reserved slots, rather than stopping at a fixed12-cell layout. Real recipes/abilities stay first; placeholders are decorative and cannot spend anything. Layout responds to the actual panel dimensions, using64px cells normally,48px on compact screens and44px on narrow screens. WASD uses the measured column count and skips placeholders. Right details scroll independently when needed.
+
+Use green-team-matching-grids-v94.html or green-team-matching-grids-v94.zip (folder green-team-v94). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V93 remains fallback. Actual browser/physical-phone playtesting remains deferred.
+
+## Compact workbench and brewing · V93
+
+Workbench and potion station now use compact sprite grids, lock overlays and faint reserved slots for future recipes. Workbench has6real+6placeholder slots; potions has3real+9placeholders. Names/effects stay with the selected item on the right. Ingredients show available/required counts and a missing marker, rather than repeated Have text. XP is prominent; unrelated gold is hidden except when relevant to building or the stash.
+
+One action changes with the state: hold E (or hold the action on phone) for1second to unlock a recipe or build the potion station; a separate tap/E crafts or brews. Cancelling, changing recipe, opening help, closing or leaving the tab aborts an incomplete hold. Hold release never crafts automatically. WASD selects actual recipes and skips reserved slots. Touch targets stay at least44px; compact landscape layout and independently scrolling content preserve access on smaller screens. The item still gets the small existing success animation. Crafting destinations remain the sack first, shared stash if the sack is full; all recipe costs, stock and multiplayer rules remain unchanged.
+
+Use green-team-compact-stations-v93.html or green-team-compact-stations-v93.zip (folder green-team-v93). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V92 remains fallback. Actual browser/physical-phone playtesting remains deferred.
+
+## In-world cart cargo · V92
+
+Dungeon cargo now opens in a small scene-anchored speech bubble above the cart, or beside it when a short screen has no space above. Your sack appears separately on the right. No fullscreen paper menu or dim backdrop. E opens cargo; hold E for one second at the cart to hop in (phone: hold E or the Hop in control). Tap E to hop out. In the sack, WASD selects and E/Deposit puts the selected item away. Q switches grid focus; cargo is inspection only. Escape/Tab, × or a click in the dungeon closes it; closing while aboard hops out and cancels departure readiness.
+
+The6x6 cargo hold is shared by everyone. Deposits are one-way for all players, enforced by shared/server rules; retrieval commands are rejected. Full holds leave rejected items in their sack, and run keys stay in sacks. Cargo remains unbanked until the team escapes, with the existing three-second all-standing-players boarding countdown. Guards and time continue while browsing. Keyboard movement navigates focused grids; close the bubble to resume moving. Phone cargo uses existing3x3 pages. Costs, abilities and chase rules are unchanged.
+
+Use green-team-cart-bubble-v92.html or green-team-cart-bubble-v92.zip (folder green-team-v92). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V91 remains the fallback. Browser/physical phone playtesting remains deferred.
+
+## Last-seen pursuit · V91
+
+After losing sight, guards keep running to the fixed last position where they saw the goblin. Only after reaching it do they use the existing bounded hidden tracking route at search speed, then search nearby and return. Seeing a goblin again immediately resumes direct chase. There are no visible footprints or new trail graphics. The rule is shared by solo and server guards; unreachable remembered positions cannot strand guards forever. Sleep, berry distraction, bells, target changes and routine resets clear the pending approach.
+
+Use green-team-guard-pursuit-v91.html or green-team-guard-pursuit-v91.zip (folder green-team-v91). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V90 remains the fallback. Browser/phone playtesting remains deferred.
+
+## Campfire UI and safe unlocks · V90
+
+Campfire slots now show only ability sprites and active ticks; the selected name/effect/limits stay on the right. A centered, filling E keycap accompanies Hold to unlock, Activate or Deactivate. Hold E (or Enter/Space) for one second to spend XP; phone/mouse players hold the ability icon. Releasing early, changing selection, cancelling touch, closing the panel or leaving the tab cancels the purchase. Unlocking never also equips the ability. Unlocked abilities still toggle with a tap or E, with the existing three-active limit. XP is emphasized at the top, the active count is larger and centered, and bottom instructions are removed.
+
+Use green-team-campfire-ui-v90.html or green-team-campfire-ui-v90.zip (folder green-team-v90). Preserve your whole data folder, run npm ci/start:lan and refresh old tabs. V89 remains the fallback. Physical phone/browser playtesting remains deferred.
+
+## Chase and awareness abilities · V89
+
+Three more personal campfire passives, using the same icon grid, WASD/E and three-active limit:
+- Panic Sprint (50 XP): +20% movement for 3 seconds when a guard fully notices you; 20-second cooldown, no stacking or refresh during chase.
+- Hideout Sense (50 XP): nearest guard shown as an amber square on your own map while fully hidden; disappears on exit or downing.
+- Fade Away (75 XP): completed searches, including empty containers, make initial guard detection take twice as long for 3 seconds. Existing chases continue normally.
+
+Costs and strengths are trial values. HASTE/VEIL timers appear in the existing HUD. Effects are shared between solo and the authoritative multiplayer server; selections persist personally. Use green-team-awareness-v89.html or green-team-awareness-v89.zip (folder green-team-v89). Preserve the whole data folder, run npm ci/start:lan and refresh old tabs. V88 remains the fallback. Browser/phone playtesting remains deferred.
+
+## Raid cart and shared cargo · V88
+
+Each dungeon starts in a small minecart room off one hallway. E at the cart opens the shared6x6 hold beside your sack. Historical V88 flow (superseded by V92): select an item and Deposit/Retrieve (or WASD/E, Q switches grids); phone cargo pages show3x3 at a time. Real item shapes and stacks use finite space. Treasure keys stay in sacks.
+
+Board to leave is separate from unloading. Everyone still standing and connected boards for a3second countdown; Hop out or Continue raid cancels your seat. Deposited cargo only banks when the team escapes. Full wipes, aborted runs and interrupted restarts lose it. Returning loot/gold/XP includes cargo exactly once. Guards/time continue while the cart panel is open. Phone/browser playtesting remains deferred.
+
+Use green-team-raid-cart-v88.html for solo or green-team-raid-cart-v88.zip for multiplayer. Preserve your whole data folder, npm ci/start:lan and refresh old tabs. V87 remains the fallback.
+
+## Campfire passives · V87
+
+Campfire now has an ability icon grid with details on the right. WASD selects; E/tap unlocks, then activates/deactivates that slot. Active slots have a green border and tick. Three abilities may be active per goblin; selections persist personally. Quick Fingers30XP gives the existing+10% search speed; Quiet Hands75XP lets container searches preserve Vanish; Lucky Goblin50XP adds5percentage points to gold finding, stacking with Lucky potion for10. New unlocks need a second press to activate. Old Quick Fingers purchases remain active when migrated.
+
+Packed Lunch is now crafted at the workbench with the same meat/berries cost. Costs are trial values; phone/browser playtesting remains deferred. Use green-team-passives-v87.html for solo or green-team-passives-v87.zip for multiplayer. Preserve the whole data folder, npm ci/start:lan and refresh old tabs. V86 remains the fallback.
+
+## Quiet item feedback · V86
+
+Crafting and stash transfers now pulse only the item icon with a brief highlight and small grow/settle animation. The whole station window stays still. Reduced motion uses brightness only. Existing sounds and server-confirmed success rules remain intact.
+
+Use green-team-icon-feedback-v86.html for solo or green-team-icon-feedback-v86.zip for multiplayer. Preserve your whole data folder, npm ci/start:lan and refresh old tabs. V85 remains the fallback.
+
+## Stable sprite pixels · V85
+
+Fixes uneven goblin pixels during walking/turning by drawing at higher resolution before display. The existing sprite, apparent size and movement stay the same; pointer targeting and aim bounds use shared logical scene dimensions. Native pixel checks cover both facings, walking and landscape-sized viewports. Physical phone playtesting remains deferred.
+
+Use green-team-sprite-fix-v85.html for solo or green-team-sprite-fix-v85.zip for multiplayer. Preserve the whole data folder, npm ci/start:lan and refresh old tabs. V84 remains the fallback.
+
+## Visual run-end book · V84
+
+Run results now match the parchment screens: prominent gold and XP, grouped loot sprites with quantities, tap for item name/value, and one Return to lair action. Info reveals full haul/loss details, run time and XP balance. Downed and left-behind goblins see personal lost items separately from team rewards. Compact landscape layouts keep the action visible; physical phone testing remains deferred.
+
+Use green-team-results-v84.html for solo or green-team-results-v84.zip for multiplayer. Preserve your whole data folder, run npm ci/start:lan and refresh old tabs. V83 remains the fallback.
+
+## Routes and departure · V83
+
+Approved map/departure previews are integrated. Choose an illustrated destination and Normal/Hard, inspect common resource sprites, then Set route. The sack appears only at Departure as its actual grid. Open the minecart to see the shared route, participant portraits, readiness and Board→Hop out. The existing all-aboard three-second countdown remains authoritative; Hop out cancels it. Lair/Escape closes the panel without changing your seat; use Hop out to cancel readiness. Compact landscape layouts keep actions outside the scrolling content; physical phone testing remains deferred.
+
+Use green-team-routes-v83.html for solo or green-team-routes-v83.zip for multiplayer. Preserve the whole data folder when updating, run npm ci/start:lan and refresh old tabs. V82 remains the fallback.
+
+## Visual lair book screens · V82
+
+Approved book-style UI is now applied to the potion station, workbench, campfire and stash. Sprite-led recipes use one primary action: Build→Unlock→Brew, Unlock→Craft, Cook, or a permanent Owned stamp. Tap info for full details. Select stash or sack items, then use the shared Pack/Return control; E still transfers, Q switches grids, R moves a whole stash stack. Mouse hover reveals names without changing the selected target.
+
+Costs, saves and multiplayer rules remain intact. Use green-team-book-ui-v82.html for solo or green-team-book-ui-v82.zip for multiplayer. V81 downloads remain the fallback. Preserve your whole data folder when updating, run npm ci/start:lan and refresh old tabs.
+
+## V81 — Lucky potion
+
+Agreed behaviour: drink Lucky for +5percentage points chance of finding gold coins in your own completed searches for the remainder of this run, one active dose per goblin, no stacking. Actual searching goblin owns the bonus; coins spill into ordinary shared floor loot and contribute normally to the shared haul/personal team XP if recovered. Does not change silver/copper, sale prices or other loot. Damage, searching, successful gear use and down/revive preserve luck; a new run/home vitality reset removes it. Drinking Lucky breaks concealment; later disguise/Vanish may coexist with luck.
+
+Trial recipe:50personal XP, brew1berries+1scrap at the built shared potion station. Recipe persists on goblin, stock on lair, old saves default0new stock. Equip chosen bottle, move, Space/phone Use drinks once. Duplicate doses retain the spare bottle. Shared registry distinguishes run effects from timed concealment; search/gear interruption only clears concealment. Boolean effect appears in authoritative player snapshots and separate LUCKY badge. Guide, recipe/brew cards and tagged free test bottles use existing systems.
+
+Implementation: original container generation/RNG and ordinary searches unchanged. Compute original whole-container probability p of at least one gold coin from empty/count/material/rare/pool probabilities, including depth, tuning and Hard rare bonus. Treasure containers replace normal contents, so p=0there. Only gold-free lucky completions get an independent deterministic coin roll at min(1,.05/(1-p)), giving overall min(1,p+.05). Existing coin searches gain no extra. Success appends one coin, preserving resources, keys and prizes; empty containers may become one item and two-item containers may become three. This is an explicit extra-coin search effect, not a valuable replacement. Roll hashes run seed/container ID separately from original RNG; cancellation, swapping searcher and retries cannot reroll. Only completed server/solo search applies it, with shared searched flag/claim preventing duplicate loot. No client effect/odds/contents fields accepted.
+
+Use green-team-lucky-v81.html for solo or green-team-lucky-v81.zip for multiplayer. Preserve the whole data folder when updating.
+
+## V80 — Vanish potion
+
+Agreed slice: add Vanish first at the potion station; invisibility ends on a hit and has a short maximum duration. Implementation trial values: 8seconds, 75personal XP recipe, 2mushrooms+1cloth per brew. Searching and successful gear use end it too, as stated in the readback. Equip from Sack, move freely, Space/phone Use drinks the exact selected bottle once. Repeated/forged requests cannot spend spares; cannot refresh or stack with disguise. No passive free stock or starter unlock. Lucky potion deferred.
+
+Vanish blocks close/far guard sight and new trails, while existing searches, last-seen positions and already committed directional swings continue. Taking an accepted hit removes Vanish and does normal damage; rejected/invulnerable hits do not remove it. Expiry restores normal sight and downing clears it. Teammates remain independently visible. Translucent goblin sprite remains readable to players, with VANISH countdown in the existing concealment HUD.
+
+Shared POTIONS registry and equipPotion/drinkPotion paths reuse reserved potionId, timing, interruption hooks and placeholder potionDrink sound. Legacy disguise APIs/command remain strict. Authoritative drink-potion derives type/duration from the owned bottle; no client supplied effect/duration. Shared snapshots include vanishLeft. Save registry/defaults preserve existing data, new stock defaults0; learned recipe persists in personal profile. Both potions require the built shared station for brewing. Guide, XP purchase, brew card and tagged non-bankable test supplies included.
+
+Use green-team-vanish-v80.html for solo or green-team-vanish-v80.zip for multiplayer. Preserve the whole data folder when updating.
+
+## V79 — shared potion station and mushrooms
+
+Potion brewing moves from the workbench to a separate lair station. Build it once for 30 shared gold (initial trial price); everyone in that lair benefits. Guard disguise retains its 50 personal XP recipe unlock and now brews with 1 mushroom + 1 berries. Existing learned recipes and stocked potions remain usable. The planned station occupies a solid one-tile worksite by the right wall, using shared prop placement, a reachable approach and grounded scene ordering. No new collision appears during construction.
+
+Mushrooms are one-square shared materials, available in cupboards/crates on every named map. Manor/Hold add weight1; Sanctuary uses berries4/mushroom4/cloth1/scrap1/meat1 and advertises both common ingredients. Chests remain scrap/cloth; item-count/empty/valuable rolls are unchanged. New resources start at zero. Old saves default to an unbuilt station; solo saves, server checkpoints, snapshots and backups preserve the shared building. Domain and server checks reject brewing before building, workbench brewing, remote building, insufficient gold and duplicate builds without spending extra stock.
+
+Use green-team-potion-station-v79.html for solo or green-team-potion-station-v79.zip for multiplayer. Preserve the whole data folder when updating.
+
+## Throwable berries · V78
+
+Select berries in Sack and E equips the chosen portion. Walk into position, Space/phone Use aims, then press again to throw. Esc/Cancel returns to walking with the same berry equipped. Throwing spends that portion, including misses, and breaks disguise. Fresh presses are required; held input cannot throw spare portions.
+
+A short4tile projectile blinds the first guard hit for1second and breaks its chase/attack/hiding knowledge. A blind guard briefly stops, cannot see or strike, then returns to normal observation/routine; use the second to reach cover. Repeated hits do not extend an active blind. Walls, solid props and locked gates stop berries. Sleeping guards stay asleep, snare timers remain independent, and blind carriers pause without dropping/reviving captives. Existing alert totals are not refunded, and blindness itself adds no alert. Solo and server share swept collision with sleep darts.
+
+Berries still bank and cook into lunch as before. Throw them to escape or save them for food; there is no recipe/XP unlock for throwing. Gear guide includes both uses. Free tagged test berries are in Test supplies; unused test portions never add real cooking stock. Berry throw/hit sounds remain replaceable placeholders. All342tests pass; phone aim/audio feel remains for user playtesting.
+
+Use green-team-berry-throw-v78.zip or green-team-berry-throw-v78.html. Preserve whole data folder, npm ci/start:lan and refresh old tabs. Map resource biases and food/cooking stay intact.
+
+## Map resource biases · V77
+
+The map table now shows Common finds. Human Manor favours meat/cloth, Dwarf Hold favours scrap/meat, and Elf Sanctuary favours berries. All four basic resources remain available on every map; chests still contain scrap/cloth as their resources. Empty, resource/valuable, rare-item and item-count chances stay the same. Start a new run to use the new weights; existing rolled contents stay intact.
+
+Resource weights and Common finds live together in src/resource-profiles.js, with generic resource/container entries for future content. Add ingredients and profile weights without new loot/UI branches. See docs/resource-profiles.md for exact weights, fallback behaviour, save compatibility and extension steps. No placeholder mushrooms or upload editor added.
+
+Use green-team-map-resources-v77.zip or green-team-map-resources-v77.html. Keep whole data folder, npm ci/start:lan and refresh old tabs. Existing lair stock, recipes and tuning stay intact.
+
+## Meat, berries and campfire cooking · V76
+
+Find meat and berries by searching cupboards and crates. Each portion takes one sack square, uses the existing drop/share/pickup controls, and banks into shared lair stock when recovered. Food is a crafting resource, not instant healing or sale gold/XP. Chests keep their previous resource pool.
+
+At the campfire, Cook Packed Lunch uses1meat+1berries, known from the start with no XP/gold cost. The lunch packs into your sack first, overflowing to shared stock when full. Other gear stays at the workbench; gear guide and Team rescue costs now include food. The existing revive remains hold E2seconds near a downed teammate, consuming one lunch to restore one health. Two players cannot cook from the same last pair of ingredients.
+
+Food uses one-third of cupboard/crate material results, split equally between meat/berries, with the remaining two-thirds split scrap/cloth. Empty, valuables, rare-item and two-item chances are unchanged. This material split is a first-playtest value; it reduces the scrap/cloth share in those two container types. Saved tuning keeps its values and old saves gain zero food, preserving prior stock/progress. No mushrooms, berry ability, spoilage or new starter grants.
+
+Use green-team-food-and-cooking-v76.zip or green-team-food-and-cooking-v76.html. Preserve whole data folder; npm ci/start:lan, refresh old tabs and start a new run to find food. Phone layout still needs user playtesting.
+
+## Stash item names · V75
+
+Hover a stash square, highlight it with WASD/arrows, or tap it on phone to see a small item-name tag beside the highlighted square. It stays within the grid and never intercepts transfers. Empty squares, moving stacks and page changes hide the tag. Existing pack/return controls and gear guide stay the same.
+
+Use green-team-stash-tooltip-v75.zip or green-team-stash-tooltip-v75.html. Preserve the whole data folder when updating.
+
+## Gear guide and suggested loadouts · V74
+
+At the stash or workbench, open Gear guide. Gear shows each item's controls, duration, limits and disguise-breaking rules. Loadouts compares Distraction, Sneaking and Team rescue with your packed sack and shared stock; all are three-square suggestions leaving six squares in an otherwise empty sack. Costs compares personal recipe XP with shared materials. These are packing suggestions; use the stash to pack items. Short selected-sack summaries and crafting controls share the same gear descriptions. Phone labels use Stick/Use/Cancel.
+
+Costs were reviewed together and retained for comparative playtesting. Bell25XP, smoke/disguise50XP, dart/orb75XP; snare known. Sneaking recipes total200XP from a fresh profile versus75XP for Distraction, so treat it as a later kit. You can use stocked gear without owning its recipe. Packed Lunch still has no crafting recipe; Team rescue needs a stocked/test lunch. Full values, kit material totals and review rationale are in docs/gear-selection-and-balance.md. No progression or saved tuning changes.
+
+Use green-team-gear-guide-v74.zip for multiplayer or green-team-gear-guide-v74.html for solo. Preserve whole data folder and use npm ci/start:lan; refresh old tabs.326tests pass. Physical-phone layout/feel still needs user testing.
+
+## Scrying orb · V73
+
+Select a packed orb in Sack and E equips it. Walk normally, then Space/phone Use consumes that exact orb and pings the three nearest guards by straight-line distance. Purple diamonds mark their positions on everyone's map for5seconds; they stay where the guards were when pinged. Open the map toggle if hidden. Fewer than3guards produces fewer marks; sleeping/jailer guards count too. This is a snapshot, not live tracking.
+
+Each orb takes one square/use. Simultaneous orbs share their own independently expiring snapshots; duplicate requests cannot consume a spare. Active marks remain for the team if the user goes down or disconnects, and vanish at expiry/run end. The server chooses guards/positions/timer. Orb use breaks guard disguise as other successful gear use does. It creates no guard distraction, alert or change in combat.
+
+Free tagged orbs are in Test supplies. Trial economy: personal recipe75XP, craft2scrap+1cloth. Old saves gain zero orb stock and no recipe unlock; real unused orbs bank normally and test copies never add stock/XP. Other gear and saved tuning remain intact.
+
+Use green-team-scrying-orb-v73.zip for multiplayer or green-team-scrying-orb-v73.html for solo. Preserve whole data folder, npm ci then npm run start:lan, and refresh old tabs. Phone feel remains for user playtesting.
+
+## Guard disguise potion · V72
+
+Pack a potion from stash/Test supplies, select it in Sack and press E to equip. Walk into position, then Space/phone Use drinks the exact selected bottle. Your goblin looks like a guard for10seconds with a small countdown by health. Teammates see the same costume/timer and retain your name. Guards beyond1tile cannot see through it; within1tile they use normal sight, walls and smoke rules. The disguise grants no damage immunity and does not undo earlier alerts or legitimate last-known positions. It stops guards learning fresh distant movement trails while disguised.
+
+Starting a valid search or successfully using gear breaks it: smoke, dart, bell, placed snare or a spent Packed Lunch. Equipping, aiming, cancelling and invalid attempts preserve it. It ends on expiry/downing and resets between runs; timers keep ticking during disconnects. Another potion cannot refresh an active disguise or spend a spare automatically. Each potion takes one square/use. Unused real bottles bank normally; tagged test copies never grant stock/XP.
+
+Free disguise potions are in Test supplies. Trial economy: personal recipe50XP, craft1scrap+2cloth. Old saves gain zero potion stock and no recipe grant. No new materials, other potion types or sprite/audio editor are included.
+
+Use green-team-guard-disguise-v72.zip for multiplayer or green-team-guard-disguise-v72.html for solo. Preserve the whole data folder; npm ci then npm run start:lan and refresh old tabs.316tests pass; phone feel remains for user playtesting.
+
+## Clang bell · V71
+
+Equip a Clang bell from Sack with E, move into position, press Space/phone Use to aim, then press again to throw. Esc/Cancel keeps it equipped. Gold preview means a legal clear-floor landing; red means blocked. One square, one use,5tile throw range. The bell rings once on landing, with a visible ripple and temporary sound slot.
+
+Guards within8tiles by walkable path investigate, including around corners. Visible goblins, attacks, sleeping/snared guards, carrying/pickup and fixed jailer posts take priority. A guard that spots a goblin abandons the distraction. Investigators look around for2seconds on arrival, then return;8seconds is the overall limit. Later bells replace the destination. Blocked routes cancel safely. No direct alert/reinforcement is added by ringing. The thrown bell is non-solid and cannot be recovered.
+
+Get free tagged bells from Test supplies. The personal recipe costs25XP; each bell costs1scrap+1cloth. Old saves gain zero bell stock and no free unlock. Solo and multiplayer share rules, effects and authoritative spending; repeated requests cannot consume a spare bell. Existing dart controls remain intact.
+
+Use green-team-clang-bell-v71.zip for multiplayer or green-team-clang-bell-v71.html for solo. Keep the whole data folder, run npm ci then npm run start:lan, and refresh old tabs. Physical-phone aim/audio feel still needs playtesting.
+
+## Sleep darts · V70
+
+Sleep darts now work in solo and multiplayer: one square per dart, one shot, eight seconds of sleep on the first guard hit. Equip a selected dart with E, close Sack and walk normally. Space/Use starts aiming; mouse/WASD or the left phone stick aims while standing still. Press Space/Use again to fire. Esc/Cancel returns to walking with the same dart equipped. Each step requires a fresh press. Opening Sack/Menu, switching gear, losing focus or going down cancels aim. The reticle stays visible on short screens and a small equipment hint/count sits by the controls. A launched miss still spends the dart; repeated firing cannot use a spare copy. Darts stop at walls, solid furniture and locked gates.
+
+Sleeping guards cannot see, attack, expose hiding goblins or carry/pick up captives. A carrier drops its captive still downed, with original spilled loot untouched. Repeated hits do not extend sleep; snare timers run independently. On waking, normal sight/search/return rules resume. Sleep itself adds no reinforcement alert; earlier sightings are not refunded. All peers share authoritative projectiles/timers.
+
+Get free tagged test darts through lair Test supplies. The personal recipe costs75XP, then each dart costs1scrap+2cloth. Crafted copies pack first with stash overflow as before; unused real darts bank on escape, debug copies never add stock/XP. Old saves default missing dart stock to zero. Starter supplies, other prices and V67loot/V68door fixes stay intact. Clang bell remains deferred.
+
+Use green-team-dart-controls-v70.zip for multiplayer or green-team-dart-controls-v70.html for solo. Keep the whole data folder and the same npm ci/start:lan setup. Physical-phone aiming/audio feel still needs user playtesting.
+
+## Treasure-room doorway fix · V68
+
+Locked treasure gates now occupy the actual entrance tiles, matching collision and artwork instead of sitting one tile inside the room. Treasure selection rejects hallway-length openings: entries must be bounded by wall ends, no wider than the configured corridor and connect outwards. The selector tries another eligible optional room without carving or sealing floor tiles; its existing reachability checks keep unrelated hallways and key access open. Multi-entrance rooms can still share one key when each opening is valid. Gate art follows each opening's side, including east/west and mixed-side rooms.
+
+Use green-team-treasure-doors-v68.zip for multiplayer or green-team-treasure-doors-v68.html for solo. Preserve the whole data folder and use the same npm ci/start:lan workflow. All295tests pass;600Normal/Hard generated layouts pass diagnostics without warnings. V67loot settings and saved-lair opt-in remain as below. Dart/bell implementation remains deferred.
+
+## Early-loot tuning · V67
+
+Fresh solo games and new server lairs now use45%near/35%far empty-search endpoints and55%near material mix (previously70%/50%/75%). Depth still blends these odds; far material odds remain20%, with existing rare pools and15%two-item chance. Starter1snare/2scrap/1cloth,9-square sack, gear recipes, sale values, XP and30/50upgrade prices are unchanged. Sleep darts, bells and the recorded abilities remain future ideas.
+
+Existing saved lairs keep their selected run settings. V66 saves acquire an explicit75%near material field to preserve the old implicit value, with a before-update backup when needed. To try V67 on an existing lair: open Private server admin, select that lair, set Empty searches near entrance45%, Empty searches far from entrance35%, and Materials near entrance55%, then Save settings. Only these three fields need changing; the next run uses them and an active run keeps its launch settings. Do not reset all tuning if you want other custom values retained.
+
+Use green-team-early-loot-v67.zip for the server or green-team-early-loot-v67.html for solo. Keep the whole data folder, npm ci then npm run start:lan. This is a playtest balance pass: the example20/30/35gold progression is not a guaranteed reward sequence. See docs/early-balance-proposal.md and docs/v67-balance-audit.json for measured content and limits.
+
+## Loot, inventory and lair feedback · V66
+
+Picking up loot or packing a held item gives the sack a short gold pulse and quiet temporary chime. A blocked placement, packed rotation or outside touch drop flashes red with a low cue; cancelling a gesture is quiet. Valid rearrangements/rotations remain quiet. Successful stash transfers, stack moves, crafting and purchases pulse the lair panel green with a short confirmation. No central narration or guard changes.
+
+Sound on/off lives in Menu and applies for the current page session. Audio starts only after a user interaction; unavailable/blocked audio leaves gameplay and visual feedback working. Multiplayer confirmations come privately from the server after the action and required save succeed, rather than from guessed shared-stock changes.
+
+Use green-team-feedback-v66.zip for the server or green-team-feedback-v66.html for solo. Preserve the whole data folder and start with npm ci / npm run start:lan. The sound slots are temporary and replaceable. A future game editor will support user sprite/audio uploads; that editor and final media formats are deferred (docs/feedback-assets.md).
+
+## Full-loop playability fixes · V65
+
+Reviewed the solo and shared-server flow from lair preparation through dungeon interactions, extraction/results and returning home. Fixed fast touch drags that arrive without an intermediate move event, held Tab repeatedly opening/closing lair stock, and landscape sack CSS being overridden by later short-screen rules. The landscape sack now renders its grid at 168px (56px squares). Viewport resize/rotation cancels held controls and uncommitted touch drags so old coordinates cannot continue an action.
+
+Use green-team-playability-v65.zip for the server or green-team-playability-v65.html for solo. Keep the whole data folder, then npm ci and npm run start:lan. See docs/playability-pass.md for coverage and the remaining physical-device checks. No new gameplay systems or balance changes.
+
+## Compact lair stations · V64
+
+Stash, workbench, campfire and map table now share a viewport-sized layout with a fixed header and action footer. Long content scrolls inside the station. Touch stash taps select an item, then Pack one or Return item transfers it; mouse clicks and E keep their existing transfer behaviour. Phone stash pages show nine source slots at a time, with Move stack available for rearranging shared stock. Multi-square item icons fit inside their stash slot.
+
+The workbench separates Craft and Recipes tabs. Test supplies open their own panel. The campfire focuses on personal upgrades, and the map table separates destination choices from preparation, with a packed-sack meter and fixed confirmation button. Server validation, crafting costs, XP, saves and dungeon sack gestures are unchanged.
+
+Use green-team-lair-ui-v64.zip for multiplayer, or green-team-lair-ui-v64.html for solo. Keep the whole data folder on update; phone startup remains npm ci then npm run start:lan. All 288 tests pass; actual phone layout playtesting remains needed.
+
+## Compact run-end screen · V63
+
+Run results now use one full-viewport summary for solo and multiplayer: outcome/job header, shared/team gold, personal earned XP/available balance, run time and a fixed Return to lair action. View haul opens the recovered-item details; failed/left-behind runs offer Lost items. Only the item panel scrolls. The result header and return action remain visible, with Back to result (or Escape) returning from details. Escape does not silently dismiss a completed run.
+
+Success, empty escapes, downed/left-behind players and admin-ended runs retain their existing reward/loss data. Team gold is labelled separately from this goblin's losses; earned personal XP remains visible for eligible left-behind goblins. No changes to reward calculations, save rules or server messages.
+
+Try green-team-run-end-v63.html for solo or green-team-run-end-v63.zip for the server. Keep your whole data folder when updating; phone startup remains npm ci then npm run start:lan. Compact landscape/portrait layouts still need on-device visual playtesting.
+
+## Compact start screen · V62
+
+The live-server home screen now fits one viewport: goblin/level/progress on one side and the main lair action on the other. Returning creators see their lair name and Enter your lair. New goblins see Create your lair. Join friends opens its own name/code panel. Goblin details opens XP and goblin selection. Options contains goblin switching and, once a lair is owned, Create another lair. Multiple owned lairs use a compact selector instead of a long list.
+
+Join/create/profile/options share one native modal panel with Back, Close and Escape. Existing form IDs/server commands are preserved. Drafts survive ordinary state refreshes; error messages appear inside the active panel. Entering gameplay closes it. Long forms and the phone keyboard scroll only the panel, while the main home screen stays within the viewport. Short landscape and portrait layouts use compact profile cards.
+
+Download green-team-home-screen-v62.zip for this update, keep the previous whole data folder, then npm ci and npm run start:lan for phones on the same Wi-Fi (npm start for local desktop-only play). This home screen belongs to the live-server version; the existing standalone solo play.html continues to start in the lair.
+
+## Mobile sack controls · V61
+
+In the dungeon sack, a touch tap highlights an item without lifting it. Drag to another square and release to move it. The grabbed square within a multi-tile item stays under your finger; green/red previews show whether the destination fits. Releasing outside the grid, cancelling a touch or choosing an invalid location leaves the item packed at its original position. Rotate works on the selected packed item (or an explicitly held item), shifting inward at a bag edge if necessary; collisions leave it unchanged. Coin-stack moves preserve overflow in the original square. Equipment remains E-to-equip; the existing explicit Move button still allows lifting an item for sharing/dropping.
+
+Landscape phones get larger sack squares in a panel beside the action controls. Touching the sack pins it open until closed. Mouse/keyboard inventory rules and the lair transfer grids keep their existing controls. The central running-context prompt and action narration are hidden; object search bars, health/danger and critical display feedback remain.
+
+Solo and multiplayer use the same packed-item validation; the server looks up the actor's own item ID, validates the whole operation and commits it atomically. No lifted intermediate state or lost item if a snapshot is delayed. Use green-team-touch-sack-v61.html or the V61 server ZIP, retaining your data folder. Phone startup remains npm ci followed by npm run start:lan.
+
+## Updated goblin art · V60
+
+Replaced assets/goblin.png with the supplied untitled-atlas.png, preserving the exact16×16 transparent image. Shared in-world drawing scale is1.5 instead of2: goblins render25% smaller, with a proportionally smaller floor shadow. Portrait/home images use the same new art. Feet anchoring, facing/mirroring, hopping, labels and shared teammate rendering remain consistent. No movement/collision/save changes.
+
+Use green-team-new-goblin-v60.html or the V60 full-game ZIP. Keep your data folder when updating; phone startup remains npm ci, then npm run start:lan.
+
+## Floating phone movement · V59
+
+There is no fixed joystick on screen. Touch the left46% of the game view to set a fresh thumb origin; drag to move or aim a trap. A faint stick appears only while held, then disappears on release. Initial contact is neutral wherever you touch. The existing eight-way movement/dead zone and normal speed stay unchanged. The right thumb can use actions independently. Mouse clicks still reach the world on touch-capable PCs; menu/inventory interactions keep their normal targets.
+
+Gameplay text and action controls now explicitly disable selection and long-press menus; the invite code remains selectable and native fields remain editable. Control presses also clear any old text selection. Home forms are unaffected. Phone browser long-press behaviour still needs an on-device check.
+
+Use green-team-floating-stick-v59.html or the V59 server ZIP. Keep your data folder when updating. Phone startup is still `npm ci` then `npm run start:lan`.
+
+## Game screen · V58
+
+The world now fills the browser viewport without the page title bar/footer. Portrait, health, danger and selected route sit at the upper-left. Map, fullscreen and Menu controls sit upper-right; Map can be hidden. The sack uses the same moss/brass frame, with a horizontal desktop toggle and landscape touch controls. Context prompts sit at the lower centre; action notifications fade instead of staying as a page footer. Touch hints use Stick/Sack/Use/Cancel labels. Cancel only appears during trap placement. Compact layouts reserve room between both thumbs and keep inventory above the action buttons.
+
+Menu contains goblin selection, lair name/invite code, personal XP, save details, Help and the existing abandon-run action. Opening it clears held controls; closing it cannot leave movement stuck on. The world keeps moving while it is open. Existing stash/crafting/map/result dialogs inherit the shared frame; home remains independently scrollable. This is a first gameplay UI pass, with detailed menu/home redesign deferred.
+
+Fullscreen requests target the whole document so station dialogs, results and the home screen remain available. Requests use the browser's supported fullscreen method, reflect external exits, and show a short message if unavailable/denied. Support guidance: [Fullscreen API](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen). No forced fullscreen or orientation lock.
+
+Use green-team-game-hud-v58.html for the standalone preview, or green-team-game-hud-v58.zip for the server. Keep your whole data folder when updating. Phone startup remains `npm ci` then `npm run start:lan`; open the printed phone URL on the same Wi-Fi. Gameplay/save rules are unchanged. Automated checks pass; browser layout and physical-phone spacing still require playtesting.
+
+## Landscape phone controls · V57
+
+Touch devices show a left movement stick and right-side E, Use, Sack and Cancel buttons. E shares keyboard interactions: hold to search/hide/place; release to stop. Use activates equipped smoke. Sack opens inventory (or the lair stash at home). Tap normal items to lift, then tap a free square to place; Rotate turns held loot. Equipment taps select it: E equips, Move lifts it for rearranging. While placing a snare the stick aims instead of moving; Cancel abandons placement without spending it. Movement pauses while manually arranging the sack. Keyboard/mouse controls remain available.
+
+For a phone, keep the server computer and phone on the same Wi-Fi. Stop the previous server, then run `npm run start:lan` instead of `npm start` and open the printed phone URL in the phone browser. `npm start` stays local to the server computer. Admin remains limited to the server computer through its private localhost link. Turn the phone sideways. Dialogs scroll separately and inventory transfers/crafting use their existing tap targets.
+
+Automated input and solo/multiplayer flows are checked; physical phone touch feel and browser layout still need playtesting. The standalone HTML is also included, but serving from the computer is the practical phone test route.
 
 ## Locked treasure room · V55
 
@@ -406,4 +729,3 @@ E at the minecart boards/marks ready; E again hops out and cancels the countdown
 jobs.js owns the small departure coordinator; the existing loadout-view.js is repurposed as map-planning UI. Existing lair targeting/drawing/dialog styles and prepared-sack flow are reused. Camp save schema4 accepts an optional destination field; old saves default to Normal without losing stock. Stock, profile XP and passive effects remain unchanged.
 
 Verified:125 automated tests, standalone build, bundled syntax and unique HTML IDs. Coordinator tests cover all-aboard waiting, excluded waiting arrivals, cancellation/restart, preserved readiness through destination changes, single frozen departure and persisted selection without readiness. Real main flow plans/cancels drafts, boards/cancels/waits/reboards, checks no early world generation or stock spend and a single generated run, then retains crafting/XP/gear/guards/heat/hiding coverage. No rendered browser or online test; station placement and countdown readability await playtest. Review copy: green-team-cart-v30.html.
-

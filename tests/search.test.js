@@ -1,10 +1,10 @@
-import { createProfile, buyPersonalUpgrade, personalSearchRate } from '../src/profile.js';
+import { createProfile, buyPersonalUpgrade, personalSearchRate, setPassiveActive } from '../src/profile.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateDungeon, canStand } from '../src/world.js';
 import { SEARCH } from '../src/config.js';
 import { createLoot, LOOT_TYPES } from '../src/loot.js';
-import { createSearchables, createSearchSession, canSearch, selectInteraction, beginSearch, cancelSearch, updateSearch, SEARCHABLE_TYPES } from '../src/search.js';
+import { createSearchables, createSearchSession, canSearch, selectInteraction, beginSearch, cancelSearch, updateSearch, searchRewardProfile, SEARCHABLE_TYPES } from '../src/search.js';
 
 const setup = (seed = 42) => {
   const world = generateDungeon(seed), loot = createLoot(), objects = createSearchables(world), object = objects[0];
@@ -110,7 +110,7 @@ test('empty searches take full time, finish normally and cannot be searched agai
   assert.equal(updateSearch(session, world, player, loot, true, 100), null);
 });
 
-test('reward generation produces sparse loot, occasional materials and no entrance freebies', () => {
+test('reward generation keeps searches uncertain while supplying the approved early mix without entrance freebies', () => {
   let containers = 0, empty = 0, items = 0, materials = 0, entranceEmpty = 0;
   for (let i = 0; i < 200; i++) {
     const world = generateDungeon(Math.imul(i + 1, 2654435761) >>> 0);
@@ -123,9 +123,9 @@ test('reward generation produces sparse loot, occasional materials and no entran
       for (const type of object.contents) { items++; materials += Number(!!LOOT_TYPES[type].material); }
     }
   }
-  assert.ok(empty / containers > .54 && empty / containers < .66);
-  assert.ok(items / containers < .55);
-  assert.ok(materials / items > .35 && materials / items < .55);
+  assert.ok(empty / containers > .33 && empty / containers < .47);
+  assert.ok(items / containers > .55 && items / containers < .8);
+  assert.ok(materials / items > .25 && materials / items < .45);
   assert.ok(entranceEmpty > 0 && entranceEmpty < 200);
 });
 
@@ -147,13 +147,14 @@ test('reward depth follows corridor distance rather than straight-line proximity
   assert.deepEqual(searchRewardProfile(2), searchRewardProfile(1));
 });
 test('near containers favour materials and deep ones favour rarer valuables across generated maps', () => {
-  const near = { containers: 0, empty: 0, materials: 0, items: 0, rare: 0 }, far = { ...near };
+  const near = { containers: 0, empty: 0, expectedEmpty: 0, materials: 0, items: 0, rare: 0 }, far = { ...near };
   for (let i = 0; i < 300; i++) {
     const world = generateDungeon(Math.imul(i + 1, 2654435761) >>> 0);
     for (const object of createSearchables(world)) {
       const bucket = object.depth <= .25 ? near : object.depth >= .75 ? far : null;
       if (!bucket) continue;
       bucket.containers++; bucket.empty += Number(object.contents.length === 0);
+      bucket.expectedEmpty += searchRewardProfile(object.depth).emptyChance;
       for (const type of object.contents) {
         bucket.items++; bucket.materials += Number(!!LOOT_TYPES[type].material);
         bucket.rare += Number(SEARCHABLE_TYPES[object.type].rarePool.includes(type));
@@ -162,12 +163,15 @@ test('near containers favour materials and deep ones favour rarer valuables acro
   }
   assert.ok(near.materials / near.items > far.materials / far.items + .25);
   assert.ok(far.rare / (far.items - far.materials) > near.rare / (near.items - near.materials) + .25);
-  assert.ok(near.empty / near.containers > far.empty / far.containers + .08);
+  // The approved endpoint gap is now10points (previously20); allow seeded
+  // sampling variance without requiring the previous larger observed gap.
+  assert.ok(near.empty / near.containers > far.empty / far.containers);
+  for (const bucket of [near, far]) assert.ok(Math.abs(bucket.empty - bucket.expectedEmpty) / bucket.containers < .05);
   assert.ok(near.empty > 0 && far.empty > 0);
 });
 
 test('purchased search passive speeds every furniture type by ten percent without changing rewards or spill rules', () => {
-  const profile = createProfile(); profile.xp = 30; assert.ok(buyPersonalUpgrade(profile, 'quickSearch'));
+  const profile = createProfile(); profile.xp = 30; assert.ok(buyPersonalUpgrade(profile, 'quickSearch')); assert.ok(setPassiveActive(profile,'quickSearch',true));
   for (const type of Object.keys(SEARCHABLE_TYPES)) {
     const { world, loot, object, player, session } = setup(); object.type = type; object.contents = ['ruby'];
     player.searchRate = personalSearchRate(profile);

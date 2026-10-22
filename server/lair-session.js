@@ -2,15 +2,15 @@ import { restoreSave } from './save-store.js';
 import { createVitality } from '../src/guard.js';
 import { createDungeonSession } from './dungeon-session.js';
 import { randomUUID, randomInt } from 'node:crypto';
-import { createLairWorld, lairTarget, takeStashItem, returnStashItem, craftForSack, moveStashStack } from '../src/lair.js';
-import { createProfile, buyPersonalUpgrade } from '../src/profile.js';
+import { createLairWorld, lairTarget, takeStashItem, returnStashItem, craftForSack, moveStashStack, recipeStation, buildPotionStation } from '../src/lair.js';
+import { createProfile, buyPersonalUpgrade, PERSONAL_UPGRADES, setPassiveActive } from '../src/profile.js';
 import { createDeparture, setDestination, toggleCartSeat, tickDeparture } from '../src/jobs.js';
 import { movePlayer } from '../src/world.js';
 
 // One shared home. The browser never supplies stock, profiles or saved state.
 export function createLairSession({ store = null, getTuning = () => undefined, getLayout = () => undefined } = {}) {
   const restored = restoreSave(store?.load() ?? null);
-  const world = createLairWorld(), camp = restored.camp, players = new Map();
+  const camp = restored.camp, world = createLairWorld(camp), players = new Map();
   function actor(saved) {
     return { ...saved, connected: false, waiting: false, location: 'home',
       ...world.spawn, ...createVitality(), facing: 1, phase: 0, moving: false,
@@ -20,8 +20,8 @@ export function createLairSession({ store = null, getTuning = () => undefined, g
   for (const saved of restored.players) players.set(saved.token, actor(saved));
   let saveFailure = null;
   function durableState() {
-    const { counts, slots, nextItemId, destination } = camp;
-    return { version: 1, camp: { counts, slots, nextItemId, destination },
+    const { counts, slots, nextItemId, destination, buildings } = camp;
+    return { version: 1, camp: { counts, slots, nextItemId, destination, buildings },
       players: [...players.values()].map(p => {
         const interrupted = !!p.inRun || p.location === 'dungeon';
         return { token: p.token, id: p.id, name: p.name, profile: p.profile,
@@ -73,7 +73,7 @@ export function createLairSession({ store = null, getTuning = () => undefined, g
         const p = players.get(record.token), connected = p?.connected ?? false;
         const fresh = actor({ ...record, interrupted: false });
         Object.assign(fresh, { connected, loot: null, result: null, hiding: null, enteringHide: null,
-          placement: null, quickType: null, carrierId: null, cageId: null,
+          placement: null, quickType: null, dartId: null, bellId: null, potionId: null, orbId: null, berryId: null, disguiseLeft: 0, vanishLeft: 0, lucky: false, carrierId: null, cageId: null,
           notice: { id: `admin-${randomUUID()}`, text: 'Server admin updated the saved home. Your goblin is back at the lair.' } });
         if (p) Object.assign(p, fresh); else players.set(record.token, fresh);
       }
@@ -129,16 +129,18 @@ export function createLairSession({ store = null, getTuning = () => undefined, g
       // Stash access via Tab is already allowed anywhere in the lair.
       if (['take', 'craft', 'stack', 'debug-pack'].includes(message.type) && typeof message.item !== 'string') return false;
       if (message.type === 'return' && typeof message.id !== 'string') return false;
+      if (message.type === 'set-passive') return station?.kind === 'campfire' && setPassiveActive(p.profile, message.upgrade, message.active);
       if (message.type === 'buy' && typeof message.upgrade !== 'string') return false;
       if (message.type === 'destination' && (typeof message.job !== 'string' || typeof message.difficulty !== 'string')) return false;
       if (message.type === 'debug-pack') return !!takeStashItem(camp, loot, message.item, true);
       if (message.type === 'take') return !!takeStashItem(camp, loot, message.item);
       if (message.type === 'return') return returnStashItem(camp, loot, message.id);
       if (message.type === 'stack') return moveStashStack(camp, message.item, message.slot);
-      if (message.type === 'craft' && station?.kind === 'craft') return !!craftForSack(camp, loot, message.item, p.profile);
+      if (message.type === 'craft' && station?.kind === recipeStation(message.item)) return !!craftForSack(camp, loot, message.item, p.profile);
+      if (message.type === 'build-potion-station') return station?.kind === 'potion' && buildPotionStation(camp);
       if (message.type === 'buy') {
-        const kind = message.upgrade === 'quickSearch' ? 'campfire' : 'craft';
-        return station?.kind === kind && buyPersonalUpgrade(p.profile, message.upgrade);
+        const kind = PERSONAL_UPGRADES[message.upgrade]?.kind === 'passive' ? 'campfire' : recipeStation(message.upgrade);
+        return station?.kind === kind && (kind !== 'potion' || camp.buildings.potion) && buyPersonalUpgrade(p.profile, message.upgrade);
       }
       if (message.type === 'destination' && station?.kind === 'planning') {
         if (!setDestination(cart, message.job, message.difficulty)) return false;
@@ -167,10 +169,10 @@ export function createLairSession({ store = null, getTuning = () => undefined, g
     },
     snapshot(p) {
       return { type: 'state', selfId: p.id, name: p.name, saving: store ? 'saved' : 'temporary', bag: p.bag, profile: p.profile, location: p.location, held: p.loot?.held ?? null, result: p.result ?? null, notice: p.notice ?? null,
-        placement: p.placement ?? null, quickType: p.quickType ?? null,
+        placement: p.placement ?? null, dartId: p.dartId ?? null, bellId: p.bellId ?? null, potionId: p.potionId ?? null, orbId: p.orbId ?? null, berryId: p.berryId ?? null, quickType: p.quickType ?? null,
         dungeon: p.location === 'dungeon' ? dungeon?.snapshot() : null,
-        camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination },
-        players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, state: q.state, health: q.health, maxHealth: q.maxHealth, invulnerable: q.invulnerable,
+        camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination, buildings: camp.buildings },
+        players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, state: q.state, health: q.health, maxHealth: q.maxHealth, invulnerable: q.invulnerable, disguiseLeft: q.disguiseLeft ?? 0, vanishLeft: q.vanishLeft ?? 0, lucky: q.lucky === true, passiveLuck: q.passiveLuck === true, quietHands: q.quietHands === true, hideSense: q.hideSense === true, panicLeft: q.panicLeft ?? 0, searchVeilLeft: q.searchVeilLeft ?? 0,
           carrierId: q.carrierId ?? null, cageId: q.cageId ?? null,
           hiding: q.hiding ? { spot: { id: q.hiding.spot.id } } : null, enteringHide: q.enteringHide ? { spot: { id: q.enteringHide.spot.id }, elapsed: q.enteringHide.elapsed } : null, waiting: q.waiting, ghost: !q.connected, ghostSeconds: !q.connected ? Math.max(0, Math.ceil(60 - q.disconnectedFor)) : null })),
         cart: { selection: cart.selection, participants: cart.participants, aboard: [...cart.aboard], countdown: cart.countdown }, launched };

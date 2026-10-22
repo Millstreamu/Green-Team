@@ -65,6 +65,7 @@ test('earned XP funds station-checked personal purchases without upgrading a tea
   a.x = 9; a.y = 11.5;
   assert.equal(s.action(a, { type: 'buy', upgrade: 'quickSearch' }), true); assert.equal(a.profile.xp, 20);
   assert.equal(s.action(a, { type: 'buy', upgrade: 'quickSearch' }), false);
+  assert.equal(personalSearchRate(a.profile),1);assert.equal(s.action(a,{type:'set-passive',upgrade:'quickSearch',active:true}),true);
   assert.equal(personalSearchRate(a.profile), 1.1); assert.equal(personalSearchRate(b.profile), 1);
   b.x = 13; b.y = 6; assert.equal(s.action(b, { type: 'buy', upgrade: 'smoke' }), true); assert.equal(b.profile.xp, 0);
   const counts = s.snapshot(a).camp.counts; counts.scrap = 1; counts.cloth = 2;

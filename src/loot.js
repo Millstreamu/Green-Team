@@ -1,3 +1,4 @@
+import { roomDoorsBlockSight } from './door-geometry.js';
 import { canStand, isSightOpen } from './world.js';
 
 export const SACK = Object.freeze({ width: 3, height: 3, reach: 1.7 });
@@ -13,10 +14,19 @@ export const LOOT_TYPES = Object.freeze({
   sword: { sellValue: 20, name: 'Ceremonial sword', color: '#94b7c8', cells: [[0, 0], [0, 1], [0, 2]], mark: '+' },
   horn: { sellValue: 10, name: 'Dwarf drinking horn', color: '#c6a084', cells: [[0, 0], [0, 1], [1, 1]], mark: '⌁' },
   scrap: { name: 'Metal scrap', color: '#9ba8a4', cells: [[0, 0]], mark: '⊟', material: true },
+  meat: { name: 'Meat', color: '#c77972', cells: [[0, 0]], mark: 'M', material: true },
+  mushroom: { name: 'Mushrooms', color: '#bca48c', cells: [[0, 0]], mark: 'M', material: true },
+  berries: { name: 'Berries', color: '#bc75b0', cells: [[0, 0]], mark: 'B', material: true, equipment: true },
   cloth: { name: 'Cloth', color: '#c9b998', cells: [[0, 0]], mark: '≈', material: true },
   gold: { name: 'Gold', color: '#e3be59', cells: [[0, 0]], mark: 'G' },
   smoke: { name: 'Smoke bomb', color: '#a8b7bf', cells: [[0, 0]], mark: '☁', equipment: true, quickUse: true },
   lunch: { name: 'Packed Lunch', color: '#c4a66c', cells: [[0, 0]], mark: 'L', equipment: true, rescue: true },
+  orb: { name: 'Scrying orb', color: '#bd96e1', cells: [[0, 0]], mark: 'O', equipment: true, quickUse: true },
+  lucky: { name: 'Lucky potion', color: '#d8c671', cells: [[0, 0]], mark: 'L', equipment: true, quickUse: true },
+  vanish: { name: 'Vanish potion', color: '#80c9ca', cells: [[0, 0]], mark: 'V', equipment: true, quickUse: true },
+  disguise: { name: 'Guard disguise potion', color: '#ae9bd6', cells: [[0, 0]], mark: 'P', equipment: true, quickUse: true },
+  bell: { name: 'Clang bell', color: '#dcb66b', cells: [[0, 0]], mark: '♧', equipment: true },
+  dart: { name: 'Sleep dart', color: '#a6d5b3', cells: [[0, 0]], mark: '↗', equipment: true },
   snare: { name: 'Snare trap', color: '#a9c3a3', cells: [[0, 0]], mark: '⌘', equipment: true }
 });
 
@@ -27,15 +37,15 @@ export function itemCells(item) {
   return cells.map(([x, y]) => [x - minX, y - minY]);
 }
 
-export function fits(bag, item, x, y) {
+export function fits(bag, item, x, y, grid = SACK) {
   const occupied = new Set(bag.flatMap(p => itemCells(p).map(([dx, dy]) => `${p.x + dx},${p.y + dy}`)));
-  return itemCells(item).every(([dx, dy]) => x + dx >= 0 && y + dy >= 0 && x + dx < SACK.width && y + dy < SACK.height && !occupied.has(`${x + dx},${y + dy}`));
+  return itemCells(item).every(([dx, dy]) => x + dx >= 0 && y + dy >= 0 && x + dx < grid.width && y + dy < grid.height && !occupied.has(`${x + dx},${y + dy}`));
 }
 
-export function findSpace(bag, item) {
+export function findSpace(bag, item, grid = SACK) {
   for (let turn = 0; turn < 4; turn++) {
     const rotated = { ...item, rotation: (item.rotation + turn) % 4 };
-    for (let y = 0; y < SACK.height; y++) for (let x = 0; x < SACK.width; x++) if (fits(bag, rotated, x, y)) return { ...rotated, x, y };
+    for (let y = 0; y < grid.height; y++) for (let x = 0; x < grid.width; x++) if (fits(bag, rotated, x, y, grid)) return { ...rotated, x, y };
   }
   return null;
 }
@@ -45,6 +55,7 @@ export function bagItemAt(bag, x, y) {
 }
 
 export function clearPath(world, a, b) {
+  if (roomDoorsBlockSight(world,a,b)) return false;
   const steps = Math.max(1, Math.ceil(Math.hypot(a.x - b.x, a.y - b.y) * 12));
   for (let i = 0; i <= steps; i++) if (!isSightOpen(world, Math.floor(a.x + (b.x - a.x) * i / steps), Math.floor(a.y + (b.y - a.y) * i / steps))) return false;
   return true;
@@ -64,7 +75,7 @@ export function selectTarget(world, player, ground, pointer = null) {
 }
 
 export function createLoot() {
-  // New valuables come from searches; floor items exist only after a spill/drop.
+  // Shared floor/surface pool; pickups use the same finite sack packing rules.
   return { ground: [], bag: [], held: null };
 }
 
@@ -78,7 +89,12 @@ export function matchingStack(a, b) {
     && (a.saleMultiplier ?? 1) === (b.saleMultiplier ?? 1) && !!a.debugSupply === !!b.debugSupply;
 }
 // Shared packing for floor pickups and lair withdrawals. Returns units packed.
+export function carriedItem(item) {
+  const {surfaceId,surfaceX,surfaceY,surfaceDepth,...carried}=item;
+  return carried;
+}
 export function packItem(bag, item) {
+  item = carriedItem(item);
   if (!validItemCount(item)) return 0;
   let remaining = itemCount(item);
   for (const target of bag) if (matchingStack(target, item)) {
@@ -108,7 +124,7 @@ export function liftItem(state, source, id) {
   const index = state[source].findIndex(item => item.id === id);
   if (index < 0) return false;
   const [item] = state[source].splice(index, 1);
-  state.held = { ...item };
+  state.held = carriedItem(item);
   return true;
 }
 
@@ -146,3 +162,27 @@ export function unitSaleValue(item) {
 }
 export function itemSaleValue(item) { return unitSaleValue(item) * itemCount(item); }
 
+
+// Touch rearrangement stays packed until a complete, valid move is committed.
+export function movePackedItem(state, id, x, y) {
+  if (state.held || typeof id !== 'string') return false;
+  const item = state.bag.find(p => p.id === id);
+  if (!item) return false;
+  const draft = { bag: state.bag.filter(p => p.id !== id).map(p => ({ ...p })), held: { ...item } };
+  if (!placeHeld(draft, x, y)) return false;
+  if (draft.held) draft.bag.push({ ...draft.held, x: item.x, y: item.y });
+  state.bag.splice(0, state.bag.length, ...draft.bag);
+  return true;
+}
+
+export function rotatePackedItem(state, id) {
+  if (state.held || typeof id !== 'string') return false;
+  const item = state.bag.find(p => p.id === id);
+  if (!item) return false;
+  const rotated = { ...item, rotation: (item.rotation + 1) % 4 };
+  const cells = itemCells(rotated);
+  const x = Math.min(item.x, SACK.width - Math.max(...cells.map(c => c[0])) - 1);
+  const y = Math.min(item.y, SACK.height - Math.max(...cells.map(c => c[1])) - 1);
+  if (!fits(state.bag.filter(p => p.id !== id), rotated, x, y)) return false;
+  Object.assign(item, rotated, { x, y }); return true;
+}

@@ -18,7 +18,7 @@ export function drawTraps(ctx, world, player, traps, objects, placement, ox, oy)
       ctx.fillText(trap.ownerClear ? 'ARMING' : 'STEP CLEAR', x, y - 10);
     }
   }
-  if (!placement?.itemId || !placement.point) return;
+  if (['dart', 'bell', 'berries'].includes(placement?.kind) || !placement?.itemId || !placement.point) return;
   const point = placement.point, x = Math.round(point.x * tile + ox), y = Math.round(point.y * tile + oy);
   const valid = validTrapPosition(world, player, point, traps, objects);
   const color = valid ? '#c8ec90' : '#f18a8a';

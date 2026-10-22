@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PROFILE_SAVE_KEY, createProfile, loadProfile, saveProfile, knowsRecipe, buyPersonalUpgrade, ownsUpgrade, personalSearchRate, teamHaulXp, awardPersonalXp } from '../src/profile.js';
+import { PROFILE_SAVE_KEY, createProfile, loadProfile, saveProfile, knowsRecipe, buyPersonalUpgrade, ownsUpgrade, personalSearchRate, setPassiveActive, teamHaulXp, awardPersonalXp } from '../src/profile.js';
 import { createCamp, saveCamp, loadCamp, bankEscape, craftRecipe } from '../src/lair.js';
 import { createLoot, autoPickup } from '../src/loot.js';
 import { generateDungeon } from '../src/world.js';
@@ -94,7 +94,7 @@ test('learned recipes reload with personal XP and work in different lairs withou
 test('passive purchase costs XP once, persists beside recipes and never affects another goblin', () => {
   const profile = createProfile('one'), other = createProfile('two'); profile.xp = 80;
   assert.ok(buyPersonalUpgrade(profile, 'quickSearch')); assert.equal(profile.xp, 50);
-  assert.equal(personalSearchRate(profile), 1.1); assert.equal(personalSearchRate(other), 1);
+  assert.equal(personalSearchRate(profile),1);assert.ok(setPassiveActive(profile,'quickSearch',true));assert.equal(personalSearchRate(profile), 1.1); assert.equal(personalSearchRate(other), 1);
   assert.equal(buyPersonalUpgrade(profile, 'quickSearch'), false); assert.equal(profile.xp, 50);
   assert.ok(buyPersonalUpgrade(profile, 'smoke')); assert.equal(profile.xp, 0); assert.equal(profile.earnedXp, 80);
   const storage = memory(); saveProfile(profile, storage); const restored = loadProfile(storage);

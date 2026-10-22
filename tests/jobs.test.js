@@ -18,7 +18,9 @@ test('job profiles validate selections and leave Normal equal to existing guard 
   for (let seed = 0; seed < 30; seed++) {
     const base = generateDungeon(seed), normal = jobWorld(seed, 'normal');
     assert.deepEqual(createGuards(base), createGuards(normal));
-    assert.deepEqual(createSearchables(base), createSearchables(normal));
+    // Named maps may now bias material identities; geometry, counts and valuables stay the same.
+    const resourceNeutral = objects => objects.map(o => ({ ...o, contents: o.contents.map(type => LOOT_TYPES[type].material ? 'material' : type) }));
+    assert.deepEqual(resourceNeutral(createSearchables(base)), resourceNeutral(createSearchables(normal)));
   }
 });
 test('Hard retains the original routines and adds two reachable guards outside existing coverage', () => {

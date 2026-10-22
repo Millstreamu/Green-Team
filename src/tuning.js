@@ -16,6 +16,7 @@ export const TUNING_FIELDS = Object.freeze([
   ['crateTime', 'Crate search time', 'seconds, before personal bonuses', .2, 15, .1, 'search', SEARCH.crateTime],
   ['nearEmptyChance', 'Empty searches near entrance', 'chance, 0 to 1 (0.7 = 70%)', 0, 1, .05, 'loot', SEARCH_LOOT.nearEmptyChance],
   ['farEmptyChance', 'Empty searches far from entrance', 'chance, 0 to 1 (0.5 = 50%)', 0, 1, .05, 'loot', SEARCH_LOOT.farEmptyChance],
+  ['nearMaterialChance', 'Materials near entrance', 'chance after a nonempty roll, 0 to 1', 0, 1, .05, 'loot', SEARCH_LOOT.nearMaterialChance],
   ['twoItemChance', 'Two items instead of one', 'chance after a nonempty roll, 0 to 1', 0, 1, .05, 'loot', SEARCH_LOOT.twoItemChance]
 ].map(([id, label, unit, min, max, step, group, value]) => Object.freeze({ id, label, unit, min, max, step, group, value })));
 export const DEFAULT_TUNING = Object.freeze(Object.fromEntries(TUNING_FIELDS.map(f => [f.id, f.value])));
@@ -24,6 +25,16 @@ export function validateTuning(value) {
     || TUNING_FIELDS.some(f => !Object.hasOwn(value, f.id) || typeof value[f.id] !== 'number' || !Number.isFinite(value[f.id])
       || value[f.id] < f.min || value[f.id] > f.max || f.step === 1 && !Number.isInteger(value[f.id]))) throw Error('Invalid tuning settings. Check the shown limits.');
   return { ...value };
+}
+// V66 saved every editor field except material mix. Preserve that implicit75%
+// when loading exactly the old schema; submitted edits still require all fields.
+export function restoreTuning(value) {
+  if (value === undefined) return { ...DEFAULT_TUNING };
+  if (value && typeof value === 'object' && !Array.isArray(value)
+    && !Object.hasOwn(value, 'nearMaterialChance') && Object.keys(value).length === TUNING_FIELDS.length - 1) {
+    return validateTuning({ ...value, nearMaterialChance: .75 });
+  }
+  return validateTuning(value);
 }
 export function runTuning(value = DEFAULT_TUNING) {
   const values = validateTuning(value);

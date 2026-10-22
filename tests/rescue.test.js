@@ -16,6 +16,7 @@ function fixture(count = 2) {
   const camp = createCamp();
   const players = Array.from({ length: count }, (_, i) => ({ id: `g${i}`, name: `Goblin ${i}`, connected: true, bag: [], profile: createProfile(`g${i}`) }));
   const d = createDungeonSession({ id: 'rescue-run', seed: 978983017, job: selectJob('manor', 'normal') }, players, camp);
+  d.ground.length = 0; // Isolate this transaction/combat fixture from generated surface finds.
   d.danger.guards.length = 0;
   return { d, camp, players, a: players[0], b: players[1], c: players[2] };
 }

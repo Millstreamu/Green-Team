@@ -21,18 +21,19 @@ function cornerScenario() {
   return { world, guard, player };
 }
 
-test('invisible footprints lead the guard round a hallway corner into the adjoining room at search speed', () => {
+test('guard runs to last sighting before hidden tracking round the corner', () => {
   const { world, guard, player } = cornerScenario();
   let enteredRoom = false, followedTrail = false;
   for (let frame = 0; frame < 240; frame++) {
     if (frame < 28) player.y += 0.2;
     else if (frame < 48) player.x += 0.2;
     const previous = { x: guard.x, y: guard.y };
+    const wasApproaching = guard.lastSeenPending || guard.state === 'chase';
     updateGuard(world, guard, player, 0.05);
     assert.ok(canStand(world, guard.x, guard.y, COMBAT.guardRadius));
     if (guard.state === 'search') {
       followedTrail ||= guard.trail.length > 1;
-      assert.ok(Math.hypot(guard.x - previous.x, guard.y - previous.y) <= COMBAT.searchSpeed * 0.05 + 0.000001);
+      assert.ok(Math.hypot(guard.x - previous.x, guard.y - previous.y) <= (wasApproaching ? COMBAT.chaseSpeed : COMBAT.searchSpeed) * 0.05 + 0.000001);
     }
     if (guard.y >= 6.25) { enteredRoom = true; break; }
   }
@@ -43,6 +44,7 @@ test('hidden trail capture stops after the configured window and does not rewrit
   const { world, guard, player } = cornerScenario();
   // Start farther back so there is no legitimate reacquisition around the turn
   // during this test of a single uninterrupted loss-of-sight window.
+  world.tuning = {combat:{...COMBAT,chaseSpeed:.5}};
   guard.x = 2.5; guard.lastSeen = { x: 9.5, y: 2.85 };
   const lastVisible = { ...guard.lastSeen };
   updateGuard(world, guard, player, 0.05);
@@ -82,4 +84,26 @@ test('invalid teleports leave no trail and a fruitless search still returns the 
   }
   assert.ok(returning); assert.equal(guard.state, 'patrol'); assert.equal(guard.trail.length, 0);
   assert.ok(Math.hypot(guard.x - guard.home.x, guard.y - guard.home.y) < 0.01);
+});
+
+test('last-seen approach preserves queued tracking points and uses running speed until arrival',()=>{
+ const {world,guard,player}=cornerScenario();guard.x=3.5;guard.y=2.5;guard.lastSeen={x:9.5,y:2.5};player.x=-100;player.y=-100;
+ const from={x:guard.x,y:guard.y};updateGuard(world,guard,player,.05);
+ assert.equal(guard.lastSeenPending,true);assert.ok(Math.abs(Math.hypot(guard.x-from.x,guard.y-from.y)-COMBAT.chaseSpeed*.05)<1e-8);
+ const remembered={...guard.lastSeen};const next={x:9.5,y:5.5};guard.trail.push(next);
+ for(let n=0;n<200&&guard.lastSeenPending;n++){
+  assert.deepEqual(guard.lastSeen,remembered);assert.equal(guard.trail.at(-1),next);
+  updateGuard(world,guard,player,.05);
+ }
+ assert.equal(guard.lastSeenPending,false);assert.ok(Math.hypot(guard.x-remembered.x,guard.y-remembered.y)<=COMBAT.searchSpeed*.05+.08);
+ const before={x:guard.x,y:guard.y};updateGuard(world,guard,player,.05);
+ assert.ok(Math.hypot(guard.x-before.x,guard.y-before.y)<=COMBAT.searchSpeed*.05+1e-8);
+});
+
+test('team guard uses the same last-seen approach and clears it on reacquisition',async()=>{
+ const {updateTeamGuard}=await import('../server/team-guards.js');const {world,guard,player}=cornerScenario();
+ Object.assign(player,{id:'goblin',connected:true,inRun:true});guard.targetId=player.id;
+ updateTeamGuard(world,guard,[player],.05,[]);assert.equal(guard.lastSeenPending,true);
+ player.x=8.5;player.y=2.5;updateTeamGuard(world,guard,[player],.05,[]);
+ assert.equal(guard.state,'chase');assert.equal(guard.lastSeenPending,false);assert.equal(guard.trail.length,0);
 });

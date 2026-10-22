@@ -1,0 +1,202 @@
+{
+  "table_1x1": {
+    "kind": "table",
+    "name": "Dining table · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "table_2x1": {
+    "kind": "table",
+    "name": "Dining table · 2 × 1 tiles",
+    "width": 64,
+    "height": 32,
+    "tilesWide": 2,
+    "tilesHigh": 1
+  },
+  "table_3x1": {
+    "kind": "table",
+    "name": "Dining table · 3 × 1 tiles",
+    "width": 96,
+    "height": 32,
+    "tilesWide": 3,
+    "tilesHigh": 1
+  },
+  "bench_1x1": {
+    "kind": "bench",
+    "name": "Bench · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "bench_2x1": {
+    "kind": "bench",
+    "name": "Bench · 2 × 1 tiles",
+    "width": 64,
+    "height": 32,
+    "tilesWide": 2,
+    "tilesHigh": 1
+  },
+  "bench_3x1": {
+    "kind": "bench",
+    "name": "Bench · 3 × 1 tiles",
+    "width": 96,
+    "height": 32,
+    "tilesWide": 3,
+    "tilesHigh": 1
+  },
+  "sideboard_1x1": {
+    "kind": "sideboard",
+    "name": "Sideboard · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "stores_1x1": {
+    "kind": "stores",
+    "name": "Supply shelves · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "stores_1x2": {
+    "kind": "stores",
+    "name": "Supply shelves · 1 × 2 tiles",
+    "width": 32,
+    "height": 64,
+    "tilesWide": 1,
+    "tilesHigh": 2
+  },
+  "crate_1x1": {
+    "kind": "crate",
+    "name": "Supply crate · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "altar_1x1": {
+    "kind": "altar",
+    "name": "Altar · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "altar_2x1": {
+    "kind": "altar",
+    "name": "Altar · 2 × 1 tiles",
+    "width": 64,
+    "height": 32,
+    "tilesWide": 2,
+    "tilesHigh": 1
+  },
+  "pew_1x1": {
+    "kind": "pew",
+    "name": "Prayer bench · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "pew_2x1": {
+    "kind": "pew",
+    "name": "Prayer bench · 2 × 1 tiles",
+    "width": 64,
+    "height": 32,
+    "tilesWide": 2,
+    "tilesHigh": 1
+  },
+  "bed_1x1": {
+    "kind": "bed",
+    "name": "Bed · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "bed_1x2": {
+    "kind": "bed",
+    "name": "Bed · 1 × 2 tiles",
+    "width": 32,
+    "height": 64,
+    "tilesWide": 1,
+    "tilesHigh": 2
+  },
+  "wardrobe_1x1": {
+    "kind": "wardrobe",
+    "name": "Wardrobe · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "dresser_1x1": {
+    "kind": "dresser",
+    "name": "Dresser · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "stove_1x1": {
+    "kind": "stove",
+    "name": "Stove · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "counter_1x1": {
+    "kind": "counter",
+    "name": "Kitchen counter · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "counter_2x1": {
+    "kind": "counter",
+    "name": "Kitchen counter · 2 × 1 tiles",
+    "width": 64,
+    "height": 32,
+    "tilesWide": 2,
+    "tilesHigh": 1
+  },
+  "pantry_1x1": {
+    "kind": "pantry",
+    "name": "Pantry · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "rack_1x1": {
+    "kind": "rack",
+    "name": "Weapon rack · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  },
+  "rack_1x2": {
+    "kind": "rack",
+    "name": "Weapon rack · 1 × 2 tiles",
+    "width": 32,
+    "height": 64,
+    "tilesWide": 1,
+    "tilesHigh": 2
+  },
+  "armourChest_1x1": {
+    "kind": "armourChest",
+    "name": "Equipment chest · 1 × 1 tiles",
+    "width": 32,
+    "height": 32,
+    "tilesWide": 1,
+    "tilesHigh": 1
+  }
+}

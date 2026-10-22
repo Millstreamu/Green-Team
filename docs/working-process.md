@@ -42,7 +42,7 @@ All new static dungeon furniture, hiding spots, decorations and other placed sce
 
 New floor-standing scenery joins the shared renderer's grounded drawing order: sort by footprint front edge, sort actors by feet position, and keep hopping/art offsets out of the sort key. Interaction labels and progress belong above bodies. Avoid adding a separate actor/furniture draw pass that always covers every goblin.
 
-Keep the gameplay HUD within the shared .stage viewport. Map, sack, status and controls must not introduce page-height sidebars or content below the scene that pushes overlays off-screen. Put long reference content in Help or an independently scrolling dialog; preserve home-screen scrolling. Reuse canvas resize/pointer conversion and established sack controls.
+Keep the gameplay HUD within the shared .stage viewport. Map, sack, status and controls must not introduce page-height sidebars or content below the scene that pushes overlays off-screen. Put long reference content in Help or an independently scrolling dialog; keep the home dashboard within one viewport and allow longer forms to scroll inside their own panels. Reuse canvas resize/pointer conversion and established sack controls.
 
 ## 4. Keep planning bounded
 

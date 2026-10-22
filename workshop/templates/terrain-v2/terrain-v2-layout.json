@@ -1,0 +1,627 @@
+{
+  "status": "PROPOSED; not accepted by the five-tile workshop importer",
+  "tileSize": 32,
+  "columns": 8,
+  "rows": 6,
+  "spacing": 0,
+  "padding": 0,
+  "entries": [
+    {
+      "id": 0,
+      "name": "Floor",
+      "mask": null,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": 1,
+      "name": "Solid wall interior",
+      "mask": 255,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "SE",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "x": 32,
+      "y": 0
+    },
+    {
+      "id": 2,
+      "name": "Inside corner variant",
+      "mask": 127,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "SE",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 64,
+      "y": 0
+    },
+    {
+      "id": 3,
+      "name": "Inside corner variant",
+      "mask": 223,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "SE",
+        "S",
+        "W",
+        "NW"
+      ],
+      "x": 96,
+      "y": 0
+    },
+    {
+      "id": 4,
+      "name": "Inside corner variant",
+      "mask": 247,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "x": 128,
+      "y": 0
+    },
+    {
+      "id": 5,
+      "name": "Inside corner variant",
+      "mask": 253,
+      "joins": [
+        "N",
+        "E",
+        "SE",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "x": 160,
+      "y": 0
+    },
+    {
+      "id": 6,
+      "name": "Inside corner variant",
+      "mask": 95,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "SE",
+        "S",
+        "W"
+      ],
+      "x": 192,
+      "y": 0
+    },
+    {
+      "id": 7,
+      "name": "Inside corner variant",
+      "mask": 119,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 224,
+      "y": 0
+    },
+    {
+      "id": 8,
+      "name": "Inside corner variant",
+      "mask": 125,
+      "joins": [
+        "N",
+        "E",
+        "SE",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 0,
+      "y": 32
+    },
+    {
+      "id": 9,
+      "name": "Inside corner variant",
+      "mask": 215,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "S",
+        "W",
+        "NW"
+      ],
+      "x": 32,
+      "y": 32
+    },
+    {
+      "id": 10,
+      "name": "Inside corner variant",
+      "mask": 221,
+      "joins": [
+        "N",
+        "E",
+        "SE",
+        "S",
+        "W",
+        "NW"
+      ],
+      "x": 64,
+      "y": 32
+    },
+    {
+      "id": 11,
+      "name": "Inside corner variant",
+      "mask": 245,
+      "joins": [
+        "N",
+        "E",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "x": 96,
+      "y": 32
+    },
+    {
+      "id": 12,
+      "name": "Inside corner variant",
+      "mask": 87,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "S",
+        "W"
+      ],
+      "x": 128,
+      "y": 32
+    },
+    {
+      "id": 13,
+      "name": "Inside corner variant",
+      "mask": 93,
+      "joins": [
+        "N",
+        "E",
+        "SE",
+        "S",
+        "W"
+      ],
+      "x": 160,
+      "y": 32
+    },
+    {
+      "id": 14,
+      "name": "Inside corner variant",
+      "mask": 117,
+      "joins": [
+        "N",
+        "E",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 192,
+      "y": 32
+    },
+    {
+      "id": 15,
+      "name": "Inside corner variant",
+      "mask": 213,
+      "joins": [
+        "N",
+        "E",
+        "S",
+        "W",
+        "NW"
+      ],
+      "x": 224,
+      "y": 32
+    },
+    {
+      "id": 16,
+      "name": "Inside corner variant",
+      "mask": 85,
+      "joins": [
+        "N",
+        "E",
+        "S",
+        "W"
+      ],
+      "x": 0,
+      "y": 64
+    },
+    {
+      "id": 17,
+      "name": "T join \u00b7 N/E/S",
+      "mask": 31,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "SE",
+        "S"
+      ],
+      "x": 32,
+      "y": 64
+    },
+    {
+      "id": 18,
+      "name": "T join \u00b7 E/S/W",
+      "mask": 124,
+      "joins": [
+        "E",
+        "SE",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 64,
+      "y": 64
+    },
+    {
+      "id": 19,
+      "name": "T join \u00b7 N/E/W",
+      "mask": 199,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "W",
+        "NW"
+      ],
+      "x": 96,
+      "y": 64
+    },
+    {
+      "id": 20,
+      "name": "T join \u00b7 N/S/W",
+      "mask": 241,
+      "joins": [
+        "N",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "x": 128,
+      "y": 64
+    },
+    {
+      "id": 21,
+      "name": "T join \u00b7 N/E/S",
+      "mask": 23,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "S"
+      ],
+      "x": 160,
+      "y": 64
+    },
+    {
+      "id": 22,
+      "name": "T join \u00b7 N/E/S",
+      "mask": 29,
+      "joins": [
+        "N",
+        "E",
+        "SE",
+        "S"
+      ],
+      "x": 192,
+      "y": 64
+    },
+    {
+      "id": 23,
+      "name": "T join \u00b7 N/E/W",
+      "mask": 71,
+      "joins": [
+        "N",
+        "NE",
+        "E",
+        "W"
+      ],
+      "x": 224,
+      "y": 64
+    },
+    {
+      "id": 24,
+      "name": "T join \u00b7 E/S/W",
+      "mask": 92,
+      "joins": [
+        "E",
+        "SE",
+        "S",
+        "W"
+      ],
+      "x": 0,
+      "y": 96
+    },
+    {
+      "id": 25,
+      "name": "T join \u00b7 N/S/W",
+      "mask": 113,
+      "joins": [
+        "N",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 32,
+      "y": 96
+    },
+    {
+      "id": 26,
+      "name": "T join \u00b7 E/S/W",
+      "mask": 116,
+      "joins": [
+        "E",
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 64,
+      "y": 96
+    },
+    {
+      "id": 27,
+      "name": "T join \u00b7 N/E/W",
+      "mask": 197,
+      "joins": [
+        "N",
+        "E",
+        "W",
+        "NW"
+      ],
+      "x": 96,
+      "y": 96
+    },
+    {
+      "id": 28,
+      "name": "T join \u00b7 N/S/W",
+      "mask": 209,
+      "joins": [
+        "N",
+        "S",
+        "W",
+        "NW"
+      ],
+      "x": 128,
+      "y": 96
+    },
+    {
+      "id": 29,
+      "name": "T join \u00b7 N/E/S",
+      "mask": 21,
+      "joins": [
+        "N",
+        "E",
+        "S"
+      ],
+      "x": 160,
+      "y": 96
+    },
+    {
+      "id": 30,
+      "name": "T join \u00b7 N/E/W",
+      "mask": 69,
+      "joins": [
+        "N",
+        "E",
+        "W"
+      ],
+      "x": 192,
+      "y": 96
+    },
+    {
+      "id": 31,
+      "name": "T join \u00b7 N/S/W",
+      "mask": 81,
+      "joins": [
+        "N",
+        "S",
+        "W"
+      ],
+      "x": 224,
+      "y": 96
+    },
+    {
+      "id": 32,
+      "name": "T join \u00b7 E/S/W",
+      "mask": 84,
+      "joins": [
+        "E",
+        "S",
+        "W"
+      ],
+      "x": 0,
+      "y": 128
+    },
+    {
+      "id": 33,
+      "name": "Elbow \u00b7 N/E",
+      "mask": 7,
+      "joins": [
+        "N",
+        "NE",
+        "E"
+      ],
+      "x": 32,
+      "y": 128
+    },
+    {
+      "id": 34,
+      "name": "Elbow \u00b7 E/S",
+      "mask": 28,
+      "joins": [
+        "E",
+        "SE",
+        "S"
+      ],
+      "x": 64,
+      "y": 128
+    },
+    {
+      "id": 35,
+      "name": "Elbow \u00b7 S/W",
+      "mask": 112,
+      "joins": [
+        "S",
+        "SW",
+        "W"
+      ],
+      "x": 96,
+      "y": 128
+    },
+    {
+      "id": 36,
+      "name": "Elbow \u00b7 N/W",
+      "mask": 193,
+      "joins": [
+        "N",
+        "W",
+        "NW"
+      ],
+      "x": 128,
+      "y": 128
+    },
+    {
+      "id": 37,
+      "name": "Elbow \u00b7 N/E",
+      "mask": 5,
+      "joins": [
+        "N",
+        "E"
+      ],
+      "x": 160,
+      "y": 128
+    },
+    {
+      "id": 38,
+      "name": "Thin wall \u00b7 N/S",
+      "mask": 17,
+      "joins": [
+        "N",
+        "S"
+      ],
+      "x": 192,
+      "y": 128
+    },
+    {
+      "id": 39,
+      "name": "Elbow \u00b7 E/S",
+      "mask": 20,
+      "joins": [
+        "E",
+        "S"
+      ],
+      "x": 224,
+      "y": 128
+    },
+    {
+      "id": 40,
+      "name": "Elbow \u00b7 N/W",
+      "mask": 65,
+      "joins": [
+        "N",
+        "W"
+      ],
+      "x": 0,
+      "y": 160
+    },
+    {
+      "id": 41,
+      "name": "Thin wall \u00b7 E/W",
+      "mask": 68,
+      "joins": [
+        "E",
+        "W"
+      ],
+      "x": 32,
+      "y": 160
+    },
+    {
+      "id": 42,
+      "name": "Elbow \u00b7 S/W",
+      "mask": 80,
+      "joins": [
+        "S",
+        "W"
+      ],
+      "x": 64,
+      "y": 160
+    },
+    {
+      "id": 43,
+      "name": "End cap \u00b7 joins N",
+      "mask": 1,
+      "joins": [
+        "N"
+      ],
+      "x": 96,
+      "y": 160
+    },
+    {
+      "id": 44,
+      "name": "End cap \u00b7 joins E",
+      "mask": 4,
+      "joins": [
+        "E"
+      ],
+      "x": 128,
+      "y": 160
+    },
+    {
+      "id": 45,
+      "name": "End cap \u00b7 joins S",
+      "mask": 16,
+      "joins": [
+        "S"
+      ],
+      "x": 160,
+      "y": 160
+    },
+    {
+      "id": 46,
+      "name": "End cap \u00b7 joins W",
+      "mask": 64,
+      "joins": [
+        "W"
+      ],
+      "x": 192,
+      "y": 160
+    },
+    {
+      "id": 47,
+      "name": "Isolated pillar",
+      "mask": 0,
+      "joins": [],
+      "x": 224,
+      "y": 160
+    }
+  ]
+}

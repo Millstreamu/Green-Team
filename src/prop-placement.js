@@ -2,6 +2,8 @@ import { isFloor, canStand } from './world.js';
 
 // Shared by furniture, hiding spots and future decor. Dimensions are floor tiles.
 export const PROP_RULES = Object.freeze({
+  minecart: Object.freeze({solid:true,width:1,height:1,placement:'wall',backWall:true}),
+  potion: Object.freeze({ solid: true, width: 1, height: 1, placement: 'wall' }),
   chest: Object.freeze({ solid: true, width: 1, height: 1, placement: 'wall' }),
   cupboard: Object.freeze({ solid: true, width: 1, height: 1, placement: 'wall', backWall: true }),
   crate: Object.freeze({ solid: true, width: 1, height: 1, placement: 'corner' }),
@@ -32,9 +34,12 @@ export function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[ki
   const { width, height, placement } = rule, reserved = reservedRoomTiles(world, room);
   const used = new Set(occupied.flatMap(propCells).map(p => p.y * world.width + p.x));
   const points = [];
+  const protectedApproaches = (rule.protectApproaches || occupied.some(p=>p.placement==='free')) ? new Set(occupied.filter(p=>p.approach).map(p=>Math.floor(p.approach.y)*world.width+Math.floor(p.approach.x))) : new Set();
   for (let y = room.y; y <= room.y + room.h - height; y++) for (let x = room.x; x <= room.x + room.w - width; x++) {
+    const preferred = rule.positions?.find(p=>p.x===x&&p.y===y);
+    if(rule.positions&&!preferred)continue;
     const cells = propCells({ tileX: x, tileY: y, width, height });
-    if (cells.some(p => !isFloor(world, p.x, p.y) || used.has(p.y * world.width + p.x) || reserved.has(p.y * world.width + p.x))
+    if (cells.some(p => !isFloor(world, p.x, p.y) || used.has(p.y * world.width + p.x) || reserved.has(p.y * world.width + p.x) || protectedApproaches.has(p.y * world.width + p.x))
       || Math.hypot(x + width / 2 - world.spawn.x, y + height / 2 - world.spawn.y) < 2) continue;
     const north = cells.filter(p => p.y === y).every(p => !isFloor(world, p.x, p.y - 1));
     const south = cells.filter(p => p.y === y + height - 1).every(p => !isFloor(world, p.x, p.y + 1));
@@ -42,13 +47,16 @@ export function placeProp(world, room, kind, occupied = [], rule = PROP_RULES[ki
     const east = cells.filter(p => p.x === x + width - 1).every(p => !isFloor(world, p.x + 1, p.y));
     if (rule.backWall && (!north || y !== room.y)) continue;
     if (placement !== 'free' && !north && !south && !west && !east) continue;
-    const facing = north ? 'south' : south ? 'north' : west ? 'east' : 'west';
-    const approach = north ? { x: x + width / 2, y: y + height + .5 } : south ? { x: x + width / 2, y: y - .5 } : west ? { x: x + width + .5, y: y + height / 2 } : { x: x - .5, y: y + height / 2 };
+    let facing = north ? 'south' : south ? 'north' : west ? 'east' : 'west';
+    const options = [{x:x+Math.floor(width/2)+.5,y:y+height+.5,facing:'south'},{x:x+Math.floor(width/2)+.5,y:y-.5,facing:'north'},{x:x+width+.5,y:y+Math.floor(height/2)+.5,facing:'east'},{x:x-.5,y:y+Math.floor(height/2)+.5,facing:'west'}];
+    const approach = placement==='free' ? options.find(p=>canStand(world,p.x,p.y)&&!used.has(Math.floor(p.y)*world.width+Math.floor(p.x))) : options.find(p=>p.facing===facing);
+    if(!approach)continue;
+    facing=approach.facing;delete approach.facing;
     if (!canStand(world, approach.x, approach.y) || used.has(Math.floor(approach.y) * world.width + Math.floor(approach.x))) continue;
-    if (occupied.some(p => Math.hypot(p.x - x - width / 2, p.y - y - height / 2) <= 1)) continue;
+    if (occupied.some(p => Math.hypot(p.x - x - width / 2, p.y - y - height / 2) <= (rule.minCentreDistance??1))) continue;
     const corner = (north || south) && (west || east);
     points.push({ x: x + width / 2, y: y + height / 2, tileX: x, tileY: y, width, height, facing, placement, approach,
-      score: (placement === 'corner' && corner ? -100 : 0) + Math.abs(x - room.cx) + Math.abs(y - room.cy) });
+      score: (preferred?.score??0) + (rule.positions?0:1)*((placement === 'corner' && corner ? -100 : 0) + Math.abs(x - room.cx) + Math.abs(y - room.cy)) });
   }
   points.sort((a, b) => a.score - b.score || a.y - b.y || a.x - b.x);
   // Reject even corner arrangements that would seal off a walkable floor cell.

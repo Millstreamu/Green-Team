@@ -1,0 +1,69 @@
+{
+  "tileSize": 32,
+  "columns": 4,
+  "rows": 3,
+  "width": 128,
+  "height": 96,
+  "projection": "fixed within wall cell",
+  "pieces": [
+    {
+      "name": "floor",
+      "index": 0,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "name": "back",
+      "index": 1,
+      "x": 32,
+      "y": 0
+    },
+    {
+      "name": "side_w",
+      "index": 2,
+      "x": 64,
+      "y": 0
+    },
+    {
+      "name": "side_e",
+      "index": 3,
+      "x": 96,
+      "y": 0
+    },
+    {
+      "name": "rim",
+      "index": 4,
+      "x": 0,
+      "y": 32
+    },
+    {
+      "name": "corner_nw",
+      "index": 5,
+      "x": 32,
+      "y": 32
+    },
+    {
+      "name": "corner_ne",
+      "index": 6,
+      "x": 64,
+      "y": 32
+    },
+    {
+      "name": "corner_sw",
+      "index": 7,
+      "x": 96,
+      "y": 32
+    },
+    {
+      "name": "corner_se",
+      "index": 8,
+      "x": 0,
+      "y": 64
+    }
+  ],
+  "unused": [
+    9,
+    10,
+    11
+  ]
+}

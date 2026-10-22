@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, extname, dirname } from 'node:path';
 import { performance } from 'node:perf_hooks';
+import { networkInterfaces } from 'node:os';
 import { WebSocketServer } from 'ws';
 import { openSaveStore } from './save-store.js';
 import { createBackupStore } from './admin.js';
@@ -54,7 +55,14 @@ export function createGameServer({ session = createHubSession(), admin = null } 
           p = session.connect(m.token);
           if (!p) { ws.close(1008, 'Session already open'); return; }
           clearTimeout(timeout); ws.send(JSON.stringify({ type: 'welcome', token: p.token }));
-        } else if (!session.action(p, m)) ws.send(JSON.stringify({ type: 'rejected', message: session.rejection?.(p) || 'That action is no longer available. Shared state refreshed.' }));
+        } else {
+          const ok = !!session.action(p, m);
+          // Private confirmation follows the authoritative action/save, never a snapshot guess.
+          if (typeof m?.feedbackId === 'string' && m.feedbackId.length <= 32) {
+            ws.send(JSON.stringify({ type: 'action-feedback', feedbackId: m.feedbackId, action: m.type, ok }));
+          }
+          if (!ok) ws.send(JSON.stringify({ type: 'rejected', message: session.rejection?.(p) || 'That action is no longer available. Shared state refreshed.' }));
+        }
         if (p) ws.send(JSON.stringify(session.snapshot(p)));
       } catch (error) { pauseForSaveError(error); }
     });
@@ -95,8 +103,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   process.once('SIGINT', stop); process.once('SIGTERM', stop);
   console.log(`Shared lair save: ${filename}`);
-  server.listen(Number(process.env.PORT || 8080), '127.0.0.1', () => {
+  const lan = process.argv.includes('--lan');
+  server.listen(Number(process.env.PORT || 8080), lan ? '0.0.0.0' : '127.0.0.1', () => {
     console.log(`Green Team test: http://localhost:${server.address().port} — open in two tabs. Ctrl+C stops it.`);
+    if (lan) {
+      let addresses = [];
+      try { addresses = Object.values(networkInterfaces()).flat().filter(address => address?.family === 'IPv4' && !address.internal); } catch { /* Some restricted hosts cannot enumerate adapters. */ }
+      for (const address of addresses) console.log(`Phone on the same Wi-Fi: http://${address.address}:${server.address().port}`);
+      if (!addresses.length) console.log(`Phone on the same Wi-Fi: http://YOUR-COMPUTER-IP:${server.address().port} (use this computer's local network IP)`);
+    }
     console.log(`Private server admin: http://localhost:${server.address().port}/admin#${admin.token}`);
   });
 }

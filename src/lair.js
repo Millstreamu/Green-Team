@@ -1,3 +1,5 @@
+import { placeProp } from './prop-placement.js';
+import { setSolidObjects } from './world.js';
 import { selectJob } from './jobs.js';
 import { PROGRESSION } from './config.js';
 import { knowsRecipe } from './profile.js';
@@ -5,11 +7,26 @@ import { LOOT_TYPES, itemSaleValue, fits, itemCount, validItemCount, packItem, m
 import { buildTrapLoadout } from './loadout.js';
 import { clearPath } from './loot.js';
 
+export const POTION_STATION_COST = 30;
+export function buildPotionStation(camp) {
+  if (camp.buildings?.potion || camp.counts.gold < POTION_STATION_COST) return false;
+  camp.counts.gold -= POTION_STATION_COST;
+  camp.buildings = { ...camp.buildings, potion: true };
+  syncStashSlots(camp); return true;
+}
 export const STASH = Object.freeze({ width: 6, height: 6 });
 export const RECIPES = Object.freeze({
+  lunch: { name: 'Packed Lunch', xpCost: PROGRESSION.recipeCosts.lunch, station: 'craft', materials: { meat: 1, berries: 1 } },
   snare: { name: 'Snare trap', xpCost: PROGRESSION.recipeCosts.snare, materials: { scrap: 2, cloth: 1 } },
+  orb: { name: 'Scrying orb', xpCost: PROGRESSION.recipeCosts.orb, materials: { scrap: 2, cloth: 1 } },
+  lucky: { name: 'Lucky potion', xpCost: PROGRESSION.recipeCosts.lucky, station: 'potion', materials: { berries: 1, scrap: 1 } },
+  vanish: { name: 'Vanish potion', xpCost: PROGRESSION.recipeCosts.vanish, station: 'potion', materials: { mushroom: 2, cloth: 1 } },
+  disguise: { name: 'Guard disguise potion', xpCost: PROGRESSION.recipeCosts.disguise, station: 'potion', materials: { mushroom: 1, berries: 1 } },
+  bell: { name: 'Clang bell', xpCost: PROGRESSION.recipeCosts.bell, materials: { scrap: 1, cloth: 1 } },
+  dart: { name: 'Sleep dart', xpCost: PROGRESSION.recipeCosts.dart, materials: { scrap: 1, cloth: 2 } },
   smoke: { name: 'Smoke bomb', xpCost: PROGRESSION.recipeCosts.smoke, materials: { scrap: 1, cloth: 2 } }
 });
+export function recipeStation(type) { return RECIPES[type]?.station ?? 'craft'; }
 export const SNARE_RECIPE = RECIPES.snare.materials;
 export function syncStashSlots(camp) {
   const used = new Set();
@@ -24,7 +41,7 @@ export function syncStashSlots(camp) {
   }
 }
 export function createCamp() {
-  const camp = { counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [], preparedBag: [], nextItemId: 1, destination: { jobId: 'manor', difficultyId: 'normal' } };
+  const camp = { buildings: { potion: false }, counts: Object.fromEntries(Object.keys(LOOT_TYPES).map(type => [type, type === 'scrap' ? 2 : type === 'cloth' || type === 'snare' ? 1 : 0])), slots: [], preparedBag: [], nextItemId: 1, destination: { jobId: 'manor', difficultyId: 'normal' } };
   syncStashSlots(camp); return camp;
 }
 export function moveStashStack(camp, type, target) {
@@ -34,7 +51,7 @@ export function moveStashStack(camp, type, target) {
   camp.slots[origin] = null; camp.slots[target] = type; return true;
 }
 export function canCraftRecipe(camp, type, profile) {
-  return Object.hasOwn(RECIPES, type) && knowsRecipe(profile, type) && Object.entries(RECIPES[type].materials).every(([material, count]) => camp.counts[material] >= count);
+  return Object.hasOwn(RECIPES, type) && (recipeStation(type) !== 'potion' || camp.buildings?.potion === true) && knowsRecipe(profile, type) && Object.entries(RECIPES[type].materials).every(([material, count]) => camp.counts[material] >= count);
 }
 export function craftRecipe(camp, type, profile) {
   if (!canCraftRecipe(camp, type, profile)) return false;
@@ -45,6 +62,12 @@ export function canCraftSnare(camp, profile) { return canCraftRecipe(camp, 'snar
 export function craftSnare(camp, profile) { return craftRecipe(camp, 'snare', profile); }
 // Local preparation transfers conserve stock immediately; launch moves the
 // already-paid bag without withdrawing stock a second time.
+// Preview uses the same packing/stacking rules without reserving shared stock.
+export function stashPackingPreview(bag,type){
+ const before=bag.map(itemCount),copy=bag.map(item=>({...item}));
+ if(!packItem(copy,{id:'stash-preview',type,rotation:0}))return null;
+ return copy.find((item,index)=>index>=before.length||itemCount(item)>before[index])??null;
+}
 export function takeStashItem(camp, loot, type, debug = false) {
   if (!Object.hasOwn(LOOT_TYPES, type) || LOOT_TYPES[type].runOnly || debug && !LOOT_TYPES[type].equipment || loot.held || !debug && camp.counts[type] < 1 || !Number.isSafeInteger(camp.nextItemId) || camp.nextItemId >= Number.MAX_SAFE_INTEGER) return null;
   const item = { id: `lair-item-${camp.nextItemId}`, type, rotation: 0, ...(debug ? { debugSupply: true } : {}) };
@@ -81,15 +104,15 @@ export function takeSupplies(camp, quantities, seed, debug = false) {
   else for (const [type, count] of Object.entries(required)) camp.counts[type] -= count;
   syncStashSlots(camp); return loadout;
 }
-export function bankEscape(camp, result, loot) {
+export function bankEscape(camp, result, loot, cart = null) {
   if (result.outcome !== 'escaped' || result.banked) return false;
   let gold = 0;
-  for (const item of loot.bag) if (!item.debugSupply && !LOOT_TYPES[item.type].runOnly) {
+  for (const item of [...loot.bag, ...(cart?.items ?? [])]) if (!item.debugSupply && !LOOT_TYPES[item.type].runOnly) {
     if (LOOT_TYPES[item.type].sellValue) gold += itemSaleValue(item);
     else camp.counts[item.type]++;
   }
   camp.counts.gold += gold; result.soldGold = gold;
-  loot.bag.length = 0; result.banked = true; syncStashSlots(camp); return true;
+  loot.bag.length = 0; if (cart) cart.items.length = 0; result.banked = true; syncStashSlots(camp); return true;
 }
 const CAMP_SAVE_KEY = 'green-team-camp-v1';
 export function loadCamp(storage) {
@@ -119,6 +142,10 @@ export function loadCamp(storage) {
       }
       camp.preparedBag = bag; camp.nextItemId = saved.nextItemId;
     }
+    if (saved.buildings !== undefined) {
+      if (typeof saved.buildings?.potion !== 'boolean') return createCamp();
+      camp.buildings = { potion: saved.buildings.potion };
+    }
     const destination = saved.destination && selectJob(saved.destination.jobId, saved.destination.difficultyId);
     if (destination) camp.destination = { jobId: destination.jobId, difficultyId: destination.difficultyId };
     camp.slots = Array.isArray(saved.slots) ? saved.slots : [];
@@ -126,14 +153,20 @@ export function loadCamp(storage) {
   } catch { return createCamp(); }
 }
 export function saveCamp(camp, storage) {
-  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 4, counts: camp.counts, slots: camp.slots, preparedBag: camp.preparedBag, nextItemId: camp.nextItemId, destination: camp.destination })); return !!storage; }
+  try { syncStashSlots(camp); storage?.setItem(CAMP_SAVE_KEY, JSON.stringify({ version: 4, buildings: camp.buildings, counts: camp.counts, slots: camp.slots, preparedBag: camp.preparedBag, nextItemId: camp.nextItemId, destination: camp.destination })); return !!storage; }
   catch { return false; }
 }
-export function createLairWorld() {
+export function createLairWorld(camp = null) {
   const width = 18, height = 14, tiles = new Uint8Array(width * height);
   for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) tiles[y * width + x] = 1;
-  return { seed: 0, width, height, tiles, rooms: [{ x: 1, y: 1, w: 16, h: 12, cx: 9, cy: 7 }], shortcuts: [], spawn: { x: 9, y: 9.5 }, lair: true,
+  const world = { seed: 0, width, height, tiles, rooms: [{ x: 1, y: 1, w: 16, h: 12, cx: 9, cy: 7 }], shortcuts: [], spawn: { x: 9, y: 9.5 }, lair: true,
     stations: [{ kind: 'stash', name: 'Lair stash', x: 5, y: 6 }, { kind: 'craft', name: 'Workbench', x: 13, y: 6 }, { kind: 'campfire', name: 'Campfire', x: 9, y: 11.5 }, { kind: 'planning', name: 'Map planning', x: 5, y: 2.5 }, { kind: 'tunnel', name: 'Departure minecart', x: 9, y: 2.5 }] };
+  const point = placeProp(world, { x: 16, y: 8, w: 1, h: 1, cx: 16, cy: 7 }, 'potion', world.stations);
+  if (!point) throw Error('No reachable potion station site');
+  world.stations.push({ ...point, kind: 'potion', name: 'Potion station' });
+  world.camp = camp;
+  setSolidObjects(world, [point]);
+  return world;
 }
 export function lairTarget(world, player) {
   return world.stations.filter(station => Math.hypot(station.x - player.x, station.y - player.y) <= 1.6 && clearPath(world, player, station))

@@ -1,3 +1,5 @@
+import { passiveMoveRate } from './passive-effects.js';
+import { addCartRoom } from './cart-room.js';
 import { CONFIG } from './config.js';
 import { addRoomLoops } from './dungeon-layout.js';
 
@@ -16,7 +18,7 @@ export function generateDungeon(seed, config = CONFIG) {
   // Every accepted room connects to a previous one, so all floor is reachable.
   for (let attempt = 0; attempt < 600 && rooms.length < config.rooms; attempt++) {
     const w = integer(config.minRoomWidth ?? 6, config.maxRoomWidth ?? 12), h = integer(config.minRoomHeight ?? 5, config.maxRoomHeight ?? 9);
-    const x = integer(2, width - w - 3), y = integer(2, height - h - 3);
+    const x = integer(2, width - w - 3), y = integer(config.cartRoom ? 12 : 2, height - h - 3);
     if (rooms.some(r => x < r.x + r.w + 2 && x + w + 2 > r.x && y < r.y + r.h + 2 && y + h + 2 > r.y)) continue;
     const nearest = rooms.length ? rooms.reduce((best, r) => Math.hypot(r.cx - (x + Math.floor(w / 2)), r.cy - (y + Math.floor(h / 2))) < Math.hypot(best.cx - (x + Math.floor(w / 2)), best.cy - (y + Math.floor(h / 2))) ? r : best) : null;
     if (nearest && Math.abs(nearest.cx - x - Math.floor(w / 2)) + Math.abs(nearest.cy - y - Math.floor(h / 2)) > (config.maxCorridorLength ?? 1000)) continue;
@@ -42,7 +44,8 @@ export function generateDungeon(seed, config = CONFIG) {
     }
     rooms.push(room);
   }
-  return addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, corridorTiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
+  const world = addRoomLoops({ layout: { ...config }, seed: seed >>> 0, width, height, tiles, corridorTiles, rooms, spawn: { x: rooms[0].cx + 0.5, y: rooms[0].cy + 0.5 } }, config, random);
+  return config.cartRoom ? addCartRoom(world) : world;
 }
 
 export function isFloor(world, x, y) {
@@ -52,16 +55,18 @@ export function isFloor(world, x, y) {
 // Movement obstacles stay separate from floor art and guard sight.
 export function setSolidObjects(world, objects = []) {
   world.solidTiles = new Uint8Array(world.tiles.length);
-  for (const object of objects) for (let dy = 0; dy < (object.height ?? 1); dy++) for (let dx = 0; dx < (object.width ?? 1); dx++) {
+  for (const object of [...(world.cartProp ? [world.cartProp] : []), ...objects]) for (let dy = 0; dy < (object.height ?? 1); dy++) for (let dx = 0; dx < (object.width ?? 1); dx++) {
     const x = (object.tileX ?? Math.floor(object.x)) + dx, y = (object.tileY ?? Math.floor(object.y)) + dy;
     if (isFloor(world, x, y)) world.solidTiles[y * world.width + x] = 1;
   }
 }
+// Coarse terrain visibility. Dynamic door leaves are intersected by clearPath,
+// vision-cone rays and lighting; movement keeps its full doorway mask.
 export function isSightOpen(world, x, y) {
   return isFloor(world, x, y) && !world.lockedTiles?.[y * world.width + x];
 }
 export function isWalkable(world, x, y) {
-  return isSightOpen(world, x, y) && !world.solidTiles?.[y * world.width + x];
+  return isSightOpen(world, x, y) && !world.roomDoorTiles?.[y * world.width + x] && !world.solidTiles?.[y * world.width + x];
 }
 
 export function canStand(world, x, y, radius = CONFIG.radius) {
@@ -80,7 +85,7 @@ export function movePlayer(world, player, input, dt, config = CONFIG) {
   if (player.hiding) { player.moving = false; player.phase = 0; return; }
   const length = Math.hypot(input.x, input.y);
   if (!length) { player.moving = false; player.phase = 0; return; }
-  const distance = config.speed * Math.max(0, dt);
+  const distance = config.speed * passiveMoveRate(player) * Math.max(0, dt);
   player.moving = moveActor(world, player, input.x / length * distance, input.y / length * distance, config.radius);
   if (input.x) player.facing = Math.sign(input.x);
   player.phase = player.moving ? player.phase + dt * config.hopRate : 0;

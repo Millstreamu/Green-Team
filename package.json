@@ -6,7 +6,9 @@
     "test": "node --test",
     "build": "node scripts/build.mjs",
     "start": "node server/index.js",
-    "check:dungeons": "node scripts/check-dungeons.mjs"
+    "start:lan": "node server/index.js --lan",
+    "check:dungeons": "node scripts/check-dungeons.mjs",
+    "build:pages": "node scripts/build.mjs && node scripts/build-workshop.mjs && node scripts/build-pages.mjs"
   },
   "dependencies": {
     "ws": "8.22.0"

@@ -8,7 +8,7 @@ export function drawLair(ctx, world, near, ox, oy) {
   box(7 * tile + ox + 3, 8 * tile + oy + 3, 4 * tile - 6, 3 * tile - 6, '#665b47');
   box(2 * tile + ox, 10 * tile + oy, 2 * tile, tile, '#505d41');
   box(2 * tile + ox + 3, 10 * tile + oy + 3, 12, 14, '#aaa38a');
-  for (const station of world.stations.filter(s => s.kind !== 'tunnel')) {
+  for (const station of world.stations.filter(s => s.kind !== 'tunnel' && s.kind !== 'potion')) {
     const x = station.x * tile + ox, y = station.y * tile + oy;
     if (station.kind === 'stash') {
       box(x - 16, y - 14, 32, 22, '#725a38'); box(x - 17, y - 17, 34, 9, '#b18d4e');
@@ -34,4 +34,18 @@ export function drawLair(ctx, world, near, ox, oy) {
     ctx.fillText(station.name.toUpperCase(), x, y - 30);
     if (near?.kind === station.kind) ctx.fillText('E', x, y - 41);
   }
+}
+
+export function drawPotionStation(ctx, world, station, ox, oy, label = false) {
+  const t = CONFIG.tile, x = station.tileX * t + ox, y = station.tileY * t + oy;
+  const built = world.camp?.buildings?.potion;
+  if (label) {
+    ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#d4dfbc';
+    ctx.fillText(built ? 'POTION STATION' : 'BUILD POTION STATION', x + t / 2, y - 5); return;
+  }
+  ctx.fillStyle = built ? '#62533d' : '#494a3c'; ctx.fillRect(x + 2, y + 3, t - 4, t - 5);
+  ctx.fillStyle = '#a48a60'; ctx.fillRect(x + 1, y + 2, t - 2, 5);
+  ctx.fillStyle = built ? '#b78ac5' : '#8e9678'; ctx.fillRect(x + 5, y + 8, 6, 7);
+  ctx.fillStyle = built ? '#82b88c' : '#8e9678'; ctx.fillRect(x + 14, y + 10, 5, 6);
+  ctx.fillStyle = '#d5d0ac'; ctx.fillRect(x + 7, y + 6, 2, 3);
 }

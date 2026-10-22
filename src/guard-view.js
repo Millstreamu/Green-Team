@@ -1,18 +1,21 @@
+import { roomDoorSightFraction } from './door-geometry.js';
 import { smokeBlocksSight } from './smoke.js';
-import { CONFIG, COMBAT } from './config.js';
+import { CONFIG, COMBAT, DART } from './config.js';
 import { isSightOpen } from './world.js';
 
 export function drawGuardVision(ctx, world, guard, ox, oy, clouds = []) {
+  if (guard.sleepLeft > 0 || guard.blindLeft > 0) return;
   if (!guard.captiveId && !['patrol', 'suspicious', 'return', 'carry'].includes(guard.state)) return;
   const combat = world.tuning?.combat ?? COMBAT;
   const t = CONFIG.tile;
   ctx.beginPath(); ctx.moveTo(guard.x * t + ox, guard.y * t + oy);
   for (let ray = 0; ray <= 24; ray++) {
     const angle = guard.angle - combat.halfCone + ray / 24 * combat.halfCone * 2;
+    const doorDistance=roomDoorSightFraction(world,guard,{x:guard.x+Math.cos(angle)*combat.sight,y:guard.y+Math.sin(angle)*combat.sight})*combat.sight;
     let x = guard.x, y = guard.y;
     for (let step = 0.15; step <= combat.sight; step += 0.15) {
       const nx = guard.x + Math.cos(angle) * step, ny = guard.y + Math.sin(angle) * step;
-      if (!isSightOpen(world, Math.floor(nx), Math.floor(ny)) || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
+      if (!isSightOpen(world, Math.floor(nx), Math.floor(ny)) || step>=doorDistance || smokeBlocksSight(guard, { x: nx, y: ny }, clouds)) break;
       x = nx; y = ny;
     }
     ctx.lineTo(x * t + ox, y * t + oy);
@@ -44,11 +47,16 @@ export function drawGuard(ctx, guard, ox, oy, pass = 'all') {
     ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x + Math.cos(guard.angle) * 12, y - 12 + Math.sin(guard.angle) * 12); ctx.stroke();
   }
   if (pass === 'body') return;
-  if (guard.snareLeft > 0) {
+  if (guard.blindLeft > 0) {
+    ctx.fillStyle = '#e0a3ca'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('BLIND', x, y - 29);
+  } else if (guard.sleepLeft > 0) {
+    ctx.fillStyle = '#b5dbdf'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('Zzz', x, y - 29);
+    ctx.fillStyle = '#18282a'; ctx.fillRect(x - 10, y - 28, 20, 3); ctx.fillStyle = '#b5dbdf'; ctx.fillRect(x - 10, y - 28, 20 * Math.min(1, guard.sleepLeft / DART.sleepSeconds), 3);
+  } else if (guard.snareLeft > 0) {
     ctx.fillStyle = '#d7eeb2'; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('SNARED', x, y - 29);
   } else if (guard.state !== 'patrol') {
     ctx.fillStyle = alert ? '#f19a91' : '#efd18a'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'suspicious' ? '?' : guard.state === 'carry' ? 'CARRYING' : guard.state === 'capture' ? 'CAPTURE' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
+    ctx.fillText(guard.windup > 0 ? '!' : guard.state === 'investigate' ? '♫ ?' : guard.state === 'suspicious' ? '?' : guard.state === 'carry' ? 'CARRYING' : guard.state === 'capture' ? 'CAPTURE' : guard.state === 'search' ? '…' : guard.state === 'return' ? '↩' : '!', x, y - 29);
   }
   if (guard.state === 'suspicious') {
     rect(-9, -29, 18, 2, '#242e29'); rect(-9, -29, Math.round(18 * guard.suspicion), 2, '#efd18a');

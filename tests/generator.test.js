@@ -37,24 +37,24 @@ function checkLayout(p) {
     for (const point of [...guard.patrol, ...(guard.roamRoute ?? [])]) assert.ok(canStand(world, point.x, point.y));
   }
   for (const prop of [...objects, ...hidingSpots, ...cages]) {
-    assert.equal(prop.x % 1, .5); assert.equal(prop.y % 1, .5);
+    assert.equal(prop.x,prop.tileX+(prop.width??1)/2); assert.equal(prop.y,prop.tileY+(prop.height??1)/2);
     const room = world.rooms.find(r => prop.tileX >= r.x && prop.tileX < r.x + r.w && prop.tileY >= r.y && prop.tileY < r.y + r.h);
     assert.ok(room);
     if (objects.includes(prop) || hidingSpots.includes(prop)) {
       assert.equal(canStand(world, prop.x, prop.y), false);
       assert.equal(world.corridorTiles[prop.tileY * world.width + prop.tileX], 0);
-      if (prop.type === 'cupboard') { assert.equal(prop.tileY, room.y); assert.equal(isFloor(world, prop.tileX, prop.tileY - 1), false); assert.equal(prop.facing, 'south'); }
+      if (prop.type === 'cupboard' && prop.placement !== 'free') { assert.equal(prop.tileY, room.y); assert.equal(isFloor(world, prop.tileX, prop.tileY - 1), false); assert.equal(prop.facing, 'south'); }
     }
     const reserved = reservedRoomTiles(world, room);
     for (const cell of propCells(prop)) {
       const key = cell.y * world.width + cell.x; assert.ok(!used.has(key)); used.add(key);
       assert.ok(!reserved.has(key)); assert.ok(isFloor(world, cell.x, cell.y));
     }
-    assert.ok([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !isFloor(world, prop.tileX + dx, prop.tileY + dy)));
+    if(prop.placement!=='free')assert.ok([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !isFloor(world, prop.tileX + dx, prop.tileY + dy)));
     assert.ok(canStand(world, prop.approach.x, prop.approach.y)); assert.ok(findPath(world, world.spawn, prop.approach).length);
   }
 }
-test('all three architectures generate connected bounded layouts with grid-aligned wall props and reserved doorway lanes', () => {
+test('all three architectures generate connected bounded layouts with grid-aligned furniture and reserved doorway lanes', () => {
   for (const [id, values] of Object.entries(GENERATOR_PRESETS)) for (let seed = 0; seed < 30; seed++) {
     const preview = createDungeonPreview(seed, values, id); checkLayout(preview);
     assert.ok(preview.world.rooms.length >= 4); assert.ok(preview.hidingSpots.length > 0); assert.ok(preview.cages.length > 0);

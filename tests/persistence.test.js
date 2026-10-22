@@ -165,10 +165,11 @@ test('save failure pauses the live server and sends no successful transfer snaps
   const ready = new Promise(resolve => { receive = resolve; });
   ws.on('message', bytes => { const m = JSON.parse(bytes); messages.push(m); if (m.type === 'state') receive(); });
   await once(ws, 'open'); ws.send(JSON.stringify({ type: 'hello' })); await ready;
-  const closed = once(ws, 'close'); ws.send(JSON.stringify({ type: 'take', item: 'snare' }));
+  const closed = once(ws, 'close'); ws.send(JSON.stringify({ type: 'take', item: 'snare', feedbackId: 'disk-full' }));
   const [code, reason] = await closed;
   assert.equal(code, 1011); assert.equal(reason.toString(), 'Save failed');
   assert.ok(messages.some(m => m.type === 'save-error'));
+  assert.equal(messages.some(m => m.type === 'action-feedback' && m.ok), false, 'save failure never plays success feedback');
   assert.ok(messages.filter(m => m.type === 'state').every(m => m.bag.length === 0 && m.camp.counts.snare === 1));
   assert.equal(errorLog.mock.callCount(), 1);
 });

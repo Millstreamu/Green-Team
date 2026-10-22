@@ -1,12 +1,21 @@
+import { searchableName } from './room-types.js';
+import { applyRoomDoors } from './room-doors.js';
+import { passiveStatus } from './passive-effects.js';
+import { createRaidCartView, cartBubbleAnchor } from './raid-cart-view.js';
+import { DART, BELL, BERRY } from './config.js';
+import { placementPoint } from './traps.js';
+import { boundDartAim } from './darts.js';
+import { createFeedback } from './feedback.js';
+import { setupTouchSack } from './touch-sack.js';
 import { applyTreasureState } from './treasure.js';
 import { itemLabel } from './loot.js';
-import { setupGameScreen } from './game-screen.js';
+import { setupGameScreen, updateGameHud, controlHint } from './game-screen.js';
 import { createHomeView } from './home-view.js';
 import { createOnlineIdentity } from './online-identity.js';
 import { createCamp, createLairWorld, lairTarget } from './lair.js';
 import { createProfile } from './profile.js';
 import { createLairView } from './lair-view.js';
-import { createMapPlanningView } from './loadout-view.js';
+import { createMapPlanningView, createDepartureView } from './loadout-view.js';
 import { createInput } from './input.js';
 import { createRenderer, screenToWorld } from './render.js';
 import { createLoot, selectTarget, LOOT_TYPES, bagItemAt } from './loot.js';
@@ -19,6 +28,7 @@ import { pressureLabel } from './pressure-view.js';
 import { atTunnel } from './run.js';
 
 const $ = selector => document.querySelector(selector);
+const feedback = createFeedback();
 $('#game-shell').hidden = true; $('#home-screen').hidden = false;
 let identityStorage, identityTabStorage;
 try { identityStorage = window.localStorage; } catch {}
@@ -49,10 +59,10 @@ const sack = createSackView($('#sack-grid'), $('#held-ghost'));
 const results = createResultsView($('#run-results'));
 setupGameScreen($('#game'));
 const render = await createRenderer($('#game'), $('#map'));
-const modal = () => state?.screen === 'home' || $('#lair-panel').open || $('#map-planning').open || $('#run-results').open;
+const modal = () => state?.screen === 'home' || $('#lair-panel').open || $('#map-planning').open || $('#departure-panel').open || $('#raid-cart-panel').open || $('#run-results').open;
 const input = createInput(window, () => modal() || !world.lair && sack.isNavigating());
-const tell = text => { $('#status').textContent = text; if (!state || state.screen === 'home') $('#home-message').textContent = text; };
-const send = message => { if (socket?.readyState === WebSocket.OPEN && connected) socket.send(JSON.stringify(message)); };
+const tell = text => { $('#status').textContent = controlHint(text); if ($('#lair-panel').open) $('#craft-status').textContent = text; if (!state || state.screen === 'home') home.message(text); };
+const send = message => { if (socket?.readyState === WebSocket.OPEN && connected) socket.send(JSON.stringify(feedback.request(message))); };
 const home = createHomeView(send);
 const clear = () => {
   input.clear(); dragStart = null;
@@ -80,17 +90,20 @@ const lair = createLairView($('#lair-panel'), camp, profile, () => loot, () => {
 const planning = createMapPlanningView($('#map-planning'), selection => {
   send({ type: 'destination', job: selection.jobId, difficulty: selection.difficultyId }); clear(); return true;
 }, () => state.cart.selection, () => loot.bag, clear);
+let boardingSerial = 0;
+const departureView = createDepartureView($('#departure-panel'), () => ({ cart: state?.cart, selfId: state?.selfId, players: state?.players, bag: loot.bag, active: connected && state?.screen !== 'home' && state?.location === 'home' && !state?.launched }), () => { clear(); send({ type: 'board', feedbackId: `board-${++boardingSerial}` }); return true; }, clear, { network: true });
+const raidCartView=createRaidCartView($('#raid-cart-panel'),()=>({anchor:world&&self()?cartBubbleAnchor($('#game'),world,self()):null,cart:state?.dungeon?.cart,bag:loot.bag,selfId:state?.selfId,teamCount:state?.players?.filter(p=>!p.ghost&&!p.waiting&&p.state==='active').length,active:connected&&!!state?.dungeon&&self()?.state==='active'&&!self()?.hiding&&atTunnel(runView(),world,self())}),message=>{clear();send(message);return true;},clear,{network:true,feedback:ok=>feedback.result(ok,'pickup','#raid-cart-action-icon')});
 $('#regenerate').hidden = true; $('#sack-tab').hidden = true; $('#seed').textContent = 'Shared home';
 $('#rooms').textContent = 'Network dungeon test';
-$('.controls').textContent = 'WASD move · Tab sack / lair stash · Hold E search · E pack loot / drop held item · Click loot to lift · R rotate · Click sack to place · Hold E revive / cage rescue · E at tunnel: leave together · Hold E hide / E exit · E equip selected gear · WASD aim · Hold E place · Space smoke';
-$('.note').textContent = 'Two tabs share one dungeon and its loot. One goblin searches each container at a time. Everyone returns to the secret tunnel to leave. Guards can chase either goblin. Hide, snare or smoke to escape. Packed Lunch revives a downed teammate. Cage rescue needs no lunch. Escaping earns each departed goblin XP from the team’s recovered valuables. Spend it on recipes at the workbench or passives at the campfire. Use Debug supplies in the lair to test gear. The shared lair and home sacks save on the server. Restarting during a run loses that run’s carried supplies and loot. Choose a saved goblin above when returning. Solo saves are separate.';
+$('.controls').textContent = 'WASD move · Tab sack / lair stash · Hold E search · E pack loot / drop held item · Click loot to lift · R rotate · Click sack to place · Hold E revive / cage rescue · E at minecart: unload / leave · Hold E hide / E exit · E equip selected gear · WASD aim · Hold E place · Space smoke';
+$('.note').textContent = 'Two tabs share one dungeon and its loot. One goblin searches each container at a time. Unload at the shared minecart, then board to leave together. Cargo banks only on escape; a full wipe loses it. Guards can chase either goblin. Hide, snare or smoke to escape. Packed Lunch revives a downed teammate. Cage rescue needs no lunch. Escaping earns each departed goblin XP from the team’s recovered valuables. Spend it on recipes at the workbench or passives at the campfire. Use Debug supplies in the lair to test gear. The shared lair and home sacks save on the server. Restarting during a run loses that run’s carried supplies and loot. Choose a saved goblin above when returning. Solo saves are separate.';
 $('#xp-label').textContent = 'Test goblin · 0 XP';
 $('#next-run').addEventListener('click', () => { send({ type: 'dismiss-result' }); results.close(); clear(); });
 $('#sack-tab').addEventListener('click', () => { if (activeDungeon() && !self().hiding) { clear(); stopSearch(); send({ type: 'cancel-placement' }); sack.toggle(); } });
 $('#online-identity').hidden = false;
 function chooseIdentity(event) {
   if (!connected || state?.screen !== 'home' && (state?.location !== 'home' || state?.launched)) return;
-  clear(); $('#lair-panel').close(); $('#map-planning').close();
+  clear(); $('#lair-panel').close(); $('#map-planning').close(); departureView.close(); raidCartView.close();
   identity.select(event.target.value); connected = false;
   const old = socket; socket = null; old.close(); state = null; identityToken = null;
   tell('Connecting to the selected goblin…'); connect();
@@ -99,6 +112,7 @@ $('#goblin-choice').addEventListener('change', chooseIdentity);
 $('#home-goblin-choice').addEventListener('change', chooseIdentity);
 $('#leave-lair').addEventListener('click', () => { clear(); send({ type: 'leave-lair' }); });
 function connect() {
+  feedback.reset();
   socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/session`);
   const connection = socket;
   socket.addEventListener('open', () => {
@@ -108,6 +122,7 @@ function connect() {
   socket.addEventListener('message', event => {
     if (connection !== socket) return;
     const message = JSON.parse(event.data);
+    if (message.type === 'action-feedback') { feedback.receive(message); lair.receiveFeedback(message); departureView.receiveFeedback(message); raidCartView.receiveFeedback(message); return; }
     if (message.type === 'welcome') {
       connected = true; identityToken = message.token; identity.remember(message.token, 'Goblin');
       tell('Connected. WASD to walk; Tab opens your inventory.'); return;
@@ -120,8 +135,8 @@ function connect() {
     if (message.screen === 'home') {
       const entering = state?.screen !== 'home';
       state = message; home.show(message, connected); showIdentities(message.name);
-      $('#lair-panel').close(); $('#map-planning').close(); results.close(); input.clear(); sack.reset();
-      if (entering) home.message('Join a friend’s lair with its name and code, or create your own.');
+      $('#lair-panel').close(); $('#map-planning').close(); departureView.close(); raidCartView.close(); results.close(); input.clear(); sack.reset();
+      if (entering) home.message(message.ownedLairs?.length ? 'Your lair is ready.' : 'Create a lair or join friends.');
       return;
     }
     home.hide();
@@ -129,7 +144,11 @@ function connect() {
     $('#current-lair-name').textContent = message.lair?.name ?? '';
     $('#current-lair-code').textContent = message.lair?.code ?? '';
     $('#leave-lair').disabled = message.location === 'dungeon';
-    const equipped = message.placement?.itemId && message.placement.itemId !== state?.placement?.itemId || message.quickType && message.quickType !== state?.quickType;
+    const ownDartHit = message.dungeon?.id === state?.dungeon?.id && message.dungeon?.guards.some(g => g.sleepLeft > 0 && g.sleepOwnerId === message.selfId && !(state?.dungeon?.guards.find(old => old.id === g.id)?.sleepLeft > 0));
+    if (ownDartHit) feedback.play('dartHit', '#game');
+    if (message.dungeon?.id === state?.dungeon?.id && message.dungeon?.guards.some(g => g.blindLeft > 0 && g.blindOwnerId === message.selfId && !(state?.dungeon?.guards.find(old => old.id === g.id)?.blindLeft > 0))) feedback.play('berryHit', '#game');
+    if (message.dungeon?.id === state?.dungeon?.id && message.dungeon?.bells?.some(b => b.rung && !(state?.dungeon?.bells?.find(old => old.id === b.id)?.rung))) feedback.play('bellRing', '#game');
+    const equipped = message.berryId && message.berryId !== state?.berryId || message.orbId && message.orbId !== state?.orbId || message.potionId && message.potionId !== state?.potionId || message.bellId && message.bellId !== state?.bellId || message.dartId && message.dartId !== state?.dartId || message.placement?.itemId && message.placement.itemId !== state?.placement?.itemId || message.quickType && message.quickType !== state?.quickType;
     const treasureOpened = message.dungeon?.treasure?.unlocked && state?.dungeon?.treasure?.unlocked === false;
     const oldRun = state?.dungeon?.id;
     const changed = oldRun !== message.dungeon?.id || state?.location !== message.location;
@@ -138,13 +157,13 @@ function connect() {
     if (changed) {
       if (message.dungeon) { world = generateDungeon(message.dungeon.seed, message.dungeon.layout); world.job = message.dungeon.job; world.tuning = message.dungeon.tuning; setSolidObjects(world, [...message.dungeon.objects, ...message.dungeon.hidingSpots]); }
       else world = createLairWorld();
-      $('#lair-panel').close(); $('#map-planning').close(); input.clear(); sack.reset(); dragStart = null;
+      $('#lair-panel').close(); $('#map-planning').close(); departureView.close(); raidCartView.close(); input.clear(); sack.reset(); dragStart = null;
       pointer.active = false; previous = 0;
-      tell(message.dungeon ? message.dungeon.treasure ? 'Search containers for the treasure key. Its room is optional; gather at the tunnel to leave together.' : 'Same dungeon, shared loot. Hold E to search; gather at the tunnel to leave together.' : 'Back at the lair. Recovered loot is in the shared stash.');
+      tell(message.dungeon ? message.dungeon.treasure ? 'Look for the visible treasure key on furniture. Its room is optional; gather at the tunnel to leave together.' : 'Same dungeon, shared loot. Hold E to search; gather at the tunnel to leave together.' : 'Back at the lair. Recovered loot is in the shared stash.');
     }
-    if (message.dungeon) applyTreasureState(world, message.dungeon.treasure);
+    if (message.dungeon) { world.rooms.forEach((r,i)=>{r.roomType=message.dungeon.roomTypes?.[i];}); applyTreasureState(world, message.dungeon.treasure); applyRoomDoors(world,message.dungeon.roomDoors ?? []); }
     if (treasureOpened) tell('Treasure room unlocked for the team.');
-    Object.assign(camp, message.camp); Object.assign(profile, message.profile);
+    Object.assign(camp, message.camp); if (world.lair) world.camp = camp; Object.assign(profile, message.profile);
     loot.bag = message.bag; loot.held = message.held; loot.ground = message.dungeon?.ground ?? [];
     $('#xp-label').textContent = `${message.name} · ${profile.xp} XP available`;
     showIdentities(message.name);
@@ -164,7 +183,7 @@ function connect() {
   });
   socket.addEventListener('close', event => {
     if (connection !== socket) return;
-    connected = false; input.clear(); dragStart = null; $('#lair-panel').close(); $('#map-planning').close();
+    connected = false; feedback.reset(); input.clear(); dragStart = null; $('#lair-panel').close(); $('#map-planning').close(); departureView.close(); raidCartView.close();
     if (state?.screen === 'home') home.show(state, false);
     if (event.reason === 'Save failed') { $('#save-status').textContent = 'SAVE FAILED · GAME PAUSED'; tell('Saving failed. Game paused. Check the server Terminal before restarting.'); return; }
     tell('Disconnected. Controls paused; reconnecting…');
@@ -173,14 +192,30 @@ function connect() {
   });
   socket.addEventListener('error', () => {});
 }
+const fireAimedDart = () => {
+  const aim = state.placement;
+  if (aimDirty && pointer.active && pointer.overGame) aim.aimPoint = placementPoint(self(), screenToWorld($('#game'), self(), pointer), aim.kind === 'bell' ? BELL.range : aim.kind === 'berries' ? BERRY.range : DART.range);
+  boundDartAim(aim, self(), $('#game'));
+  send({ type: 'aim', x: aim.aimPoint.x, y: aim.aimPoint.y });
+  aimDirty = false;
+  send({ type: aim.kind === 'bell' ? 'throw-bell' : aim.kind === 'berries' ? 'throw-berry' : 'fire-dart', id: aim.itemId });
+  input.clear();
+};
+const cancelDartAim = () => { if (['dart', 'bell', 'berries'].includes(state?.placement?.kind)) { clear(); send({ type: 'cancel-placement' }); } };
+window.addEventListener('gamecontrolsreset', cancelDartAim);
+window.addEventListener('blur', cancelDartAim);
+document.addEventListener('visibilitychange', () => { if (document.hidden) cancelDartAim(); });
 window.addEventListener('keydown', event => {
+  if (document.querySelector('#game-menu')?.open) return;
+  if($('#raid-cart-panel').open){if(event.code==='KeyE'&&!event.repeat&&!event.target.closest?.('button')){event.preventDefault();raidCartView.interactDown();}if(['Escape','Tab'].includes(event.code)){event.preventDefault();raidCartView.close();}return;}
   if (!connected || !state || modal() || event.target.closest?.('input,textarea,select,button,summary')) return;
   const player = self(); if (!player || player.waiting) return;
   if (world.lair) {
-    if (event.code === 'Tab') { event.preventDefault(); if (!state.cart.aboard.includes(player.id)) { clear(); lair.open('stash'); } return; }
+    if (event.code === 'Tab') { event.preventDefault(); if (!event.repeat && !state.cart.aboard.includes(player.id)) { clear(); lair.open('stash'); } return; }
     if (event.code !== 'KeyE' || event.repeat) return;
     event.preventDefault(); const station = lairTarget(world, player);
-    if (state.cart.aboard.includes(player.id) || station?.kind === 'tunnel') send({ type: 'board' });
+    if (state.cart.aboard.includes(player.id)) send({ type: 'board' });
+    else if (station?.kind === 'tunnel') { clear(); departureView.open(); }
     else if (station?.kind === 'planning') { clear(); planning.open(); }
     else if (station) { clear(); lair.open(station.kind); }
     return;
@@ -191,7 +226,19 @@ window.addEventListener('keydown', event => {
     if (event.code === 'KeyE' && !event.repeat) { clear(); send({ type: 'hide' }); } return;
   }
   if (event.code === 'Escape' && state.placement?.itemId) { event.preventDefault(); clear(); send({ type: 'cancel-placement' }); return; }
-  if (event.code === 'Space') { event.preventDefault(); if (!event.repeat && !sack.isNavigating()) send({ type: 'smoke' }); return; }
+  if (event.code === 'Space') {
+    event.preventDefault();
+    if (!event.repeat && !sack.isNavigating()) {
+      if (['dart', 'bell', 'berries'].includes(state.placement?.kind)) fireAimedDart();
+      else if (state.berryId) { clear(); send({ type: 'aim-berries', id: state.berryId }); }
+      else if (state.bellId) { clear(); send({ type: 'aim-bell', id: state.bellId }); }
+      else if (state.dartId) { clear(); send({ type: 'aim-dart', id: state.dartId }); }
+      else if (state.orbId) { clear(); send({ type: 'use-orb', id: state.orbId }); }
+      else if (state.potionId) { clear(); send({ type: 'drink-potion', id: state.potionId }); }
+      else send({ type: 'smoke' });
+    }
+    return;
+  }
   const dx = Number(['KeyD', 'ArrowRight'].includes(event.code)) - Number(['KeyA', 'ArrowLeft'].includes(event.code));
   const dy = Number(['KeyS', 'ArrowDown'].includes(event.code)) - Number(['KeyW', 'ArrowUp'].includes(event.code));
   if ((dx || dy) && sack.isNavigating()) { event.preventDefault(); sack.navigate(dx, dy); return; }
@@ -206,20 +253,18 @@ window.addEventListener('keydown', event => {
     input.clearMovement(); dragStart = null;
     send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE') });
     send({ type: 'equip', id: chosen.id }); sack.reset();
-    tell(chosen.type === 'smoke' ? 'Smoke equipped. Space uses one.' : 'WASD aims. Release E, then hold E for a second to place. Esc cancels.'); return;
+    tell(chosen.type === 'dart' ? 'Dart equipped. Move freely; Space aims, then Space fires.' : chosen.type === 'smoke' ? 'Smoke equipped. Space uses one.' : 'WASD aims. Release E, then hold E for a second to place. Esc cancels.'); return;
   }
   if (loot.held) { send({ type: 'drop' }); return; }
+  if(atTunnel(runView(),world,player)){clear();raidCartView.interactDown();return;}
   const target = interaction();
   if (target && ['revive', 'rescue'].includes(target.kind)) {
     if (target.kind === 'revive' && !loot.bag.some(i => i.type === 'lunch')) { tell('You need a Packed Lunch. Test lunches are in lair Debug supplies.'); return; }
     input.clearMovement(); send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE') });
     send({ type: 'rescue', id: target.item.id }); return;
   }
-  if (atTunnel(runView(), world, player)) {
-    const others = state.players.filter(p => !p.ghost && !p.waiting && p.state === 'active');
-    if (others.some(p => !atTunnel(runView(), world, p))) { tell('Everyone needs to be together at the secret tunnel to leave.'); return; }
-    send({ type: 'extract' }); return;
-  }
+
+  if (target?.kind === 'door') { send({type:'open-door',id:target.item.id}); return; }
   if (target?.kind === 'unlock') {
     if (!loot.bag.some(i => i.type === 'treasureKey' && i.keyId === world.treasure?.keyId)) { tell('Locked treasure room. Search elsewhere for its key.'); return; }
     send({ type: 'unlock' }); return;
@@ -228,10 +273,10 @@ window.addEventListener('keydown', event => {
   if (target?.kind === 'search') {
     if (target.item.searcherId && target.item.searcherId !== player.id) { tell(`${target.item.searcherName} is searching that already.`); return; }
     send({ type: 'search', id: target.item.id });
-    tell(`Searching ${SEARCHABLE_TYPES[target.item.type].name}. Hold E and stay still.`);
+    tell(`Searching ${searchableName(target.item)}. Hold E and stay still.`);
   } else if (target?.kind === 'loot') { sack.reveal(); send({ type: 'pickup', id: target.item.id }); }
 });
-window.addEventListener('keyup', event => { if (event.code === 'KeyE' && activeDungeon()) stopSearch(); });
+window.addEventListener('keyup', event => { if (event.code === 'KeyE' && activeDungeon() && !$('#raid-cart-panel').open) stopSearch(); });
 window.addEventListener('blur', () => { clear(); if (activeDungeon()) stopSearch(); pointer.active = false; });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { clear(); if (activeDungeon()) stopSearch(); } });
 const trackPointer = event => {
@@ -244,7 +289,26 @@ function placeAtPointer() {
 }
 document.addEventListener('pointermove', trackPointer);
 document.addEventListener('pointerleave', () => { pointer.active = false; pointer.overGame = false; });
+for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, event => {
+  if (event.pointerType === 'touch') { pointer.active = false; pointer.overGame = false; }
+});
+setupTouchSack({ canvas: $('#sack-grid'), sack, getLoot: () => loot,
+  enabled: () => activeDungeon() && !self().hiding && !state.placement?.itemId && !modal() && !$('#game-menu')?.open,
+  onBegin: () => { input.clearMovement(); stopSearch(); },
+  move: (id, x, y) => send({ type: 'move-packed', id, x, y }), place: (x, y) => send({ type: 'place', x, y }), onBlocked: () => feedback.play('blocked') });
+$('#game').addEventListener('touchrotate', () => {
+  if (!activeDungeon() || self().hiding || state.placement?.itemId || modal()) return;
+  if (loot.held) send({ type: 'rotate' });
+  else { const item = sack.itemForEquip(loot, pointer); if (item) send({ type: 'rotate-packed', id: item.id }); }
+});
+$('#game').addEventListener('touchlift', () => {
+  if (!activeDungeon() || self().hiding || state.placement?.itemId || modal() || loot.held || !sack.isOpen()) return;
+  const item = sack.itemForEquip(loot, pointer);
+  if (item) send({ type: 'lift', source: 'bag', id: item.id });
+});
 document.addEventListener('pointerdown', event => {
+  if($('#raid-cart-panel').open&&event.target===$('#game')){event.preventDefault();raidCartView.close();return;}
+  if (['touch', 'pen'].includes(event.pointerType) && event.target === $('#sack-grid')) return;
   if (!activeDungeon() || self().hiding || state.placement?.itemId || modal() || event.button !== 0 || ![$('#game'), $('#sack-grid')].includes(event.target)) return;
   event.preventDefault(); trackPointer(event); $('#game').focus(); stopSearch();
   if (event.target === $('#sack-grid')) {
@@ -255,14 +319,14 @@ document.addEventListener('pointerdown', event => {
         const deferred = !!LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].rescue;
         if (!deferred) send({ type: 'lift', source: 'bag', id: item.id });
         else tell(`${LOOT_TYPES[item.type].name} selected. E equips; drag to move it.`);
-        dragStart = { x: pointer.x, y: pointer.y, id: item.id, deferred };
+        if (event.pointerType !== 'touch') dragStart = { x: pointer.x, y: pointer.y, id: item.id, deferred };
       }
     }
   } else if (loot.held) send({ type: 'drop' });
   else {
     const at = screenToWorld($('#game'), self(), pointer), item = selectTarget(world, self(), loot.ground, at);
     if (item && Math.hypot(item.x - at.x, item.y - at.y) <= .8) {
-      sack.reveal(); send({ type: 'lift', source: 'ground', id: item.id }); dragStart = { x: pointer.x, y: pointer.y, id: item.id };
+      sack.reveal(); send({ type: 'lift', source: 'ground', id: item.id }); if (event.pointerType !== 'touch') dragStart = { x: pointer.x, y: pointer.y, id: item.id };
     }
   }
 });
@@ -285,9 +349,24 @@ setInterval(() => {
   send({ type: 'move', ...(paused ? { x: 0, y: 0 } : input.read()), searchHeld: !paused && input.held('KeyE') });
 }, 100);
 function frame(time) {
+  departureView.refresh();
+  raidCartView.refresh();
   const dt = previous ? Math.min(.05, (time - previous) / 1000) : 0; previous = time;
   const player = self();
   if (player) {
+    const passiveHud = document.querySelector('#passive-status');
+  if (passiveHud) { passiveHud.textContent = passiveStatus(player); passiveHud.hidden = !activeDungeon() || !passiveHud.textContent; }
+  const luckyStatus = document.querySelector('#lucky-status');
+    if (luckyStatus) { luckyStatus.hidden = !activeDungeon() || !(player.lucky || player.passiveLuck); luckyStatus.textContent = `LUCKY · +${(player.lucky ? 5 : 0) + (player.passiveLuck ? 5 : 0)}% gold finds`; }
+    const disguiseStatus = $('#disguise-status');
+    if (disguiseStatus) { disguiseStatus.hidden = !(activeDungeon()) || !(player.disguiseLeft > 0 || player.vanishLeft > 0); disguiseStatus.textContent = player.vanishLeft > 0 ? `VANISH ${Math.ceil(player.vanishLeft)}s` : `DISGUISE ${Math.ceil(player.disguiseLeft ?? 0)}s`; }
+    const dartHud = $('#dart-equipped');
+    if (dartHud) {
+      dartHud.hidden = !activeDungeon() || !(state.dartId || state.bellId || state.potionId || state.orbId || state.berryId) || !!player.hiding;
+      dartHud.textContent = controlHint(state.berryId ? `BERRIES · ${state.placement?.kind === 'berries' ? 'Space throw · Esc cancel' : 'Space aim'}` : state.orbId ? 'ORB · Space ping' : state.potionId ? `${loot.bag.find(i => i.id === state.potionId)?.type === 'lucky' ? 'LUCKY' : loot.bag.find(i => i.id === state.potionId)?.type === 'vanish' ? 'VANISH' : 'DISGUISE'} · Space drink` : `${state.bellId ? 'BELL' : 'DART'} ×${loot.bag.filter(i => i.type === (state.bellId ? 'bell' : 'dart')).length} · ${state.placement?.kind === 'bell' ? 'Space throw · Esc cancel' : state.placement?.kind === 'dart' ? 'Space fire · Esc cancel' : 'Space aim'}`);
+    }
+    boundDartAim(state.placement, player, $('#game'));
+    updateGameHud({ lair: world.lair, placing: state.placement?.itemId, health: player.health, maxHealth: player.maxHealth });
     const dungeon = state.dungeon, selection = dungeon?.job ?? state.cart.selection;
     $('#destination-label').hidden = !!dungeon;
     $('#destination-label').textContent = `${selection.jobName} · ${selection.difficultyName}`;
@@ -302,15 +381,15 @@ function frame(time) {
     $('#quick-label').textContent = state.quickType === 'smoke' ? `SPACE · smoke (${loot.bag.filter(i => i.type === 'smoke').length})` : '';
     const rescuing = dungeon?.rescues?.find(a => a.actorId === player.id);
     const searching = dungeon?.objects.find(o => o.searcherId === player.id);
-    $('#target-label').textContent = !connected ? 'Connection lost' : player.waiting ? 'Waiting in the lair for the next run' : dungeon
-      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · leave together' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${SEARCHABLE_TYPES[target.item.type].name}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
-      : aboard ? `${state.cart.aboard.length}/${state.cart.participants.length} aboard · ${state.cart.countdown === null ? 'waiting for team' : `${Math.ceil(state.cart.countdown)}s`} · E hop out` : station ? `E · ${station.name}` : 'Tab · shared stash';
+    $('#target-label').textContent = controlHint(!connected ? 'Connection lost' : player.waiting ? 'Waiting in the lair for the next run' : dungeon
+      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · cargo / Hold E · hop in' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${searchableName(target.item)}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'door' ? 'Hold E · open door' : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
+      : aboard ? `${state.cart.aboard.length}/${state.cart.participants.length} aboard · ${state.cart.countdown === null ? 'waiting for team' : `${Math.ceil(state.cart.countdown)}s`} · E hop out` : station ? `E · ${station.name}` : 'Tab · shared stash');
     sack.updateVisibility({ moving: player.moving && !sack.isNavigating(), targetId: target?.kind === 'loot' ? target.item.id : null, held: loot.held, pointer, active: !!dungeon && connected && player.state === 'active' && !player.hiding && !state.placement?.itemId && !modal() }, dt);
     sack.paint(loot, pointer);
     render(world, player, loot, target?.kind === 'loot' ? target.item : null,
       dungeon ? runView() : { entrance: { x: 9, y: 2.5 } }, !!dungeon && atTunnel(runView(), world, player), dungeon?.guards ?? [], dungeon?.objects ?? [],
       searching ?? (target?.kind === 'search' ? target.item : null), searching ? { active: searching, elapsed: searching.elapsed, duration: searching.duration } : { active: null },
-      dungeon?.traps ?? [], state.placement, dungeon?.clouds ?? [], dungeon?.hidingSpots ?? [], target?.kind === 'hide' ? target.item : null, dungeon?.pressure ?? null, state.players.filter(p => p.id !== player.id), target && ['revive', 'rescue'].includes(target.kind) ? target : null);
+      dungeon?.traps ?? [], state.placement, dungeon?.clouds ?? [], dungeon?.hidingSpots ?? [], target?.kind === 'hide' ? target.item : null, dungeon?.pressure ?? null, state.players.filter(p => p.id !== player.id), target && ['revive', 'rescue'].includes(target.kind) ? target : null, dungeon?.darts ?? [], dungeon?.bells ?? [], dungeon?.scryPings ?? [], dungeon?.berryShots ?? []);
   }
   requestAnimationFrame(frame);
 }

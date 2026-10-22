@@ -1,0 +1,279 @@
+{
+  "ruby": {
+    "name": "Ruby",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "coin": {
+    "name": "Gold coin",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "silverCoin": {
+    "name": "Silver coin",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "copperCoin": {
+    "name": "Copper coin",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "candlestick": {
+    "name": "Candlestick",
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "width": 32,
+    "height": 64
+  },
+  "scroll": {
+    "name": "Scroll case",
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "width": 64,
+    "height": 32
+  },
+  "sword": {
+    "name": "Ceremonial sword",
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ]
+    ],
+    "width": 32,
+    "height": 96
+  },
+  "horn": {
+    "name": "Dwarf drinking horn",
+    "cells": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "width": 64,
+    "height": 64
+  },
+  "scrap": {
+    "name": "Metal scrap",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "meat": {
+    "name": "Meat",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "mushroom": {
+    "name": "Mushrooms",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "berries": {
+    "name": "Berries",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "cloth": {
+    "name": "Cloth",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "gold": {
+    "name": "Gold",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "smoke": {
+    "name": "Smoke bomb",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "lunch": {
+    "name": "Packed Lunch",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "orb": {
+    "name": "Scrying orb",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "lucky": {
+    "name": "Lucky potion",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "vanish": {
+    "name": "Vanish potion",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "disguise": {
+    "name": "Guard disguise potion",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "bell": {
+    "name": "Clang bell",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "dart": {
+    "name": "Sleep dart",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  },
+  "snare": {
+    "name": "Snare trap",
+    "cells": [
+      [
+        0,
+        0
+      ]
+    ],
+    "width": 32,
+    "height": 32
+  }
+}

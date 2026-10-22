@@ -1,3 +1,4 @@
+import { lootSurface } from './room-types.js';
 import { canStand, isWalkable } from './world.js';
 import { findPath } from './navigation.js';
 import { clearPath } from './loot.js';
@@ -28,6 +29,30 @@ export function publicTreasure(world) {
   const { id, keyId, roomIndex, cells, side, x, y, unlocked } = door;
   return { id, keyId, roomIndex, cells, side, x, y, unlocked };
 }
+// Entrances are outside-room floor cells. A corridor running along a room's
+// wall is not a doorway, even when roomEntrances groups it as one opening.
+export function treasureDoorCells(world, room) {
+  const width = world.layout?.corridorWidth ?? 1;
+  if (!room.entrances?.length) return null;
+  const normals = { north: [0, -1], south: [0, 1], west: [-1, 0], east: [1, 0] };
+  const cells = [];
+  for (const entry of room.entrances) {
+    const normal = normals[entry.side];
+    if (!normal || !entry.cells.length || entry.cells.length > width) return null;
+    const [nx, ny] = normal, horizontal = nx === 0;
+    const opening = [...entry.cells].sort((a, b) => horizontal ? a.x - b.x : a.y - b.y);
+    const first = opening[0], last = opening.at(-1), tx = horizontal ? 1 : 0, ty = horizontal ? 0 : 1;
+    // Solid end caps frame a bounded opening; floor must continue outwards.
+    if (isWalkable(world, first.x - tx, first.y - ty) || isWalkable(world, last.x + tx, last.y + ty)) return null;
+    for (const [index, cell] of opening.entries()) {
+      if (cell.x !== first.x + tx * index || cell.y !== first.y + ty * index || inside(room, { x: cell.x + .5, y: cell.y + .5 })) return null;
+      if (!isWalkable(world, cell.x, cell.y) || !isWalkable(world, cell.x + nx, cell.y + ny)
+        || !inside(room, { x: cell.x - nx + .5, y: cell.y - ny + .5 })) return null;
+      cells.push({ ...cell, side: entry.side });
+    }
+  }
+  return cells;
+}
 export function createTreasureRoom(world, objects) {
   if (world.treasure) return world.treasure;
   const openWorld = { ...world, lockedTiles: undefined };
@@ -37,11 +62,9 @@ export function createTreasureRoom(world, objects) {
     .sort((a, b) => Number(b.room.entrances.length === 1) - Number(a.room.entrances.length === 1) || b.distance - a.distance || a.roomIndex - b.roomIndex);
   for (const candidate of candidates) {
     const { room, roomIndex } = candidate, entrance = room.entrances[0];
-    // Gate the inside threshold, leaving passing hallway tiles completely clear.
-    const cells = [...new Map(room.entrances.flatMap(e => e.cells).map(p => {
-      const cell = { x: Math.max(room.x, Math.min(room.x + room.w - 1, p.x)), y: Math.max(room.y, Math.min(room.y + room.h - 1, p.y)) };
-      return [`${cell.x},${cell.y}`, cell];
-    })).values()];
+    // Collision and art share the actual corridor mouth, not a tile inside.
+    const cells = treasureDoorCells(openWorld, room);
+    if (!cells) continue;
     const door = { id: `${world.seed}-treasure`, keyId: `${world.seed}-treasure-key`, roomIndex, cells, side: entrance.side,
       x: cells.reduce((n, p) => n + p.x + .5, 0) / cells.length, y: cells.reduce((n, p) => n + p.y + .5, 0) / cells.length, unlocked: false };
     const lockedTiles = new Uint8Array(world.tiles.length);
@@ -53,6 +76,8 @@ export function createTreasureRoom(world, objects) {
       && !inside(room, { x: i % world.width + .5, y: Math.floor(i / world.width) + .5 }) && !reached.has(i)) { safe = false; break; }
     if (!safe || reached.has(room.cy * world.width + room.cx)) continue;
     let sources = objects.filter(o => !inside(room, o) && o.approach && reached.has(Math.floor(o.approach.y) * world.width + Math.floor(o.approach.x)));
+    const surfaces = sources.filter(o => lootSurface(o));
+    if (surfaces.length) sources = surfaces;
     const awayFromEntrance = sources.filter(o => !inside(world.rooms[0], o));
     if (awayFromEntrance.length) sources = awayFromEntrance;
     if (!sources.length) continue;

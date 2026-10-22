@@ -1,0 +1,201 @@
+{
+  "method": "Default presets, Normal, seeds imul(i+1,2654435761)>>>0; no combat, route/packing, survival or player time simulated. Candidate is in-memory only.",
+  "results": [
+    {
+      "label": "current-manor",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 3.89,
+        "gold": 5.14,
+        "scrap": 0.82,
+        "cloth": 0.74,
+        "noValuablesPct": 43
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 7.78,
+        "gold": 12.15,
+        "scrap": 1.52,
+        "cloth": 1.4,
+        "noValuablesPct": 18
+      },
+      "all": {
+        "searches": 53.21,
+        "empty": 28.67,
+        "gold": 183.71,
+        "scrap": 5.13,
+        "cloth": 5.25,
+        "noValuablesPct": 0
+      }
+    },
+    {
+      "label": "current-hold",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 3.72,
+        "gold": 5.35,
+        "scrap": 0.8,
+        "cloth": 0.77,
+        "noValuablesPct": 39
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 6.65,
+        "gold": 26.79,
+        "scrap": 1.41,
+        "cloth": 1.31,
+        "noValuablesPct": 7
+      },
+      "all": {
+        "searches": 13.92,
+        "empty": 7.04,
+        "gold": 56.8,
+        "scrap": 1.46,
+        "cloth": 1.39,
+        "noValuablesPct": 0
+      }
+    },
+    {
+      "label": "current-sanctuary",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 3.63,
+        "gold": 6.08,
+        "scrap": 0.79,
+        "cloth": 0.8,
+        "noValuablesPct": 40
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 6.93,
+        "gold": 16.92,
+        "scrap": 1.36,
+        "cloth": 1.63,
+        "noValuablesPct": 11
+      },
+      "all": {
+        "searches": 19.71,
+        "empty": 10.63,
+        "gold": 67.33,
+        "scrap": 1.89,
+        "cloth": 2.09,
+        "noValuablesPct": 0
+      }
+    },
+    {
+      "label": "candidate-manor-empties-only",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 2.61,
+        "gold": 6.62,
+        "scrap": 1.41,
+        "cloth": 1.43,
+        "noValuablesPct": 28
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 5.06,
+        "gold": 18.25,
+        "scrap": 2.57,
+        "cloth": 2.68,
+        "noValuablesPct": 5
+      },
+      "all": {
+        "searches": 53.21,
+        "empty": 18.93,
+        "gold": 237.18,
+        "scrap": 8.05,
+        "cloth": 8.06,
+        "noValuablesPct": 0
+      }
+    },
+    {
+      "label": "candidate-manor-empties-and-mix",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 2.64,
+        "gold": 12.38,
+        "scrap": 0.99,
+        "cloth": 0.99,
+        "noValuablesPct": 9
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 5.1,
+        "gold": 26.36,
+        "scrap": 1.95,
+        "cloth": 1.84,
+        "noValuablesPct": 2
+      },
+      "all": {
+        "searches": 53.21,
+        "empty": 18.82,
+        "gold": 268.42,
+        "scrap": 6.15,
+        "cloth": 6.45,
+        "noValuablesPct": 0
+      }
+    },
+    {
+      "label": "candidate-hold-empties-and-mix",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 2.38,
+        "gold": 12.31,
+        "scrap": 1,
+        "cloth": 1.02,
+        "noValuablesPct": 10
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 4.4,
+        "gold": 39.37,
+        "scrap": 1.68,
+        "cloth": 1.69,
+        "noValuablesPct": 0
+      },
+      "all": {
+        "searches": 13.92,
+        "empty": 4.75,
+        "gold": 69.58,
+        "scrap": 1.73,
+        "cloth": 1.77,
+        "noValuablesPct": 0
+      }
+    },
+    {
+      "label": "candidate-sanctuary-empties-and-mix",
+      "seeds": 100,
+      "first6": {
+        "searches": 6,
+        "empty": 2.39,
+        "gold": 13.99,
+        "scrap": 1.06,
+        "cloth": 1.02,
+        "noValuablesPct": 13
+      },
+      "first12": {
+        "searches": 12,
+        "empty": 4.61,
+        "gold": 33.98,
+        "scrap": 2.03,
+        "cloth": 1.75,
+        "noValuablesPct": 0
+      },
+      "all": {
+        "searches": 19.71,
+        "empty": 7.02,
+        "gold": 95.13,
+        "scrap": 2.65,
+        "cloth": 2.41,
+        "noValuablesPct": 0
+      }
+    }
+  ]
+}

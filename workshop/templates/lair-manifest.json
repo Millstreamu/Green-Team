@@ -1,0 +1,51 @@
+{
+  "stash": {
+    "name": "Lair stash",
+    "width": 64,
+    "height": 64,
+    "anchorX": 32,
+    "anchorY": 48
+  },
+  "craft": {
+    "name": "Workbench",
+    "width": 64,
+    "height": 64,
+    "anchorX": 32,
+    "anchorY": 48
+  },
+  "campfire": {
+    "name": "Campfire",
+    "width": 64,
+    "height": 64,
+    "anchorX": 32,
+    "anchorY": 48
+  },
+  "planning": {
+    "name": "Map table",
+    "width": 64,
+    "height": 64,
+    "anchorX": 32,
+    "anchorY": 48
+  },
+  "tunnel": {
+    "name": "Departure minecart",
+    "width": 64,
+    "height": 64,
+    "anchorX": 32,
+    "anchorY": 48
+  },
+  "potion": {
+    "name": "Potion station · built",
+    "width": 32,
+    "height": 32,
+    "anchorX": 16,
+    "anchorY": 16
+  },
+  "potionSite": {
+    "name": "Potion station · unbuilt",
+    "width": 32,
+    "height": 32,
+    "anchorX": 16,
+    "anchorY": 16
+  }
+}

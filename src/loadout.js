@@ -1,7 +1,7 @@
 import { LOOT_TYPES, SACK, findSpace } from './loot.js';
 
 // Only implemented trap types belong here; quantities create separate items.
-export const LOADOUT_TRAPS = Object.freeze(['snare', 'smoke']);
+export const LOADOUT_TRAPS = Object.freeze(['snare', 'smoke', 'dart', 'bell', 'disguise', 'orb']);
 export function buildTrapLoadout(quantities, seed) {
   const bag = [];
   for (const type of LOADOUT_TRAPS) {
