@@ -994,3 +994,15 @@ Agreed: polish and package the game with workshops secondary, ready for the user
 Created a public title page with direct solo entry, first-raid instructions and a restrained footer link to Creator tools. Creator page links the existing combined workshop, drawing templates and disposable trials. Main game retains normal starting resources, progression and browser save keys; no workshop XP/stock or storage-disabling adapter is used. Release-only renderer uses the approved classic terrain across the lair and all three maps. In-game menu returns to the title; trial menus return to Creator tools. Workshop art/balance drafts remain separate from normal saves. Server/admin pages are absent from active static navigation; source/server code is preserved as a download for future development.
 
 Publishing format: ready-made root-level index/game/creator HTML, relative asset/navigation paths, workshop and trial subdirectories, drawing-template/source downloads and a publishing README. Deploy from main/root without a Node build step. Creator tools are secondary public pages, not an authenticated private area. Build/repackage command is npm run build:pages; actual publication remains with the user.
+
+## Repository layout and HUD pass — agreed 22 October 2026
+
+Agreed: the repository root holds the single current game source (V97). `docs/` is the GitHub Pages site plus these notes; `npm run build:pages` regenerates the site there. Old version snapshots, `play.html` in Git, `docs/downloads/source.zip` and the Jekyll workflow were removed at the user's request.
+
+Agreed: the departure minecart panel uses the same book frame as map planning and the stations: centred title, × close, aboard count badge, E Board / Hop out action row.
+
+Agreed: during raids, heat, alerts and extra-guard counts are tracked but not shown. The "On a raid" label is removed. Health shows as pips on the right of the goblin portrait; the text label only appears for special states such as DOWN. Guard warnings ("GUARDS CHASING" etc.) and the lair's "The Lair" label are unchanged pending the user's view.
+
+Agreed: the sack docks at bottom centre with a tab on top of the panel. Closed, only the tab shows at the bottom edge. The tab reads "Tab" with a keyboard and "Sack" on touch, and replaces the round touch Sack button.
+
+Still experimenting: on short phone landscapes the open sack covers the goblin; shrinking or offsetting it was offered but not requested.
