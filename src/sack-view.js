@@ -65,7 +65,7 @@ export function createSackView(canvas, ghost, { equipmentEnabled = true } = {}) 
     if (!open) { keyboardSelection = false; selectedId = null; touchDrag = null; }
     panel.dataset.open = String(open); panel.inert = !open;
     panel.setAttribute('aria-hidden', String(!open)); tab.setAttribute('aria-expanded', String(open));
-    tab.textContent = open ? 'SACK · close' : 'SACK · Tab';
+    tab.textContent = 'Tab';
     canvas.tabIndex = open ? 0 : -1;
   };
   return { paint, cellAt,

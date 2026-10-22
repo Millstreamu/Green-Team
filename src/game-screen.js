@@ -192,6 +192,14 @@ export function updateGameHud({ lair, placing, health, maxHealth }) {
   shell.dataset.scene = lair ? 'lair' : 'dungeon';
   shell.dataset.placing = String(!!placing);
   shell.dataset.hurt = String(!lair && health > 0 && health <= maxHealth / 3);
+  // Health pips sit on the portrait; the text label only shows for special states such as DOWN.
+  const pips = document.querySelector('#health-pips');
+  if (pips && pips.dataset.value !== `${health}/${maxHealth}`) {
+    pips.dataset.value = `${health}/${maxHealth}`;
+    pips.replaceChildren(...Array.from({ length: maxHealth }, (_, i) => { const pip = document.createElement('i'); if (i >= health) pip.className = 'empty'; return pip; }));
+  }
+  const label = document.querySelector('#health-label');
+  if (label) label.dataset.message = String(!!label.textContent && !label.textContent.startsWith('Health'));
 }
 
 export function controlHint(text) {
