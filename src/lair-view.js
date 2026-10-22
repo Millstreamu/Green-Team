@@ -5,7 +5,7 @@ import { gearDetails } from './gear-guide.js';
 import { controlHint } from './game-screen.js';
 import { PROGRESSION } from './config.js';
 import { LOOT_TYPES, itemCells, itemCount } from './loot.js';
-import { knowsRecipe, buyPersonalUpgrade, setPassiveActive } from './profile.js';
+import { knowsRecipe, buyPersonalUpgrade, setPassiveActive, PERSONAL_UPGRADES } from './profile.js';
 import { RECIPES, stashPackingPreview, buildPotionStation, POTION_STATION_COST, craftForSack, takeStashItem, returnStashItem } from './lair.js';
 import { createStashGrid, createLairSackGrid } from './stash-view.js';
 import { stationSprite } from './station-art.js';
@@ -45,7 +45,7 @@ export function createLairView(dialog, camp, profile, getLoot, onChange, onClose
     const button = el(`choose-${type}`), picture = document.createElement('canvas'), name = document.createElement('span'), known = document.createElement('small');
     picture.width = 32; picture.height = 40; picture.setAttribute('aria-hidden', 'true');
     const image = stationSprite(type); if (image) picture.getContext('2d').drawImage(image, 0, 0);
-    name.textContent = type === 'quickSearch' ? 'Quick fingers' : LOOT_TYPES[type].name;
+    name.textContent = type === 'quickSearch' ? PERSONAL_UPGRADES.quickSearch.name : LOOT_TYPES[type].name;
     known.className='recipe-lock';known.setAttribute('aria-hidden','true');button.append(picture, known); choiceNodes.set(type, { button, known });
     button.addEventListener('focus',()=>{if(selected===type||!STATION_CHOICES[mode]?.includes(type)||tools||guideOpen)return;cancelBookHold();selected=type;details=false;status.textContent='';refresh();});
     button.addEventListener('click', () => {
@@ -94,7 +94,7 @@ export function createLairView(dialog, camp, profile, getLoot, onChange, onClose
       nodes.known.hidden=knowsRecipe(profile,type);nodes.known.textContent='';nodes.button.setAttribute('aria-label',`${LOOT_TYPES[type]?.name??'Quick fingers'}${knowsRecipe(profile,type)?'':', locked'}`);
     }
     recipeGrid.refresh();
-    el('book-title').textContent = building ? 'Build potion station' : upgrade ? 'Quick fingers' : LOOT_TYPES[selected].name;
+    el('book-title').textContent = building ? 'Build potion station' : upgrade ? PERSONAL_UPGRADES.quickSearch.name : LOOT_TYPES[selected].name;
     paintSprite(el('book-sprite'), selected);
     const detail = gearDetails(selected);
     const shortLimits={snare:'One use.',smoke:'Blocks sight, not attacks.',dart:'Walls block shots. Misses still spend the dart.',bell:'Visible goblins take priority.',orb:'Marks stay where the guards were when pinged.',lunch:'Team revive · one use.',disguise:'Close guards recognise you. Searching or using gear ends it.',vanish:'Hits, gear use and ordinary searching end it.',lucky:'Gold-coin finds only · lasts this run.'};

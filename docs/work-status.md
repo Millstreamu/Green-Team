@@ -1259,3 +1259,11 @@ Task: first slice of "edit menu items" — uploadable campfire ability icons. Ad
 Checks: 468/468 tests pass (new test covers slots, manifest, export round trip, migration and the game hooks). In a lair playtest with bright test icons for three abilities, the campfire grid and detail panel showed them, the other three kept their originals, workbench Quick fingers used the new icon, and the Vanish potion item kept its own art. The workshop page's Ability icons card was checked in the browser. Not checked: an actual PNG upload through the file picker (browser tools can't choose files), and phones.
 
 Next: menu words (names, effect and limits text) as the second slice, after the user confirms.
+
+## Menu words in the workshop — 23 October 2026
+
+Task: second slice of "edit menu items" — editable names and text with numbers pulled from the real effects. Added src/menu-words.js (default gear and ability wording as {placeholder} templates plus live value lookups) and made src/gear-guide.js and src/passive-view.js read from it; src/lair-view.js now reads the Quick fingers name from the ability list; src/config.js gains LUCKY.passiveGoldChanceBonus (same 0.05) used by src/search.js. Workshop: workshop/word-slots.js, workshop/words-editor.js, a Words tab in workshop/shell.html, words validation and migration in workshop/model.js, playtest hooks in workshop/game-adapter.js (text templates, item/recipe/ability names, Gear guide list), build wiring and README. Rebuilt docs/.
+
+Checks: a before/after snapshot of every gear and ability text matched exactly. 469/469 tests pass; the new test checks live numbers, refused placeholders, migration, and a real sandbox lair where a renamed snare, smoke bomb and Panic sprint reach item, recipe, unlock and ability lists with filled numbers. In the browser: the Words tab rendered, previews filled {holdTime} as 3, an unknown {oops} showed a warning, and edits saved; a lair playtest showed "Leg it" with "Run 20% faster for 3 seconds when spotted." at the campfire, and the Gear guide list read "Bear trap". Not seen on screen: the workbench and sack with the new name (scripted movement could not reach the workbench; covered by the sandbox test). Phones not checked.
+
+Next: menu look (panel art), after the user confirms.

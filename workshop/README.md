@@ -64,6 +64,10 @@ Choose an item to see its required PNG dimensions. Most are 32 × 32. A 1 × 2 i
 
 Choose a sound cue, upload WAV/MP3/OGG/WebM and Listen. Clip playback uses the game's existing 18% volume. Keep clips short; maximum input file size is 5 MB. Audio still requires a user gesture in browsers. Original synthesized effects remain available by removing a replacement.
 
+## Words
+
+Open **Words** to rename workbench gear, potions and campfire abilities, and to reword their short line, effect and limits. Numbers in {braces}, such as {holdTime}, are filled from the game's real effect values, so the text stays true when balance changes; the buttons list each item's numbers with today's value. Typing a plain number changes only the words, not how the item works. A new name is used everywhere the game reads its item and ability lists: menus, sack, stash, Gear guide and the recipe unlock name. A few fixed tips and prompts written into the game, such as the smoke bomb hint, keep their original wording. Empty boxes or Restore original words return to the game's text. Words are saved in Export project.
+
 ## Balance and charts
 
 Loot percentages and material weights belong to the selected map. Unlock XP and recipe ingredient costs apply across all maps. Run settings apply across all maps; generator parameters belong to the selected map. Only editable fields in the UI are supported: this does not yet edit sale prices, item effects, passive strengths or progression formulas.

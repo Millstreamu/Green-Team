@@ -13,7 +13,7 @@ import { LAIR_ART_SLOTS, lairArtBounds } from '../workshop/lair-art.js';
 import { createCamp,createLairWorld,lairTarget } from '../src/lair.js';
 
 test('old workshop exports migrate without losing choices and invalid lair assets are rejected',()=>{
- const current=createWorkshopDraft(),old=structuredClone(current);delete old.lair;delete old.furniture;delete old.abilities;old.version=1;old.costs.smoke=9;
+ const current=createWorkshopDraft(),old=structuredClone(current);delete old.lair;delete old.furniture;delete old.abilities;delete old.words;old.version=1;old.costs.smoke=9;
  const upgraded=validateWorkshopDraft(old);assert.equal(upgraded.version,2);assert.equal(upgraded.costs.smoke,9);assert.deepEqual(upgraded.lair,{tiles:null,props:{}});assert.equal(old.version,1);assert.equal(old.lair,undefined);
  for(const change of [d=>d.lair.props.unknown='data:image/png;base64,AAAA',d=>d.lair.tiles='http://invalid',d=>d.lair.props=[],d=>d.version=99]){const bad=structuredClone(current);change(bad);assert.throws(()=>validateWorkshopDraft(bad));}
  const old2=structuredClone(current);delete old2.furniture;old2.costs.smoke=13;const migrated=validateWorkshopDraft(old2);assert.deepEqual(migrated.furniture,{});assert.equal(migrated.costs.smoke,13);
@@ -228,4 +228,20 @@ test('campfire ability icons have their own slots, survive export and replace on
  const older=structuredClone(createWorkshopDraft());delete older.abilities;delete older.furniture;const migrated=validateWorkshopDraft(older);assert.deepEqual(migrated.abilities,{});assert.deepEqual(migrated.furniture,{});
  const game=readFileSync(new URL('../build/workshop-game-check.mjs',import.meta.url),'utf8');
  assert.match(game,/if\(!workshopDrawAbility\(get\('passive-sprite'\),id\)\)drawStationSprite/);assert.match(game,/if\(!workshopDrawAbility\(get\(`passive-icon-\$\{id\}`\),id\)\)/);
+});
+
+test('menu words keep live numbers, validate placeholders and rename items everywhere in a playtest',async()=>{
+ const {gearDetails}=await import('../src/gear-guide.js'),{PASSIVE_DETAILS}=await import('../src/passive-view.js'),{TRAPS}=await import('../src/config.js');
+ assert.equal(gearDetails('snare').effect,`Step clear to arm it. The first guard is held for ${TRAPS.holdTime}s.`);
+ assert.equal(PASSIVE_DETAILS.panicSprint.limits,'20-second cooldown. Further guards do not stack or refresh it.');
+ const d=createWorkshopDraft();assert.deepEqual(d.words,{});
+ d.words.snare={name:'Bear trap',effect:'Clamps a guard for {holdTime} seconds.'};d.words.smoke={name:'Fog pot'};d.words.panicSprint={name:'Leg it',effect:'Run {bonus}% faster.'};
+ assert.deepEqual(validateWorkshopDraft(JSON.parse(JSON.stringify(d))),d);
+ for(const change of [w=>w.snare.effect='Lasts {minutes}.',w=>w.snare.name='Trap {holdTime}',w=>w.snare.controls='x',w=>w.fake={name:'x'},w=>w.snare.name=' ',w=>w.snare.effect='x'.repeat(401),w=>w.hideSense={}]){const bad=structuredClone(d);change(bad.words);assert.throws(()=>validateWorkshopDraft(bad));}
+ const older=createWorkshopDraft();delete older.words;assert.deepEqual(validateWorkshopDraft(older).words,{});
+ const h=surfaceHarness(d,'manor','lair'),result=await vm.runInNewContext('(async()=>{'+gameSource()+';return {LOOT_TYPES,RECIPES,PERSONAL_UPGRADES,snare:gearDetails("snare"),bell:gearDetails("bell"),PASSIVE_DETAILS};})()',h.sandbox);
+ assert.equal(result.LOOT_TYPES.snare.name,'Bear trap');assert.equal(result.RECIPES.snare.name,'Bear trap');assert.equal(result.PERSONAL_UPGRADES.smoke.name,'Fog pot recipe');
+ assert.equal(result.snare.name,'Bear trap');assert.equal(result.snare.effect,`Clamps a guard for ${TRAPS.holdTime} seconds.`);assert.equal(result.snare.limits,gearDetails('snare').limits);
+ assert.equal(result.bell.effect,gearDetails('bell').effect);
+ assert.equal(result.PERSONAL_UPGRADES.panicSprint.name,'Leg it');assert.equal(result.PASSIVE_DETAILS.panicSprint.effect,'Run 20% faster.');assert.equal(result.PERSONAL_UPGRADES.panicSprint.cost,d.costs.panicSprint);
 });

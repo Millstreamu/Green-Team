@@ -79,7 +79,7 @@ $('import').addEventListener('change',async e=>{
   for(const[id,src]of Object.entries(next.sprites)){const p=await image(src),[w,h]=itemSize(id);if(p.naturalWidth!==w||p.naturalHeight!==h)throw Error(`Invalid ${id} image size.`);}
   await validateLairImages(next);await validateFurnitureImages(next);await validateAbilityImages(next);
   if(serial!==importSerial)return;
-  stopTest();draft=next;changed();forms();itemPreview();soundState();await lairPreview();await furniturePreview();await abilityPreview();status('Project imported. Start a new test to try it.');
+  stopTest();draft=next;changed();forms();itemPreview();soundState();await lairPreview();await furniturePreview();await abilityPreview();wordsForm();status('Project imported. Start a new test to try it.');
  }catch(error){status(error.message,true);}
 });
 function stopTest(){$('stop').disabled=true;const frame=$('game');frame.srcdoc='';frame.hidden=true;runningTest=null;$('test-state').textContent='Test stopped. Draft changes are kept until you close this workshop.';}

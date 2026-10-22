@@ -13,6 +13,8 @@ for(const[id,src]of Object.entries(workshopDraft.furniture??{})){const img=new I
 const workshopAbilityImages = new Map();
 for(const[id,src]of Object.entries(workshopDraft.abilities??{})){const img=new Image();img.src=src;await img.decode();const slot=${JSON.stringify(ABILITY_ART_SLOTS)}[id];if(!slot||img.naturalWidth!==slot.width||img.naturalHeight!==slot.height)throw Error('Ability icon PNG has the wrong size.');workshopAbilityImages.set(id,img);}
 function workshopDrawAbility(canvas,id){const im=workshopAbilityImages.get(id);if(!im)return false;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.imageSmoothingEnabled=false;c.drawImage(im,0,0,canvas.width,canvas.height);return true;}
+const workshopWords = workshopDraft.words ?? {};
+function workshopWordList(defaults){return Object.freeze(Object.fromEntries(Object.entries(defaults).map(([id,words])=>{const {name,...custom}=workshopWords[id]??{};return [id,{...words,...custom}];})));}
 const workshopTerrain = {};
 for(const id of ['manor','hold','sanctuary']) {
  const img=new Image();img.src=workshopDraft.maps[id].tiles??WORKSHOP_TERRAIN_SOURCE;await img.decode();
@@ -37,6 +39,9 @@ function workshopDrawItem(ctx,item,x,y,size) {
   // Ability icons are keyed by ability, so Quiet hands and Lucky goblin need not share the Vanish/coin item art.
   swap("drawStationSprite(get(`passive-icon-${id}`),PASSIVE_DETAILS[id].sprite);", "if(!workshopDrawAbility(get(`passive-icon-${id}`),id))drawStationSprite(get(`passive-icon-${id}`),PASSIVE_DETAILS[id].sprite);");
   swap("drawStationSprite(get('passive-sprite'),info.sprite);", "if(!workshopDrawAbility(get('passive-sprite'),id))drawStationSprite(get('passive-sprite'),info.sprite);");
+  // Edited words: text templates replace defaults; names replace every list the menus, sack and stash read.
+  swap("export const GEAR_WORDS = Object.freeze({", "export const GEAR_WORDS = workshopWordList({");
+  swap("export const ABILITY_WORDS = Object.freeze({", "export const ABILITY_WORDS = workshopWordList({");
   swap("const slot = sounds[cue];","const slot = sounds[cue] && { ...sounds[cue], src: workshopDraft.audio[cue] ?? sounds[cue].src };");
   swap("export function drawItem(ctx, item, x, y, size, outline = null) {", "export function drawItem(ctx, item, x, y, size, outline = null) {\n  if(workshopDrawItem(ctx,item,x,y,size)) return;");
   swap("export function drawStationItem(ctx, item, x, y, size) {", "export function drawStationItem(ctx, item, x, y, size) {\n  if(workshopDrawItem(ctx,item,x,y,size)) return;");
@@ -62,8 +67,12 @@ camp.buildings.potion=window.WORKSHOP_LAIR_POTION===true;`);
   source=source.replace(/cost: PROGRESSION\.recipeCosts\.(\w+)/g,(_,id)=>`cost: workshopDraft.costs.${id}`)
     .replace(/cost: PROGRESSION\.quickSearchCost/g,'cost: workshopDraft.costs.quickSearch')
     .replace(/(\w+): Object\.freeze\(\{ name: ('[^']*'), cost: (\d+), kind: 'passive'/g,(_,id,name)=>`${id}: Object.freeze({ name: ${name}, cost: workshopDraft.costs.${id}, kind: 'passive'`);
-  swap("export const SNARE_RECIPE = RECIPES.snare.materials;", "for(const [id,r] of Object.entries(RECIPES)){r.materials=workshopDraft.materials[id];r.xpCost=workshopDraft.costs[id]??r.xpCost;}\nexport const SNARE_RECIPE = RECIPES.snare.materials;");
+  const upgradesStart=source.indexOf("export const PERSONAL_UPGRADES = Object.freeze({"),upgradesEnd=source.indexOf("\n});",upgradesStart);
+  if(upgradesStart<0||upgradesEnd<0)throw Error('Workshop game anchor changed: PERSONAL_UPGRADES');
+  source=source.slice(0,upgradesStart)+source.slice(upgradesStart,upgradesEnd).replace(/(\w+): Object\.freeze\(\{ name: '([^']*?)( recipe)?', /g,(_,id,name,recipe)=>`${id}: Object.freeze({ name: workshopWords.${id}?.name ? workshopWords.${id}.name${recipe?" + ' recipe'":''} : '${name}${recipe??''}', `)+source.slice(upgradesEnd);
+  swap("export const SNARE_RECIPE = RECIPES.snare.materials;", "for(const [id,r] of Object.entries(RECIPES)){r.materials=workshopDraft.materials[id];r.xpCost=workshopDraft.costs[id]??r.xpCost;}\nfor(const [id,w] of Object.entries(workshopWords))if(w.name){if(LOOT_TYPES[id])LOOT_TYPES[id].name=w.name;if(RECIPES[id])RECIPES[id].name=w.name;}\nexport const SNARE_RECIPE = RECIPES.snare.materials;");
   swap("enterLair(); requestAnimationFrame(frame);", `enterLair();
+for(const option of document.querySelectorAll('#guide-item-choice option')){const name=workshopWords[option.value]?.name;if(name)option.textContent=option.value==='berries'?name+' · throw or cook':name;}
 if(window.WORKSHOP_START==='dungeon'||window.WORKSHOP_START==='door'||window.WORKSHOP_START==='surface')launchRun(selectJob(window.WORKSHOP_MAP,window.WORKSHOP_DIFFICULTY));
 if(window.WORKSHOP_START==='surface'){
  const key=loot.ground.find(i=>i.type==='treasureKey'),source=objects.find(o=>o.id===key?.surfaceId);

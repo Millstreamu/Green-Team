@@ -86,7 +86,7 @@ function luckySearchRoll(world, object) {
   return (hash >>> 0) / 4294967296;
 }
 export function applyLuckyFind(world, player, object) {
-  const bonus = (player.lucky === true ? LUCKY.goldChanceBonus : 0) + (player.passiveLuck === true ? .05 : 0);
+  const bonus = (player.lucky === true ? LUCKY.goldChanceBonus : 0) + (player.passiveLuck === true ? LUCKY.passiveGoldChanceBonus : 0);
   if (!bonus || object.luckyResolved || object.contents.includes('coin')) return false;
   object.luckyResolved = true;
   if (luckySearchRoll(world, object) >= luckySearchChance(world, object, bonus)) return false;

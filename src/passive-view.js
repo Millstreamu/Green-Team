@@ -1,15 +1,9 @@
 import { createFillingStationGrid } from './station-grid.js';
 import { PASSIVE_IDS, PASSIVE_LIMIT, PERSONAL_UPGRADES, ownsUpgrade, activePassives, passiveActive } from './profile.js';
-import { PROGRESSION } from './config.js';
+import { ABILITY_WORDS, fillMenuWords } from './menu-words.js';
 import { drawStationSprite } from './station-art.js';
-export const PASSIVE_DETAILS = Object.freeze({
- panicSprint: {sprite:'sprint',effect:'Move 20% faster for 3 seconds when a guard spots you.',limits:'20-second cooldown. Further guards do not stack or refresh it.'},
- hideSense: {sprite:'sense',effect:'While hiding, see the nearest guard on your map.',limits:'Amber square · your map only. Ends when you leave hiding.'},
- searchVeil: {sprite:'veil',effect:'After searching, guards take twice as long to notice you for 3 seconds.',limits:'Completed searches only, including empty containers. Existing chases continue.'},
- quickSearch: {sprite:'quickSearch',effect:`Search containers ${Math.round(PROGRESSION.quickSearchBonus*100)}% faster.`,limits:'Only while active. Applies to your searches.'},
- quietHands: {sprite:'vanish',effect:'Searching containers preserves your invisibility.',limits:'Vanish keeps its timer. Hits and gear still break it; disguises still break on search.'},
- luckyGoblin: {sprite:'coin',effect:'+5 percentage points to finding gold coins.',limits:'Your searches only. With Lucky potion: +10 points. No effect on sale prices.'}
-});
+const PASSIVE_SPRITES = {panicSprint:'sprint',hideSense:'sense',searchVeil:'veil',quickSearch:'quickSearch',quietHands:'vanish',luckyGoblin:'coin'};
+export const PASSIVE_DETAILS = Object.freeze(Object.fromEntries(Object.entries(PASSIVE_SPRITES).map(([id,sprite])=>[id,{sprite,effect:fillMenuWords(ABILITY_WORDS[id].effect,id),limits:fillMenuWords(ABILITY_WORDS[id].limits,id)}])));
 export function createPassiveView(dialog, profile, onAction) {
  const get=id=>document.querySelector(`#${id}`);let selected=0,pending=false,hold=null,keyHeld=false,suppressClick=null;
  const abilityGrid=createFillingStationGrid(get('passive-grid'),()=>PASSIVE_IDS.length,{className:'passive-placeholder',label:'Reserved for future abilities'});

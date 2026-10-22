@@ -33,7 +33,7 @@ export const SMOKE = Object.freeze({ radius: 2, duration: 5 });
 export const RESCUE = Object.freeze({ reach: 1.6, reviveSeconds: 2, cageSeconds: 3, pickupSeconds: 1, carrySpeed: 1.6, cages: 3 });
 
 export const SCRY = Object.freeze({ count: 3, seconds: 5 });
-export const LUCKY = Object.freeze({ goldChanceBonus: .05 });
+export const LUCKY = Object.freeze({ goldChanceBonus: .05, passiveGoldChanceBonus: .05 });
 export const VANISH = Object.freeze({ seconds: 8 });
 export const DISGUISE = Object.freeze({ seconds: 10, recognitionRange: 1 });
 export const BELL = Object.freeze({ range: 5, hearingRange: 8, inspectSeconds: 2, investigateSeconds: 8, flightSeconds: .35 });
