@@ -1,3 +1,4 @@
+import { drawRoomFurniture } from './room-furniture-view.js';
 import { CONFIG } from './config.js';
 import { SEARCHABLE_TYPES } from './search.js';
 import { drawPixelProgress } from './world-ui.js';
@@ -15,7 +16,8 @@ export function drawSearchables(ctx, objects, activeTarget, session, ox, oy, pas
       const left = Math.round(dx * scale), top = Math.round((dy + lift) * scale);
       ctx.fillRect(x + left, y + top, Math.round((dx + w) * scale) - left, Math.round((dy + lift + h) * scale) - top);
     };
-    if (pass !== 'ui') {
+    if (pass !== 'ui' && object.roomFurniture) drawRoomFurniture(ctx,object,ox,oy);
+    if (pass !== 'ui' && !object.roomFurniture) {
       ctx.save(); if (object.searched) ctx.globalAlpha = 0.5;
       rect(-11, -4, 22, 11, '#182124');
       if (object.type === 'chest') {
@@ -34,8 +36,10 @@ export function drawSearchables(ctx, objects, activeTarget, session, ox, oy, pas
       ctx.restore();
     }
     if (pass !== 'body' && (activeTarget?.id === object.id || object.searcherId)) {
-      const top = object.type === 'cupboard' ? 28 : 16;
-      ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1; ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
+      const top = object.roomFurniture ? CONFIG.tile/2 : object.type === 'cupboard' ? 28 : 16;
+      ctx.strokeStyle = '#d1f69b'; ctx.lineWidth = 1;
+      if(object.roomFurniture)ctx.strokeRect((object.tileX*t+ox)-.5,(object.tileY*t+oy)-.5,(object.width??1)*t+1,(object.height??1)*t+1);
+      else ctx.strokeRect(x - 14.5, y - top - 2.5, 29, top + 10);
       if (object.searcherId || session.active?.id === object.id) {
         const progress = Math.max(0, Math.min(1, object.searcherId ? object.elapsed / object.duration : session.elapsed / (session.duration || definition.duration)));
         drawPixelProgress(ctx, x, y - top - 11, progress);

@@ -2,14 +2,16 @@ import { CONFIG } from './config.js';
 
 export function drawTreasureGateCell(ctx, door, cell, ox, oy) {
   const t = CONFIG.tile, x = Math.round(cell.x * t + ox), y = Math.round(cell.y * t + oy);
-  ctx.fillStyle = '#a98b51'; ctx.fillRect(x + 1, y + 1, t - 2, 2); ctx.fillRect(x + 1, y + t - 3, t - 2, 2);
+  const vertical = ['east', 'west'].includes(cell.side ?? door.side);
+  const rect = (dx, dy, width, height) => ctx.fillRect(x + (vertical ? dy : dx), y + (vertical ? dx : dy), vertical ? height : width, vertical ? width : height);
+  ctx.fillStyle = '#a98b51'; rect(1, 1, t - 2, 2); rect(1, t - 3, t - 2, 2);
   if (door.unlocked) return;
-  ctx.fillStyle = '#3c332e'; ctx.fillRect(x + 2, y + 3, t - 4, t - 6);
+  ctx.fillStyle = '#3c332e'; rect(2, 3, t - 4, t - 6);
   ctx.fillStyle = '#806244';
-  for (let dx = 3; dx < t - 3; dx += 5) ctx.fillRect(x + dx, y + 4, 3, t - 8);
-  ctx.fillStyle = '#b8ab7f'; ctx.fillRect(x + 2, y + 6, t - 4, 2); ctx.fillRect(x + 2, y + t - 8, t - 4, 2);
-  ctx.fillStyle = '#e8c773'; ctx.fillRect(x + t / 2 - 3, y + t / 2 - 3, 6, 6);
-  ctx.fillStyle = '#252b26'; ctx.fillRect(x + t / 2 - 1, y + t / 2 - 2, 2, 4);
+  for (let dx = 3; dx < t - 3; dx += 5) rect(dx, 4, 3, t - 8);
+  ctx.fillStyle = '#b8ab7f'; rect(2, 6, t - 4, 2); rect(2, t - 8, t - 4, 2);
+  ctx.fillStyle = '#e8c773'; rect(t / 2 - 3, t / 2 - 3, 6, 6);
+  ctx.fillStyle = '#252b26'; rect(t / 2 - 1, t / 2 - 2, 2, 4);
 }
 export function drawTreasureHint(ctx, world, active, ox, oy, player) {
   const door = world.treasure;

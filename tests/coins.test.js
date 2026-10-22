@@ -36,6 +36,7 @@ test('manual stacking leaves overflow in hand; different metals, prices and debu
 test('shared server pickups of a partial floor stack conserve quantities; floor sharing and escape preserve value/XP', () => {
   const camp = createCamp(), a = { id: 'a', name: 'A', connected: true, bag: [], profile: createProfile('a') }, b = { id: 'b', name: 'B', connected: true, bag: [], profile: createProfile('b') };
   const d = createDungeonSession({ id: 'coins', seed: 42, job: selectJob('manor', 'normal') }, [a, b], camp);
+  d.ground.length = 0; // Isolate this transaction/combat fixture from generated surface finds.
   a.bag.push(coin('old', 'silverCoin', 8), ...fillers());
   d.ground.push(coin('floor', 'silverCoin', 9, a.x, a.y));
   assert.ok(d.action(a, { type: 'pickup', id: 'floor', count: 9999 }));
@@ -88,6 +89,7 @@ test('downing and expired disconnect spill whole stacks once without losing held
   for (const reason of ['down', 'disconnect']) {
     const a = { id: 'a', name: 'A', connected: true, bag: [], profile: createProfile('a') }, b = { id: 'b', name: 'B', connected: true, bag: [], profile: createProfile('b') };
     const d = createDungeonSession({ id: reason, seed: 42, job: selectJob('manor', 'normal') }, [a, b], createCamp());
+  d.ground.length = 0; // Isolate this transaction/combat fixture from generated surface finds.
     a.bag.push(coin('packed', 'copperCoin', 9)); a.loot.held = coin('held', 'copperCoin', 3);
     if (reason === 'down') { a.state = 'down'; a.health = 0; d.tick(.1); }
     else { a.connected = false; d.disconnect(a); d.tick(60); }

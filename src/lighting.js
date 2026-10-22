@@ -1,3 +1,4 @@
+import { roomDoorSightFraction } from './door-geometry.js';
 import { CONFIG } from './config.js';
 import { isSightOpen } from './world.js';
 import { placeProp } from './prop-placement.js';
@@ -8,8 +9,9 @@ export const LIGHTING = Object.freeze({ ambientDarkness: .38, radius: 5.5, warmt
 export function createTorches(world, obstacles = []) {
   if (world.lair) return [];
   const torches = [];
+  obstacles = [...obstacles, ...(world.cartProp ? [world.cartProp] : [])];
   const fixed = obstacles.filter(o => !['chest', 'crate'].includes(o.type));
-  world.rooms.forEach((room, index) => {
+  [...world.rooms, ...(world.cartRoom ? [world.cartRoom] : [])].forEach((room, index) => {
     // Prefer a clear wall; a short chest/crate may sit below a wall-mounted torch.
     const point = placeProp(world, room, 'torch', [...obstacles, ...torches])
       ?? placeProp(world, room, 'torch', [...fixed, ...torches]);
@@ -28,8 +30,10 @@ export function lightPolygon(world, light, radius = LIGHTING.radius) {
   const points = [];
   for (let i = 0; i < LIGHTING.rays; i++) {
     const angle = i / LIGHTING.rays * Math.PI * 2, dx = Math.cos(angle), dy = Math.sin(angle);
+    const doorDistance=roomDoorSightFraction(world,light,{x:light.x+dx*radius,y:light.y+dy*radius})*radius;
     let distance = LIGHTING.step;
     for (; distance < radius; distance += LIGHTING.step) {
+      if(distance>=doorDistance){distance=doorDistance;break;}
       const cellX = Math.floor(light.x + dx * distance), cellY = Math.floor(light.y + dy * distance);
       if (!isSightOpen(world, cellX, cellY)) {
         const exitX = dx ? ((dx > 0 ? cellX + 1 : cellX) - light.x) / dx : Infinity;

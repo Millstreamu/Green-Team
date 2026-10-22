@@ -1,10 +1,10 @@
 import { generatorSettings } from '../src/generator-settings.js';
-import { validateTuning } from '../src/tuning.js';
+import { restoreTuning } from '../src/tuning.js';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, chmodSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createCamp, syncStashSlots } from '../src/lair.js';
-import { createProfile, PERSONAL_UPGRADES } from '../src/profile.js';
+import { createProfile, PERSONAL_UPGRADES, activePassives, validActivePassives } from '../src/profile.js';
 import { LOOT_TYPES, fits, validItemCount } from '../src/loot.js';
 import { selectJob } from '../src/jobs.js';
 
@@ -19,12 +19,13 @@ export function restoreSave(saved) {
   requireSave(saved?.version === 1 && saved.camp && Array.isArray(saved.players));
   // New denominations default to zero in old saves; existing required fields stay strict.
   const c = { ...saved.camp, counts: saved.camp.counts && { ...saved.camp.counts } };
-  if (c.counts) for (const type of ['silverCoin', 'copperCoin', 'treasureKey']) if (!Object.hasOwn(c.counts, type)) c.counts[type] = 0;
+  if (c.counts) for (const type of ['silverCoin', 'copperCoin', 'treasureKey', 'dart', 'bell', 'disguise', 'vanish', 'lucky', 'orb', 'meat', 'berries', 'mushroom']) if (!Object.hasOwn(c.counts, type)) c.counts[type] = 0;
   requireSave(c.counts && Object.keys(LOOT_TYPES).every(type => natural(c.counts[type]))
     && Number.isSafeInteger(c.nextItemId) && c.nextItemId >= 1
     && Array.isArray(c.slots) && c.slots.length === 36
     && c.slots.every(type => type === null || Object.hasOwn(LOOT_TYPES, type))
     && selectJob(c.destination?.jobId, c.destination?.difficultyId));
+  requireSave(c.buildings === undefined || typeof c.buildings?.potion === 'boolean');
   const camp = { ...createCamp(), ...structuredClone(c), preparedBag: [] };
   syncStashSlots(camp);
   const ids = new Set(), tokens = new Set(), itemIds = new Set();
@@ -37,6 +38,7 @@ export function restoreSave(saved) {
     requireSave(profile?.id === p.id && natural(profile.xp) && natural(profile.earnedXp) && profile.earnedXp >= profile.xp
       && Array.isArray(profile.purchases) && new Set(profile.purchases).size === profile.purchases.length
       && profile.purchases.every(id => typeof id === 'string' && Object.hasOwn(PERSONAL_UPGRADES, id)));
+    requireSave(profile.activePassives === undefined || validActivePassives(profile));
     const bag = [];
     for (const item of p.bag) {
       requireSave(validId(item?.id) && !itemIds.has(item.id) && Object.hasOwn(LOOT_TYPES, item.type)
@@ -46,7 +48,7 @@ export function restoreSave(saved) {
       itemIds.add(item.id); bag.push(structuredClone(item));
     }
     requireSave(!p.interrupted || bag.length === 0);
-    return { token: p.token, id: p.id, name: p.name, bag, profile: { ...createProfile(p.id), ...structuredClone(profile) }, interrupted: p.interrupted };
+    return { token: p.token, id: p.id, name: p.name, bag, profile: { ...createProfile(p.id), ...structuredClone(profile), activePassives: [...activePassives(profile)] }, interrupted: p.interrupted };
   });
   return { camp, players };
 }
@@ -66,7 +68,7 @@ export function validateSave(saved) {
       && typeof lair.code === 'string' && /^[A-Z2-9]{6}$/.test(lair.code));
     ids.add(lair.id); names.add(lair.name.toLowerCase());
     if (lair.generator !== undefined) generatorSettings(lair.generator);
-    if (lair.tuning !== undefined) validateTuning(lair.tuning);
+    if (lair.tuning !== undefined) restoreTuning(lair.tuning);
     restoreSave(lair.state);
     for (const actor of lair.state.players) {
       const p = identities.get(actor.token);

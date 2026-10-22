@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_TUNING, runTuning } from '../src/tuning.js';
+import { DEFAULT_TUNING, runTuning, restoreTuning, validateTuning } from '../src/tuning.js';
 import { createGuard, createVitality, seesPlayer, updateGuard } from '../src/guard.js';
 import { createPressure, updatePressure } from '../src/pressure.js';
 import { pressureLabel } from '../src/pressure-view.js';
 import { generateDungeon } from '../src/world.js';
 import { createSearchables, createSearchSession, beginSearch } from '../src/search.js';
-import { createLoot } from '../src/loot.js';
+import { createLoot, LOOT_TYPES } from '../src/loot.js';
 
 const arena = () => ({ seed: 4, width: 30, height: 30, tiles: new Uint8Array(900).fill(1), spawn: { x: 5.5, y: 5.5 }, rooms: [{ x: 2, y: 2, w: 10, h: 10, cx: 7, cy: 7 }, { x: 14, y: 14, w: 10, h: 10, cx: 19, cy: 19 }] });
 const guard = w => ({ ...createGuard(w), x: 5.5, y: 5.5, angle: 0, home: { x: 5.5, y: 5.5 }, patrol: [{ x: 5.5, y: 5.5 }, { x: 15.5, y: 5.5 }], pauseLeft: 0 });
@@ -46,4 +46,22 @@ test('run settings change actual generated loot, search durations/bonuses and re
   updatePressure(world, pressure, [g], .1);
   assert.equal(pressure.alerts, 1); assert.equal(pressure.scheduled, 1);
   assert.match(pressureLabel(pressure), /\(0\/1\)/);
+});
+
+
+test('material-mix settings affect actual rewards and legacy restore fills only the exact previous schema', () => {
+  const world = generateDungeon(42), base = { ...DEFAULT_TUNING, nearEmptyChance: 0, farEmptyChance: 0, twoItemChance: 1 };
+  world.tuning = runTuning({ ...base, nearMaterialChance: 1 });
+  world.tuning.loot.farMaterialChance = 1;
+  assert.ok(createSearchables(world).every(o => o.contents.every(type => !!LOOT_TYPES[type].material)));
+  world.tuning = runTuning({ ...base, nearMaterialChance: 0 });
+  world.tuning.loot.farMaterialChance = 0;
+  assert.ok(createSearchables(world).every(o => o.contents.every(type => !LOOT_TYPES[type].material)));
+  const legacy = { ...DEFAULT_TUNING, nearEmptyChance: .7, farEmptyChance: .5 }; delete legacy.nearMaterialChance;
+  assert.equal(restoreTuning(legacy).nearMaterialChance, .75); assert.equal(Object.hasOwn(legacy, 'nearMaterialChance'), false);
+  assert.throws(() => validateTuning(legacy), /Invalid tuning/);
+  for (const value of [-.1, 1.1, null, '55', NaN]) assert.throws(() => validateTuning({ ...DEFAULT_TUNING, nearMaterialChance: value }), /Invalid tuning/);
+  assert.throws(() => restoreTuning({ ...legacy, extra: 1 }), /Invalid tuning/);
+  const incomplete = { ...legacy }; delete incomplete.chestTime;
+  assert.throws(() => restoreTuning(incomplete), /Invalid tuning/);
 });

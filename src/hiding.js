@@ -7,8 +7,8 @@ export function createHidingSpots(world, objects = []) {
   setSolidObjects(world, objects);
   const spots = [];
   world.rooms.forEach((room, index) => {
-    if (index % (world.layout?.hidingInterval ?? HIDING.roomInterval)) return;
-    const point = placeProp(world, room, 'hiding', [...objects, ...spots]);
+    if (room.roomType!=='bedroom' && index % (world.layout?.hidingInterval ?? HIDING.roomInterval)) return;
+    const point = placeProp(world, room, 'hiding', [...objects, ...spots],room.roomType==='bedroom'?{solid:true,width:1,height:1,placement:'corner'}:undefined);
     if (point) spots.push({ id: `${world.seed}-hide-${index}`, ...point, occupantId: null });
   });
   setSolidObjects(world, [...objects, ...spots]);

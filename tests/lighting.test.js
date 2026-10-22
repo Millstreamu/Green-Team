@@ -12,12 +12,12 @@ test('wall torches are deterministic, avoid doorway lanes/tall props and preserv
   for(const [id, values] of Object.entries(GENERATOR_PRESETS)) for(let seed=0;seed<15;seed++) {
     const p=createDungeonPreview(seed,values,id), {world,objects,hidingSpots,cages,doors}=p;
     const obstacles=[...objects,...hidingSpots,...cages,...doors.map(d=>d.spawn)], before=structuredClone(p);
-    const torches=createTorches(world,obstacles); assert.ok(torches.length>0);assert.ok(torches.length<=world.rooms.length);
+    const torches=createTorches(world,obstacles); assert.ok(torches.length>0);assert.ok(torches.length<=world.rooms.length+(world.cartRoom?1:0));
     assert.deepEqual(torches,createTorches(world,obstacles));
     for(const torch of torches) {
       assert.equal(torch.x%1,.5);assert.equal(torch.y%1,.5);
       assert.ok(isFloor(world,torch.tileX,torch.tileY));assert.ok(!isFloor(world,Math.floor(torch.mountX),Math.floor(torch.mountY)));
-      assert.ok(!reservedRoomTiles(world,world.rooms[torch.roomIndex]).has(torch.tileY*world.width+torch.tileX));
+      assert.ok(!reservedRoomTiles(world,(world.rooms[torch.roomIndex]??world.cartRoom)).has(torch.tileY*world.width+torch.tileX));
       assert.ok(obstacles.filter(o=>!['chest','crate'].includes(o.type)).every(o=>Math.hypot(o.x-torch.x,o.y-torch.y)>1));
     }
     assert.deepEqual(p,before);

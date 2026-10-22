@@ -1,0 +1,102 @@
+{
+  "tileSize": 32,
+  "width": 128,
+  "height": 128,
+  "columns": 4,
+  "wallFaceHeight": 32,
+  "capOffsetY": -32,
+  "foregroundCutawayHeight": 6,
+  "pieces": [
+    {
+      "index": 0,
+      "name": "floor",
+      "x": 0,
+      "y": 0,
+      "overlay": false
+    },
+    {
+      "index": 1,
+      "name": "cap",
+      "x": 32,
+      "y": 0,
+      "overlay": false
+    },
+    {
+      "index": 2,
+      "name": "face",
+      "x": 64,
+      "y": 0,
+      "overlay": false
+    },
+    {
+      "index": 3,
+      "name": "edge_n",
+      "x": 96,
+      "y": 0,
+      "overlay": true
+    },
+    {
+      "index": 4,
+      "name": "edge_e",
+      "x": 0,
+      "y": 32,
+      "overlay": true
+    },
+    {
+      "index": 5,
+      "name": "edge_s",
+      "x": 32,
+      "y": 32,
+      "overlay": true
+    },
+    {
+      "index": 6,
+      "name": "edge_w",
+      "x": 64,
+      "y": 32,
+      "overlay": true
+    },
+    {
+      "index": 7,
+      "name": "inner_nw",
+      "x": 96,
+      "y": 32,
+      "overlay": true
+    },
+    {
+      "index": 8,
+      "name": "inner_ne",
+      "x": 0,
+      "y": 64,
+      "overlay": true
+    },
+    {
+      "index": 9,
+      "name": "inner_se",
+      "x": 32,
+      "y": 64,
+      "overlay": true
+    },
+    {
+      "index": 10,
+      "name": "inner_sw",
+      "x": 64,
+      "y": 64,
+      "overlay": true
+    },
+    {
+      "index": 11,
+      "name": "face_left",
+      "x": 96,
+      "y": 64,
+      "overlay": true
+    },
+    {
+      "index": 12,
+      "name": "face_right",
+      "x": 0,
+      "y": 96,
+      "overlay": true
+    }
+  ]
+}

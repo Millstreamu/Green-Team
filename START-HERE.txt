@@ -1,11 +1,11 @@
-GREEN TEAM V55 — MAC TEST
+GREEN TEAM V97 — MAC TEST
 
 Node is already installed if you ran V31. You do not need to install it again.
 
 1. In the old Terminal window, press Control+C to stop the old game.
-2. Unzip this download. The new folder is green-team-v55.
-3. If you played V36, V37, V38, V39, V40, V41, V42, V43, V45, V46, V47, V48, V49, V50, V51, V52, V53 or V54, copy its whole data folder into green-team-v55 BEFORE starting. This keeps your home and goblins.
-4. In Terminal type cd followed by a space. Drag green-team-v55 into Terminal and press Return.
+2. Unzip this download. The new folder is green-team-v97.
+3. If you played an earlier version, copy its whole data folder into green-team-v97 BEFORE starting. This keeps your home and goblins.
+4. In Terminal type cd followed by a space. Drag green-team-v97 into Terminal and press Return.
 5. Type npm ci and press Return. Wait for it to finish.
 6. Type npm start and press Return.
 7. Open http://localhost:8080. You start on the HOME SCREEN, with your goblin and level.
@@ -18,11 +18,11 @@ Keep Terminal open while playing. Control+C stops the server.
 
 TEST: after joining the same lair, board both goblins, explore the same dungeon, hold E to search, release E and press again to collect. Tab opens sack; click to rearrange, R rotates, E drops held loot for a friend. Everyone gathers at the secret tunnel and presses E to leave together.
 
-GEAR: Tab opens the sack. WASD or clicking selects gear; E equips. For snares, WASD aims without walking, release E then hold E for one second to place. Esc cancels. Step clear to arm. For smoke, equip then press Space. At home, free test gear is in the collapsed Debug supplies section of the stash/workbench.
+GEAR: Tab opens the sack. WASD or clicking selects gear; E equips. For snares, WASD aims without walking, release E then hold E for one second to place. Esc cancels. Step clear to arm. For smoke, equip then press Space. At home, free test gear is in the Test supplies panel of the stash/workbench.
 
 DANGER: guards can chase either goblin. Three hits down you and spill your sack. Hold E half a second beside a hiding barrel; E exits. One goblin per barrel. Every three guard alerts bring another guard.
 
-RESCUE: pack a Packed Lunch from the stash/workbench Debug supplies before leaving. Near a downed teammate, hold E for2seconds to restore1health. The lunch is spent only if you finish. Move, release E or take damage to cancel.
+RESCUE: pack a Packed Lunch from the stash/workbench Test supplies before leaving. Near a downed teammate, hold E for2seconds to restore1health. The lunch is spent only if you finish. Move, release E or take damage to cancel.
 
 Guards carry downed goblins to the closest cage if no standing goblin is visible. You can follow behind a carrying guard, even close behind. Walk into its forward vision cone and it drops its captive to chase you. At a cage, hold E for3seconds to free a teammate to1health without using lunch. Smoke/snare the jail guard or coordinate a distraction. Pick spilled loot back up normally.
 
@@ -32,7 +32,7 @@ SAVE TEST: put supplies in the stash and pack a real item into a goblin’s sack
 
 Restarting during a dungeon run loses that run’s carried supplies and loot. Lair stock stays safe. Earned XP and unlocks save with your shared home.
 
-IMPORTANT FOR FUTURE UPDATES: stop the server, then copy the whole data folder from this game folder into the next version’s folder before starting it. Do not throw away data: it contains your shared home. Back it up with the server stopped. V36/V37/V38 saves work directly in V55. No new database software needs installing.
+IMPORTANT FOR FUTURE UPDATES: stop the server, then copy the whole data folder from this game folder into the next version’s folder before starting it. Do not throw away data: it contains your shared home. Back it up with the server stopped. V36/V37/V38 saves work directly in V69. No new database software needs installing.
 
 XP TEST: escape with valuables. Each departed goblin gets the same XP:1XP per gold from recovered valuables. Waiting arrivals get none. Downed/caged/offline teammates still receive the team reward. Failed or empty runs give no XP; materials, gear and debug supplies give none.
 
@@ -93,19 +93,114 @@ Open the single-player preview or update the server as usual. In Human Manor, ch
 
 Regression layout number from the reported screenshot: 2828433373. The corrected wall rendering applies to every generated layout, not just that map. Top outside corners still mirror and both bottom outside corners still reuse wall_bottom_horz.
 
-V55 VISUAL TORCH LIGHTING
+V69 VISUAL TORCH LIGHTING
 Try the single-player HTML or update the server as above. Start a dungeon run and walk between lit rooms, dark corners and corridors. Torches mount against walls, cast warm pools and flicker gently; solid walls block the light. All three dungeon types have lighting. The lair and the normal HUD stay bright.
 
 This is visual only: guards do not see differently in darkness, and torches cannot be used, extinguished, looted or crafted. Movement, searches, hiding and combat rules stay the same. No new assets or installation needed. Lighting look/strength is an initial tuning pass; dedicated inside-corner art is still deferred.
 
-V55 DUNGEON CHECKS
+V69 DUNGEON CHECKS
 Open the Private server admin link from Terminal. Choose your lair, then go to Dungeon generator. Each preview now shows route checks and outlines problems in red. Check 30 layouts tests more examples using the current settings, including unsaved edits. Click a listed layout to inspect it. Orange means a warning such as no cages fitting. Checking does not save changes or affect an active run. Physical corner feel still needs playtesting.
 
-V55 ONE GAME SCREEN
+V69 ONE GAME SCREEN
 The game fills the browser window. Map is inside the scene; the sliding sack stays at its lower-right edge. Help in the top bar holds the long controls/tips list; it scrolls on its own. Click Help again or press Esc to close it. Existing Tab sack controls stay the same. Small-height windows put the map at lower left to leave space for the sack. Home/lair dialogs keep their existing scrolling.
 
-V55 COINS
+V69 COINS
 Gold, silver and copper coins can be found by searching. Same-metal coins stack to9 per sack square. E pickup tops up matching stacks before using another square. Click a held stack onto a matching stack to combine; overflow stays in hand. Full-sack pickups take only what fits, leaving the rest on the floor. Drop/share whole stacks with the existing controls. Test values: gold3, silver2, copper1 shared gold per coin on escape; difficulty still applies. Other dungeon items remain individual.
 
-V55 LOCKED TREASURE ROOMS
+V69 LOCKED TREASURE ROOMS
 Search containers for a guaranteed treasure key outside the locked room. It takes one sack square and can be dropped for a teammate. E beside a locked treasure entrance uses the packed key, opening all entrances to that room for everyone. Search inside for better valuables. You can still leave without opening it. Keys spill on down/disconnect timeout and cannot be kept between runs. Very constrained custom layouts may skip the lock; the builder reports a warning.
+
+V69 TOUCH E
+Touch devices show E on the right: tap to interact, hold to search. This is the first mobile control; movement and other touch controls are still to come.
+
+V69 PHONE TEST — SAME WI-FI
+Stop the old server and keep its whole data folder when updating.
+Run npm ci, then npm run start:lan instead of npm start.
+Open the printed Phone on the same Wi-Fi URL in your phone browser. Hold the phone sideways.
+If no address can be detected, substitute the computer's local network IP in the printed URL.
+Left stick moves; E interacts (hold for searching/hiding/placing).
+Use activates equipped smoke. Sack opens your inventory or the lair stash.
+Tap normal loot to lift/place. Tap equipment, then E to equip or Move to rearrange. Rotate turns held items.
+While placing a trap, the stick aims and Cancel abandons placement.
+Admin remains on the server computer using its private localhost link.
+
+V69 GAME SCREEN
+The world fills the window. Top-left: health and route. Top-right: map toggle, fullscreen, Menu.
+Menu contains your goblin, invite code, XP, save details and Help. The world keeps moving.
+Interaction prompts sit below the scene; short action messages fade automatically.
+Fullscreen depends on browser support; if unavailable, play normally in the browser window.
+Use the same npm ci / npm run start:lan setup for phones on the same Wi-Fi.
+
+V69 FLOATING MOVEMENT
+Touch and drag anywhere on the left side of the game. Each touch starts a fresh movement origin.
+The stick only shows while held and disappears when released. Right-hand actions work independently.
+Holding Use or E no longer selects their text. Invite codes can still be selected/copied.
+
+V69 GOBLIN ART
+Uses your new goblin sprite, drawn25% smaller in game with a smaller shadow. Existing saves work.
+
+V69 TOUCH SACK
+Tap an item to highlight; Rotate turns it. Drag to another sack square to move.
+Invalid/outside releases keep the item where it was. Explicit Move still lifts for dropping/sharing.
+The central context and action narration are hidden.
+
+V69 START SCREEN
+The main home view fits one screen: goblin/level and Enter your lair (or Create your lair for new goblins).
+Join friends opens its form. Goblin details shows XP and selection. Options holds extra-lair creation.
+Forms use contained panels with Back/Close; drafts survive updates and errors stay in the active panel.
+This is the live-server home screen; standalone solo play.html still starts in the lair.
+
+V69 RUN-END SCREEN
+Outcome, gold, earned XP, time and Return to lair fit the summary screen.
+View haul / Lost items opens a contained item list. Back to result or Escape returns to the summary.
+Return to lair stays available in both views.
+
+V69 LAIR STATIONS: Stash, workbench, campfire and map table use compact panels. On touch screens tap stock/sack to select, then Pack one or Return item. Page arrows browse shared stock. Move stack rearranges a whole shared stack. Workbench tabs separate crafting from recipe unlocks; Test supplies has its own panel. Keep the whole data folder on every update.
+
+V69 PLAYABILITY FIXES: Fast sack drags work even without intermediate movement events. Landscape sack squares retain their intended size. Holding Tab no longer repeatedly opens/closes lair stock. Turning the phone or resizing the window releases held controls and cancels an uncommitted sack drag. Check the complete loop on your phone; detailed checks are in docs/playability-pass.md.
+
+V69 FEEDBACK: Gold sack pulse/chime for loot pickup/packing, red flash/low cue for items that do not fit, and green lair confirmation for transfers/crafting/purchases. Menu has Sound on/off for this page session. First interact with the page to enable audio. Sounds are temporary; your own sprites/audio will be handled through a future editor. No new central narration.
+
+V69 EARLY LOOT: Fresh solo/new lairs have fewer empty searches and a better early valuable/material mix. Existing lairs keep saved settings. To try the new balance, open the Private server admin link, select your lair, and change ONLY these run-setting fields: Empty searches near entrance45%, Empty searches far from entrance35%, Materials near entrance55%. Save settings, then begin a new run. Active runs keep their old settings. Other tuning, supplies, XP and prices stay intact. Old settings gain an explicit75%material field to preserve previous behaviour, with a backup before the save update.
+
+V69 TREASURE DOORS: Fixed the one-tile-inset lock and doorway selection that could cover a whole room edge beside a hallway. Locks now sit on the real doorway; side-facing gates rotate correctly. No corridor floors are changed. Keep the whole data folder; loot/XP settings remain the same as the preceding early-loot release.
+
+V69 SLEEP DART TEST: At the stash/workbench open Test supplies and add free test sleep darts. Close, board and depart. Open Sack, select a dart and E to equip. Mouse/WASD or phone left stick aims; Space/Use fires one shot; Esc/Cancel keeps it. The dart sleeps the first guard hit for8seconds and stops at walls/solid furniture/locked gates. Other darts do not extend sleep. Sleeping carriers drop captives still downed. Paid recipe is75personalXP, crafting1scrap+2cloth. No bell yet. Keep data on update.
+
+V70 DART CONTROLS: Sack → select dart → E equips. Close Sack and walk into position. Space/Use starts aiming; mouse/WASD/left stick moves the reticle. Press Space/Use again to fire. Esc/Cancel returns to walking with the same dart equipped. Holding a button cannot skip steps. The next dart must be equipped separately. This replaces the immediate-aim controls in the V69 test above. Keep your whole data folder when updating.
+
+V71 CLANG BELL: At stash/workbench → Test supplies → Add free test Clang bell. Depart, open Sack, select bell and E equips. Move into position. Space/Use aims, then Space/Use throws; Esc/Cancel keeps the bell. Gold floor preview is valid; red is blocked. One throw rings once and nearby eligible guards investigate around corners. Visible goblins take priority. Recipe25personalXP, craft1scrap+1cloth. Keep the whole data folder on update.
+
+V72 GUARD DISGUISE: Stash/workbench → Test supplies → Add free test disguise potion. Depart, open Sack, select potion, E equips. Walk where you want, then Space/Use drinks. Your goblin looks like a guard and the health area shows a10second countdown. Stay more than1tile from guards. Searching or successfully using gear breaks it; damage immunity is unchanged. Recipe trial50personalXP, craft1scrap+2cloth. Keep the whole data folder when updating.
+
+V73 SCRYING ORB: Stash/workbench → Test supplies → Add free test scrying orb. Depart, open Sack, select orb, E equips. Move, then Space/Use activates once. Purple diamonds mark the three closest guards on everyone's map for5seconds; positions stay fixed even when guards move. Open the map toggle if hidden. Recipe trial75personalXP, craft2scrap+1cloth. Orb use breaks disguise. Keep whole data folder when updating.
+
+V74 GEAR GUIDE: At stash/workbench choose Gear guide. Gear explains controls/effects/limits/costs. Loadouts suggests Distraction, Sneaking and Team rescue (three squares each), showing what is already packed and shared stock. Pack items through the stash as usual. Costs compares recipe XP and crafting materials. Back to station returns to your inventory/workbench. Item hints also appear when selecting gear in Sack. Current prices retained after review; Packed Lunch still needs existing/test stock. Keep whole data folder when updating.
+
+V75 STASH NAMES: Hover a stash item, use WASD/arrows to highlight, or tap it on phone. A small name tag appears by the square. Pack one / E / mouse-click transfers as before. Keep whole data folder when updating.
+
+V76 FOOD & COOKING: Search cupboards/crates in a new run for Meat and Berries. Carry them out; they bank as shared resources. At Campfire, Cook Packed Lunch costs1meat+1berries and is known from the start. It packs into your sack or goes to stash if full. Hold E2seconds near a downed teammate to spend the lunch and revive them with1health. Guide/costs updated; food is not eaten directly. Old saves gain zero food. Mushrooms remain later. Keep whole data folder when updating.
+
+V77 MAP RESOURCES: At map table, Common finds updates with the route. Human Manor favours Meat/Cloth; Dwarf Hold Metal scrap/Meat; Elf Sanctuary Berries. All basic resources can still appear on every map. Start a new run to see the new mix; material/valuable/empty chances and recipes stay the same. New content can extend the profile lists later. Keep whole data folder when updating.
+
+V78 BERRY THROW: Pack real berries or add free test berries through Test supplies. Depart, select berries in Sack, E equips. Move, Space/Use aims, second Space/Use throws. Esc/Cancel keeps the berry. A hit blinds the first guard for1second and breaks chase; reach cover before it sees you again. Throwing spends one portion even on a miss. Save real berries for lunch instead if needed. Test portions cannot become cooking stock. Keep whole data folder on update.
+
+V79 POTION STATION: E at the right-wall potion worksite, then Build for 30 shared gold. Learn Guard disguise for 50 personal XP and brew with 1 mushroom + 1 berries. Sanctuary favours mushrooms and berries; other maps also have mushrooms. Existing stocked potions and learned recipes remain. Preserve the whole data folder.
+
+V80 VANISH: Build potion station, learn Vanish for75personal XP, brew with2mushrooms+1cloth. Equip in Sack, move, Space/Use drinks. Eight seconds invisible to guards; a hit, searching or successful gear use ends it. Existing guard searches/swings continue, so move out of danger. No refresh or stacking with disguise. Free test bottles are in Test supplies and never bank as real stock. Keep whole data folder when updating.
+
+V81 LUCKY: Learn at the built potion station for50personal XP; brew1berries+1scrap. Equip, move, Space/Use drinks once. +5percentage points gold-coin chance in YOUR completed searches for this run. Doses do not stack/spend spares. Damage/searching/gear use preserves it; a new run resets it. Extra coins are normal shared pickups, not a sale multiplier. LUCKY badge shows active effect. Test bottles are in Test supplies. Keep whole data folder on update.
+
+V82 VISUAL LAIR BOOK: Approved potion/workbench/campfire/stash screens now use parchment panels, temporary item sprites, quantities and one context action. Unlock turns into Craft/Brew; campfire upgrade turns into an Owned stamp. Potion station Build is the same primary control before unlocking recipes. Select stash/sack items then Pack/Return; E transfers, Q switches grids, R moves a stash stack. Info reveals full rules/ingredient names. Guide and Test remain secondary panels. Existing costs and saves unchanged. Keep whole data folder, npm ci/start:lan, refresh old tabs. V81 remains a separate fallback. Phone/PC layout fit remains for user playtesting.
+
+V83 ROUTES AND DEPARTURE: Illustrated map cards, Normal/Hard, resource sprites and one Set route control. Departure shows actual route, team readiness, sack grid and Board/Hop out; Hop out cancels the all-aboard 3-second countdown. Lair/Escape closes the view without changing your seat. Compact landscape layout included; real phone test deferred. Preserve the whole data folder. V82 remains the separate fallback.
+
+V84 VISUAL RUN RESULTS: Parchment screen with prominent gold/XP and sprite loot tiles. Tap an item for its name/value; info opens full run details. Downed goblins see lost items separately from team rewards. Return to lair is the only primary action. Preserve whole data folder; refresh old tabs. V83 remains a fallback; phone testing deferred.
+
+V85 SPRITE PIXEL FIX: Higher-resolution scene drawing preserves goblin pixels while walking and turning at the same apparent size. Pointer/aim coordinates remain in scene units. Native pixel checks pass; physical phone playtesting remains deferred. Preserve the whole data folder; refresh old tabs. V84 remains a fallback.
+
+V86 QUIET ICON FEEDBACK: Crafting/transfers briefly highlight and pulse the item icon instead of flashing the station window. Reduced motion uses brightness only. Preserve whole data folder; refresh old tabs. V85 remains a fallback.
+
+V87 CAMPFIRE PASSIVES: WASD highlights a slot; E/tap unlocks, then activates/deactivates. Three active personal slots, green border/tick. Quick Fingers30XP (+10% search speed), Quiet Hands75XP (search while Vanish remains active), Lucky Goblin50XP (+5 percentage points gold finding; +10 with Lucky potion). Existing Quick Fingers stays active on migration. Packed Lunch moves to workbench; same ingredients. Preserve whole data folder; refresh old tabs. Phone playtest remains deferred. V86 files kept as fallback.
+
+V97 RAID CART: Dedicated start room, one hallway. E at cart to Deposit/Retrieve between sack and shared6x6 hold. WASD/E selects/transfers; Q switches grids. Phone cargo has4pages. Board to leave separately; all standing connected teammates board for3seconds. Hop out/Continue raid cancels. Cargo only banks on escape; wipe, abort or interrupted restart loses it. Real shapes/capacity; keys stay in sack. Preserve whole data folder; refresh old tabs. V87 kept as fallback; phone playtest deferred.

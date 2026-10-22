@@ -252,14 +252,15 @@ test('browser admin lair selector sends scoped requests and shows the selected j
   get('admin-item').value = 'gold'; get('stock-amount').value = '777'; get('stock-form').send('submit'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(commands.at(-1).lairId, lairB.id); assert.equal(hub.snapshot(b).camp.counts.gold, 777); assert.equal(hub.snapshot(a).camp.counts.gold, 0);
   const input = id => get('tuning-fields').children.map(label => label.children[1]).find(node => node.id === 'tuning-' + id);
-  assert.equal(input('sight').value, 7); assert.equal(input('nearEmptyChance').value, 70);
-  input('sight').value = '3'; input('nearEmptyChance').value = '90'; input('sight').send('input');
+  assert.equal(input('sight').value, 7); assert.equal(input('nearEmptyChance').value, 45);
+  input('sight').value = '3'; input('nearEmptyChance').value = '90'; input('nearMaterialChance').value = '65'; input('sight').send('input');
   // Polling the same saved state must not erase an unfinished edit.
   get('admin-lair').send('change'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(input('sight').value, '3'); assert.match(get('tuning-note').textContent, /Unsaved/);
   get('tuning-form').send('submit'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(commands.at(-1).type, 'set-tuning'); assert.equal(commands.at(-1).lairId, lairB.id);
   assert.equal(admin.summary(lairB.id).tuning.nearEmptyChance, .9);
+  assert.equal(admin.summary(lairB.id).tuning.nearMaterialChance, .65);
   assert.equal(admin.summary(lairA.id).tuning.sight, 7);
   launch(hub, [b]); get('admin-lair').send('change'); await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(get('save-tuning').disabled, false); assert.equal(get('set-stock').disabled, true);
@@ -338,7 +339,7 @@ test('run settings are lair scoped, survive restart/backup, and never alter an a
   const { hub: h, a, b, store, admin, backups } = fixture(t);
   const lairA = create(h, a, 'Tuned'), lairB = create(h, b, 'Default');
   const defaults = admin.summary(lairA.id).tuning;
-  const values = { ...defaults, sight: 2, windup: .7, alertsPerGuard: 1, chestTime: 8, nearEmptyChance: 1, farEmptyChance: 1 };
+  const values = { ...defaults, sight: 2, windup: .7, alertsPerGuard: 1, chestTime: 8, nearEmptyChance: 1, farEmptyChance: 1, nearMaterialChance: .9 };
   const result = admin.command({ type: 'set-tuning', lairId: lairA.id, values });
   assert.deepEqual(backups.read(result.backupId).state.lairs.find(l => l.id === lairA.id).tuning, defaults);
   assert.deepEqual(admin.summary(lairB.id).tuning, defaults);
@@ -353,6 +354,7 @@ test('run settings are lair scoped, survive restart/backup, and never alter an a
   assert.equal(h.snapshot(a).dungeon.tuning.combat.sight, 2);
   assert.equal(h.snapshot(a).dungeon.tuning.search.chestTime, 8);
   assert.equal(h.snapshot(a).dungeon.tuning.loot.nearEmptyChance, 1);
+  assert.equal(h.snapshot(a).dungeon.tuning.loot.nearMaterialChance, .9);
   admin.command({ type: 'end-run', lairId: lairA.id });
   h.action(a, { type: 'dismiss-result' }); launch(h, [a]);
   assert.equal(h.snapshot(a).dungeon.tuning.combat.sight, defaults.sight);
@@ -441,4 +443,35 @@ test('generator edits validate before backup, reject player access and preserve 
   const blocked = createHubAdminController(h, { list: () => [], create() { throw Error('Backup blocked'); } });
   assert.throws(() => blocked.command({ type: 'reset-generator', lairId: lair.id, jobId: 'manor' }), /Backup blocked/);
   assert.deepEqual(h.adminInfo(lair.id).generator, GENERATOR_PRESETS);
+});
+
+
+test('V66 tuning upgrades preserve implicit material mix and chosen odds, back up before commit and survive restart', t => {
+  const { hub, a, store, backups } = fixture(t), lair = create(hub, a, 'Legacy odds');
+  const old = hub.adminState();
+  old.lairs[0].tuning.nearEmptyChance = .8; old.lairs[0].tuning.farEmptyChance = .6;
+  delete old.lairs[0].tuning.nearMaterialChance;
+  const original = structuredClone(old); validateSave(old); assert.deepEqual(old, original);
+  let saved, backedUp = 0;
+  const upgraded = createHubSession({ store: { load: () => old, save(state) { assert.equal(backedUp, 1); saved = structuredClone(state); } },
+    beforeMigration(state) { assert.deepEqual(state, original); backups.create(state, 'Before V67 tuning update'); backedUp++; } });
+  const tuning = upgraded.adminInfo(lair.id).tuning;
+  assert.equal(tuning.nearEmptyChance, .8); assert.equal(tuning.farEmptyChance, .6); assert.equal(tuning.nearMaterialChance, .75);
+  assert.deepEqual(old, original, 'input and old backups stay untouched');
+  assert.deepEqual(saved.lairs[0].state.camp, original.lairs[0].state.camp);
+  assert.deepEqual(saved.profiles, original.profiles);
+  const restarted = createHubSession({ store: { load: () => saved, save() {} }, beforeMigration() { assert.fail('Must not migrate twice'); } });
+  assert.deepEqual(restarted.adminInfo(lair.id).tuning, tuning);
+  store.save(original);
+  const diskRestart = createHubSession({ store, beforeMigration(state) { assert.deepEqual(state, original); backups.create(state, 'Before disk upgrade'); } });
+  assert.deepEqual(diskRestart.adminInfo(lair.id).tuning, tuning);
+  assert.equal(store.load().lairs[0].tuning.nearMaterialChance, .75, 'expanded field is durable in SQLite');
+  assert.deepEqual(store.load().profiles, original.profiles);
+  // Strict writes do not accept a partial legacy payload as a new editor edit.
+  const admin = createHubAdminController(restarted, backups);
+  assert.throws(() => admin.command({ type: 'set-tuning', lairId: lair.id, values: original.lairs[0].tuning }), /Invalid tuning/);
+  const applied = admin.command({ type: 'set-tuning', lairId: lair.id, values: { ...tuning, nearEmptyChance: .45, farEmptyChance: .35, nearMaterialChance: .55 } });
+  assert.equal(backups.read(applied.backupId).state.lairs[0].tuning.nearMaterialChance, .75);
+  assert.equal(restarted.adminInfo(lair.id).tuning.nearMaterialChance, .55);
+  assert.throws(() => createHubSession({ store: { load: () => original, save() { assert.fail('No write before backup'); } }, beforeMigration() { throw Error('Backup failed'); } }), /Backup failed/);
 });

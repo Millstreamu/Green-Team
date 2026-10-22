@@ -1,9 +1,11 @@
+import { breakDisguise } from './potions.js';
 import { SMOKE } from './config.js';
 
 export function useSmoke(loot, player, clouds) {
   if (player.hiding || loot.held || player.state !== 'active') return false;
   const index = loot.bag.findIndex(item => item.type === 'smoke');
   if (index < 0) return false;
+  breakDisguise(player);
   const [item] = loot.bag.splice(index, 1);
   clouds.push({ id: item.id, x: player.x, y: player.y, radius: SMOKE.radius, left: SMOKE.duration });
   return true;

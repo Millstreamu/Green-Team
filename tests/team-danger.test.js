@@ -13,6 +13,7 @@ const actor = (id, x, y) => ({ id, name: id, x, y, ...createVitality(), connecte
 function fixture() {
   const camp = createCamp(), a = actor('a'), b = actor('b');
   const d = createDungeonSession({ id: 'danger-test', seed: 978983017, job: selectJob('manor', 'normal') }, [a, b], camp);
+  d.ground.length = 0; // Isolate this transaction/combat fixture from generated surface finds.
   return { d, a, b, camp };
 }
 function step(d, players, seconds, held = false) {

@@ -4,3 +4,10 @@ data/
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+# Generated build output
+play.html
+workshop/workshop.html
+workshop/game-bundle.js
+build/*
+!build/.gitkeep
+pages/

@@ -11,6 +11,7 @@ function fixture(difficulty = 'normal') {
   const camp = createCamp(), a = { id: 'a', name: 'A', connected: true, bag: [], profile: createProfile('a') }, b = { id: 'b', name: 'B', connected: true, bag: [], profile: createProfile('b') };
   const launch = { id: 'test-run', seed: 978983017, job: selectJob('manor', difficulty), participants: [a.id, b.id] };
   const d = createDungeonSession(launch, [a, b], camp);
+  d.ground.length = 0; // Isolate this transaction/combat fixture from generated surface finds.
   Object.assign(a, d.objects[0].approach); Object.assign(b, d.objects[0].approach);
   d.objects[0].contents = ['ruby']; // This fixture tests transactions, independent of loot balance.
   return { a, b, camp, d };

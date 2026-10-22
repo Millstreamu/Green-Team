@@ -27,5 +27,5 @@ export function generatorSettings(saved) {
   return Object.fromEntries(Object.keys(GENERATOR_PRESETS).map(id => [id, validateGenerator(saved[id])]));
 }
 export function dungeonConfig(values = GENERATOR_PRESETS.manor) {
-  return { ...CONFIG, ...validateGenerator(values) };
+  return { ...CONFIG, ...validateGenerator(values), cartRoom: true };
 }

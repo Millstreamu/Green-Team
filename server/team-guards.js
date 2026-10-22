@@ -5,7 +5,7 @@ export function updateTeamGuard(world, guard, goblins, dt, clouds, heat) {
   const eligible = goblins.filter(p => p.connected && p.inRun && p.state === 'active');
   const current = eligible.find(p => p.id === guard.targetId);
   const committed = guard.windup > 0 || guard.swing > 0;
-  const alerted = ['chase', 'search'].includes(guard.state);
+  const alerted = ['chase', 'search'].includes(guard.state) || !!guard.bellWasAlerted;
   const visible = eligible.filter(p => seesPlayer(world, guard, p, alerted, clouds))
     .sort((a, b) => Math.hypot(a.x - guard.x, a.y - guard.y) - Math.hypot(b.x - guard.x, b.y - guard.y) || a.id.localeCompare(b.id));
   const known = eligible.find(p => p.id === guard.knownHiding?.playerId && p.hiding?.spot.id === guard.knownHiding.spotId);
@@ -13,7 +13,7 @@ export function updateTeamGuard(world, guard, goblins, dt, clouds, heat) {
   const target = committed ? current : current && visible.includes(current) ? current : visible[0] ?? known ?? current;
   if (target && target.id !== guard.targetId) {
     guard.targetId = target.id;
-    guard.trail = []; guard.trailSource = null; guard.trailEnd = null; guard.trailLeft = 0; guard.repath = 0;
+    guard.lastSeenPending = false; guard.trail = []; guard.trailSource = null; guard.trailEnd = null; guard.trailLeft = 0; guard.repath = 0;
     if (guard.state === 'suspicious') guard.suspicion = 0;
   }
   const fallback = { id: null, ...createVitality(), ...(guard.lastSeen ?? guard.home), unavailable: true };

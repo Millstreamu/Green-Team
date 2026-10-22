@@ -1,3 +1,4 @@
+import { breakDisguise } from '../src/potions.js';
 import { RESCUE, SEARCH, COMBAT } from '../src/config.js';
 import { createCages, rescueCandidate } from '../src/rescue.js';
 import { createGuard, createVitality, seesPlayer } from '../src/guard.js';
@@ -41,7 +42,7 @@ export function createRescue(world, participants, guards, obstacles) {
     g.moving = followPath(world, g, g.capturePath, speed * dt, COMBAT.guardRadius) > 0;
   }
   return {
-    cages, cancel, nearestCage,
+    cages, cancel, nearestCage, releaseGuard: drop,
     disconnect(p) {
       cancel(p);
       for (const helper of participants) if (helper.rescueAttempt?.targetId === p.id) cancel(helper);
@@ -64,7 +65,7 @@ export function createRescue(world, participants, guards, obstacles) {
       actor.searchHeld = true; actor.inputAge = 0; return true;
     },
     guardTick(g, dt, clouds) {
-      if (g.jailer) return false;
+      if (g.sleepLeft > 0 || g.blindLeft > 0 || g.jailer) return false;
       // Pickup leaves state as capture until the next tick; the captive claim
       // must switch vision immediately, including the usual close-range check.
       const carrying = !!g.captiveId || g.state === 'carry';
@@ -84,7 +85,7 @@ export function createRescue(world, participants, guards, obstacles) {
           .sort((a, b) => a.path.length - b.path.length || a.p.id.localeCompare(b.p.id));
         target = bodies[0]?.p;
         if (!target || !nearestCage(g)) return false;
-        g.captureTargetId = target.id; g.captureElapsed = 0; g.capturePath = []; g.captureRepath = 0;
+        g.bellTarget = null; g.bellLeft = 0; g.bellWasAlerted = false; g.captureTargetId = target.id; g.captureElapsed = 0; g.capturePath = []; g.captureRepath = 0;
       }
       if (g.snareLeft > 0) { g.snareLeft = Math.max(0, g.snareLeft - dt); g.moving = false; g.captureElapsed = 0; return true; }
       g.windup = 0; g.swing = 0; g.cooldown = Math.max(0, g.cooldown - dt);
@@ -124,7 +125,7 @@ export function createRescue(world, participants, guards, obstacles) {
         if (attempt.elapsed + .000001 < attempt.duration) continue;
         const point = attempt.kind === 'rescue' ? cages.find(c => c.id === target.cageId)?.entry : target;
         if (!point || !canStand(world, point.x, point.y)) { cancel(actor); continue; }
-        if (attempt.kind === 'revive') actor.bag.splice(lunchIndex, 1);
+        if (attempt.kind === 'revive') { breakDisguise(actor); actor.bag.splice(lunchIndex, 1); }
         target.x = point.x; target.y = point.y; removeFromCage(target);
         Object.assign(target, createVitality(), { health: 1, carrierId: null, downSpilled: false });
         target.input = { x: 0, y: 0 }; target.inputAge = 1; target.searchHeld = false;

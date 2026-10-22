@@ -5,7 +5,7 @@ import { createCamp } from '../src/lair.js';
 import { validateSave } from './save-store.js';
 
 import { GENERATOR_PRESETS, generatorSettings, validateGenerator, dungeonConfig } from '../src/generator-settings.js';
-import { DEFAULT_TUNING, validateTuning } from '../src/tuning.js';
+import { DEFAULT_TUNING, validateTuning, restoreTuning } from '../src/tuning.js';
 
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const code = () => Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join('');
@@ -30,7 +30,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
   const profiles = new Map(), lairs = new Map();
   let failure = null;
   const loaded = store?.load() ?? null;
-  if (loaded?.version === 1 || loaded?.version === 2 && loaded.lairs.some(l => l.ownerId === undefined)) beforeMigration(loaded);
+  if (loaded?.version === 1 || loaded?.version === 2 && loaded.lairs.some(l => l.ownerId === undefined || l.tuning && !Object.hasOwn(l.tuning, 'nearMaterialChance'))) beforeMigration(loaded);
   function install(saved) {
     const oldViews = new Map([...profiles].map(([token, p]) => [token, { lairId: p.lairId, connected: p.connected }]));
     lairs.clear();
@@ -41,7 +41,7 @@ export function createHubSession({ store = null, beforeMigration = () => {} } = 
     }
     for (const record of saved.lairs) {
       const savedState = structuredClone(record.state);
-      const lair = { id: record.id, name: record.name, code: record.code, ownerId: record.ownerId ?? null, generator: generatorSettings(record.generator), tuning: { ...(record.tuning ?? DEFAULT_TUNING) } };
+      const lair = { id: record.id, name: record.name, code: record.code, ownerId: record.ownerId ?? null, generator: generatorSettings(record.generator), tuning: restoreTuning(record.tuning) };
       lair.engine = createLairSession({ store: { load: () => savedState, save() {} }, getTuning: () => lair.tuning, getLayout: id => dungeonConfig(lair.generator[id]) });
       const engine = lair.engine;
       lairs.set(lair.id, lair);

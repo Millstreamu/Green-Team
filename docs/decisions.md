@@ -603,7 +603,394 @@ User accepted one locked treasure room, a guaranteed key in searching elsewhere,
 Packed matching key + E near the entrance consumes it once and permanently opens the room for the team in that run. Wrong/distant/downed/hidden/held-cursor attempts fail. Existing pickup/drop/down/disconnect spills preserve key identity; unused keys are run-only, excluded from banking/XP/results/withdrawal and reset on run end. Closed doors block movement/sight/interaction/light; opening updates shared collision and light clipping without moving torches. Guard posts/patrol goals/cages/reinforcement doors stay outside while guard pursuit may enter once open. Prototype door/key art is code-drawn and grid aligned, awaiting user's art.
 
 
-## GitHub Pages release packaging — 21 October 2026
+## V56 — landscape phone interaction button
 
-User requested the polished solo game with workshop tools secondary, then requested a PR into this repository. Package it in docs/ for branch-based GitHub Pages hosting, preserving the existing server/source entry points. Solo progress remains local to the browser; creator tools are public secondary pages with isolated disposable playtests. Current complete release source and drawing templates are included as downloads. Existing multiplayer needs a server and is not presented as working on static Pages. No automatic merge, visibility change or deployment is part of this request.
+User chose landscape phones as mobile target and corrected the requested interaction key from F to E. Add a right-side E touch button sharing keyboard E actions, including press-and-hold searches. Remaining mobile controls are future work.
 
+
+## V57 — first full landscape touch control pass
+
+User approved left-thumb movement, right-thumb E/use/sack and tap inventory with rotation. Eight-way stick shares normal movement/aim rules and is paused during manual sack arrangement. Tap normal items to lift/place; equipment remains tap-select, E-equip, with explicit Move for rearranging. Cancel stays available for trap placement. Stick/actions have separate pointer ownership; release/cancel/focus loss stop input. Touch releases clear obsolete hover targeting, preserving intentional manual equipment selection. Keyboard/mouse remain supported. Optional start:lan exposes the game on the local network for phone testing; normal start remains localhost and admin stays localhost-only.
+
+
+## V58 — gameplay HUD and fullscreen pass
+
+User said mobile is usable but both phone/PC still read as a webpage, and approved a gameplay-screen UI pass before detailed station/home work. The viewport has no page header/footer; health/portrait/route sit upper-left, map/menu/fullscreen upper-right and prompts lower-centre. Meta information moves into Menu; map can be hidden. Common moss/brass framing carries through inventory and existing dialogs. Actions show transient notifications rather than permanent footer instructions. Touch prompts name the touch controls. Opening Menu clears/blocks player controls, without pausing the simulation; it says the world keeps moving. Outside clicks close the menu without also picking up/dropping loot. Fullscreen is explicit and targets the document so existing dialogs/home remain usable, with feature detection and failure feedback.
+
+
+## V59 — floating left-side joystick and control text selection
+
+User requested invisible left-side phone movement instead of a fixed stick and reported text highlighting while holding Use. Agreed behaviour: neutral thumb origin wherever a left-side touch begins, drag for movement/aiming, faint stick only during contact and invisible at rest. Left46% is the implementation touch area. Preserve eight-way/dead-zone/speed rules and independent right-hand buttons. Gameplay controls do not select text or open long-press menus; invite code and form inputs retain selection/editing.
+
+
+## V60 — supplied replacement goblin and smaller display
+
+User supplied untitled-atlas.png and requested replacing the goblin and making him a little smaller. Use the supplied16×16 transparent PNG unchanged; in-world scale2→1.5 gives25% smaller dimensions. Match the shadow scale. Existing feet/facing/hop and collision rules remain, and the shared asset updates home/HUD art too.
+
+
+## V61 — touch sack gestures and no central narration
+
+User reported unreliable tap-to-pick-up inventory behaviour and requested dragging on mobile, tapping to highlight/rotate, and removing the central what-is-happening text. Dungeon touch taps now only select; drags commit one packed move at release, never implicitly lifting an item into the cursor. Rotation works on the selected item. Invalid/outside/cancelled drags retain the original packed item. Larger landscape sack squares sit beside right-hand actions. Existing explicit Move remains for intentional lift/drop/sharing and E still equips gear. Central context/action narration is hidden; object progress and danger indicators remain.
+
+
+## V62 — one-screen home dashboard and contained panels
+
+User requested fitting the starting screen all at once using submenus/panels. Dashboard shows goblin, level/progress and one primary creator/new-player action. Owned goblins see Enter your lair; first-time goblins see Create your lair. Join friends, goblin details and Options open contained panels. Create another lair is under Options after ownership, fulfilling the deferred UI preference from V40. Several owned lairs use one selector. The dashboard itself does not scroll; longer forms/keyboard use their panel's internal scrolling. Existing ownership/code/server rules remain.
+
+
+## V63 — one-screen run-end summary and item details
+
+User requested the same bounded-screen/subpanel treatment for run results as the home screen. Run-end summary keeps outcome/job, gold, personal XP and time visible without a page-length haul list. Item breakdown opens within the same result dialog and scrolls independently; header/return button stay outside the switching panels. Back/Escape leaves item details; only the existing Return to lair action dismisses results. Reward/loss meanings and team eligibility unchanged.
+
+
+## V64 — compact lair station panels
+
+User accepted applying the home/run-end treatment to stash, workbench, campfire and map table. All four use bounded station shells, internally scrolling content and persistent main actions. Touch stash selection precedes explicit transfer; fine-pointer click and E retain immediate transfer. Coarse-pointer stash pages show nine of the existing 36 source slots; pagination does not change shared storage. Workbench separates Craft and Recipes, free test supplies use a subpanel, campfire focuses on upgrades, and map planning separates destination from sack preparation. No economy, save or authority changes.
+
+
+## V65 — playability pass before more systems
+
+Agreed behaviour: user accepted checking the complete lair → packing → dungeon → loot → escape → results → lair loop on phone/PC before additions. Small corrections preserve existing game rules: fast touch drags use final release coordinates even without move events; landscape sack keeps usable grid size; held Tab does not repeat-toggle station stock; viewport changes release held controls and cancel uncommitted gestures. No balance changes. Physical phone/browser feel remains to be judged in device playtesting (docs/playability-pass.md).
+
+
+## V66 — loot, inventory and lair cues; future user-made assets
+
+Agreed behaviour: user accepted loot pickup feedback, failed inventory move/rotation feedback and lair packing/crafting/purchase confirmation. Guards remain deferred. Use brief gold/red/green local pulses with quiet temporary sounds; keep central narration hidden. Sound can be muted. Valid packed rearrangement/rotation and cancelled gestures remain quiet. In multiplayer, only the requesting player receives the authoritative outcome after action/save; contested shared state must not generate guessed successes.
+
+Agreed future direction: user wants to replace all audio with their own recordings and use an eventual game editor to upload both sprites and audio. User mentioned MP4 or another file format as a possible delivery; exact supported formats, conversion/import behaviour and the editor UI remain undecided. V66 supplies named replacement slots, not an upload editor. Preserve user-supplied goblin art unchanged.
+
+
+## Early progression review after V66 — proposal, not applied
+
+Agreed scope: user accepted reviewing current starting supplies, rewards, crafting and XP prices and sketching the first three successful runs before gameplay changes. Read-only700-map audit uses production generation/default Normal presets and paired seeds; no real player/survival/packing simulation. See docs/early-balance-proposal.md and scripts/audit-early-balance.mjs.
+
+Still experimenting: near/far empty endpoints70/50%→45/35%, near material75%→55%; keep starter stock, gear costs, sale values, XP and30/50 upgrade prices. Illustrative solo20/30/35gold successes buy Quick fingers after run2 and smoke after run3, not guaranteed progression or a team timetable. Existing per-participant team XP and saved lair tuning must remain explicit. Runtime and saved values unchanged pending review of the concrete proposal.
+
+
+## Future items/abilities brainstorm —18October2026
+
+Agreed scope: user asked to record ideas while reading the early-balance proposal. Added docs/future-items-and-abilities.md, preserving8item ideas and11ability/upgrade ideas. Sleep darts; guard disguise, next-hit invisibility and5%gold-finding potions; shared3-guard scrying orb; throwable Clang bell; placed warning pottery shards; existing Packed Lunch revival. Abilities: highest-level still-in-shadow invisibility except very-close guards; sacrifice one sack item to open nearby chests; marked hiding-spot return teleport;1second berry blind/chase loss;20second locked-room bearing; searched-crate1second stun that contributes to guard increase; health; sale value; alert-triggered speed; nearest-guard map view while hiding;3second post-search hard-to-see (slower guard detection, not invisibility).
+
+Still experimenting: names, unlock tiers beyond the explicit highest-level shadow idea, timing/range/cost/stacking/team rules and ambiguous next-hit/5%meaning. “Anchor” is an assistant name suggestion for the marked hiding spot, not a chosen name. No new gameplay authorised/built by this recording request. Packed Lunch remains existing functionality with crafting undecided. Early-balance candidate remains proposed, not accepted by this brainstorm.
+
+
+## V67 — accepted early-loot tuning slice
+
+User accepted the proposed next step after the balance review: fewer empties and a better early valuable/material mix, keeping starter gear and upgrade prices initially. Implement near/far empty45/35%and near-material55%; keep far-material20%, rare depth10→80%, two-item15%, stock, item values, crafting, personal XP and30/50prices. These remain playtest values and do not guarantee the example three-run progression. This supersedes the “proposal not applied” status of the earlier audit, not the pending19future item/ability ideas.
+
+Saved lairs retain their selected tuning. Legacy exact editor settings add explicit near-material75%for compatibility, backed up before checkpoint; new/fresh defaults use55%. Add the field to the existing editor/validation/export and retain strict new submissions. Existing-lair opt-in changes only three fields45/35/55, applying at next departure. No sleep darts, bells, potions or abilities included.
+
+
+## Sleep dart / Clang bell design proposal —18October2026
+
+Agreed scope: user accepted drafting gear design while testing V67, covering phone/PC aim, guard reactions, cost/unlocks and multiplayer. Added docs/sleep-dart-and-clang-bell-proposal.md. Original effects remain user intent; all further controls, values and team rules are explicitly proposals, not approved implementation.
+
+Recommendations for review: one square/use each; shared aim→Use/Space/cancel;6tile dart/8second sleep,5tile bell throw/8tile path-distance hearing/2second arrival inspection/8second investigation cap. Proposed personal recipe prices75dart/25bell XP, crafting1scrap+2cloth/1scrap+1cloth. No duration stacking; bell does not override a visible goblin; ordinary sightings retain alerts. Actor-owned costs, authoritative shared effects, carrier drop and reconnect/repeated-use rules specified. No gameplay or V67 balance change.
+
+
+## V68 — treasure locks on bounded doorway thresholds
+
+User reported a lock about one space off and a room side filled with doors beside an intersecting hallway. Fixed shared placement rather than changing art offset alone. Gate cells are now the actual outside-room entrance floor cells, superseding the previous inside-threshold choice. Eligible openings have solid lateral end caps, contiguous cells no wider than the configured corridor and an outward continuation; hallway-length exposures are rejected. Prefer existing single-entry candidates; preserve bounded multi-entry fallback with one key. Existing outside-route/key/optional-room checks remain, and selection does not edit floor geometry. If a constrained custom map has no safe candidate, retain the existing skip-lock fallback. Each cell carries its side so east/west/mixed-side gate art aligns with collision. No loot-economy/guard/tool changes.
+
+
+## V69 — sleep dart first playable slice
+
+User accepted building sleep darts first using the proposed equipment/aiming foundation, then checking wake/team interactions before adding the bell. One square, one shot,8second sleep. Implement6tile/12tile-second straight projectile, personal75XP recipe and1scrap+2cloth craft cost from the reviewed proposal as playtest values; tagged free test darts available. No starter grants or changes to existing upgrades/loot/door rules. Bell remains deferred.
+
+E equips/reserves exact packed dart; mouse/WASD or left stick aims while stationary, Space/Use fires once, Escape/Cancel preserves it. Reticle constrained to visible viewport and local equipment hint sits beside controls; central narration remains hidden. Sack/menu/focus/viewport resets/downing cancel aim. A launched miss costs its item. Server validates selected own ID/aim/state and collision; replay cannot substitute another copy. Projectiles stop at first guard or solid/locked scenery. Sleep cancels attack/sight/hiding exposure/carrying, drops a captive downed once and preserves original spilled loot. No refresh/stacking or early wake from normal noise/passers; snare timer independent. Wake returns to legitimate observation/search/routine. No automatic reinforcement count from sleep. Shared snapshots carry projectiles/sleep timers; old saves add missing dart stock0without granting gear. Sounds remain replaceable placeholders.
+
+
+## V70 — equip, move, aim, fire
+
+User corrected dart controls explicitly: equip from Sack, move into position, Space to aim, then Space to shoot. This supersedes V69 entering aim immediately on equip. E selects the exact packed copy as ready gear without locking movement. First fresh Space/phone Use begins stationary aim; the next fresh press launches. Esc/Cancel returns to ready movement with that copy still equipped. Sack/menu/focus/viewport cancellation likewise abandons only aim; switching gear/downing clears equipped dart. Successful launch consumes and clears that exact copy; no automatic spare substitution. Retain sleep/cost/collision/team rules and hidden central narration.
+
+
+## V71 — Clang bell first playable slice
+
+Agreed behaviour: user requested implementing the bell after accepting corrected dart controls. Use the recorded bell design with V70 equip→walk→Space/Use aim→Space/Use throw; cancel preserves equipped exact copy. One square/use, range5, reachable clear landing and unobstructed throw, ring once after short flight. Hearing uses walkable path distance8tiles and valid guard-radius approach. Eligible routine/search/lost-sight guards investigate; any currently visible standing goblin, attack, sleep/snare, known hiding pursuit, body pickup/carrier or fixed jailer duty takes priority. Seeing a goblin interrupts investigation. Inspect2seconds on arrival, cap8seconds from ring, return normally; later bells replace rather than queue. Blocked routes abandon. Non-solid, unrecoverable thrown bell, temporary landing ripple/question mark, no central narration or map reveal. Ring itself adds no alert. Shared authoritative action validates own exact equipped copy/state/aim and atomic spend; repeats cannot consume spares. Existing save/item return/debug conservation rules remain. Recipe25personalXP and1scrap+1cloth craft cost; no starter grant.
+
+Still experimenting: these recorded ranges/timers/costs and temporary synth sounds are first-playtest values. The user’s future audio/sprite editor, potions and abilities remain separate work.
+
+
+## V72 — guard disguise potion
+
+Agreed behaviour: user accepted proposed next potion slice:10seconds, guards recognise within1tile, searching or using gear breaks disguise. Equip selected packed potion with E, Space/phone Use drinks; ordinary walking remains available before drinking. Shared solo/server sight checks suppress distant visibility and fresh tracking trails while disguised; close guards retain normal sight/wall/smoke checks. Keep existing alert totals, legitimate last-known information and committed attacks; no invulnerability. Render using existing guard artwork in grounded actor order, with personal/teammate name and health-area countdown, without central narration.
+
+Implementation choices for this test: exact-copy consumption; one square/use; no refresh/stacking/automatic spare substitution. Begin a valid search breaks immediately; successful smoke/dart/bell/snare placement/Packed Lunch spend breaks. Equipping/aiming/cancelled or invalid use does not. Buff ends on expiry/downing, resets per run and ticks through disconnects. Shared authoritative validation/snapshots own spending/timers; no client duration input. Free tagged test potions reuse established debug rules.
+
+Still experimenting:50XP personal recipe and1scrap+2cloth craft cost are assistant-selected trial economy values, not user-specified balance targets. Reuse current materials rather than creating a new ingredient system. Temporary potionDrink sound slot is replaceable. Other potions, abilities and upload editor remain deferred.
+
+
+## V73 — scrying orb
+
+Agreed behaviour: user accepted the proposed scrying orb slice: equip from Sack, Space/Use consumes one and marks the three closest guards' current positions on everyone's map for5seconds. Marks are fixed snapshots rather than tracking. Reuse selected-copy gear controls, one square/use, normal movement before activation and no new aim mode. Purple map diamonds distinguish pings from green self/gold tunnel; preserve map-toggle choice. All guards, including sleepers and jailers, are eligible. Server owns targets/positions/lifetime; stale/repeated same-copy requests cannot consume a spare.
+
+Implementation choices: nearest means straight-line distance, stable guard-ID tie break. Fewer guards means fewer marks; no guards still spends. Independent simultaneous snapshots expire without extending older ones; overlapping coordinates draw once. Pings survive user's down/disconnect for remaining team lifetime, reset on run end and create no distraction/alert by themselves. Successful use breaks guard disguise; invalid attempts preserve it. Existing stock/return/debug rules apply; legacy stock defaults0without a grant.
+
+Still experimenting:75XP personal recipe and2scrap+1cloth craft cost are assistant-selected trial balance. Existing materials and temporary replaceable orbPing sound reused. Other items/abilities/editor remain deferred.
+
+
+## V74 — gear selection and balance review
+
+Agreed scope: user accepted clearer item controls/durations/limits, reviewing recipe/craft costs together, and three suggested loadouts (Distraction, Sneaking, Team rescue) leaving sack room for loot. Added Gear guide inside stash/workbench's existing contained scroll area, with Gear/Loadouts/Costs sections and Back to station. Shared descriptions use live config/recipes and translate phone control names. Short sack selection summaries and craft-card controls use the same content. Seven gear types include Packed Lunch, explicitly showing no equip/no recipe.
+
+Implementation choices: suggestions are read-only lists, not automatic purchases/crafts/withdrawals. Distraction2bells+1smoke; Sneaking1orb+1disguise+1dart; Team rescue1lunch+1smoke+1orb. Each uses3squares leaving6in an empty sack. Compare required/current packed/shared stock and actual item footprints, missing items, resulting free space, fresh-kit materials and unlearned recipe XP. Explain recipes are needed for crafting, not using stocked gear. No server commands are sent by browsing.
+
+Review outcome: retain current25/50/75XP and material costs; usability feedback does not establish quantitative balance. Sneaking unlocks total200XP from fresh versus75for Distraction, so present it as a later suggestion. Packed Lunch's missing normal recipe/source is the concrete remaining rescue-economy gap; no new price/unlock is silently added. docs/gear-selection-and-balance.md records exact tables, rationale and next playtest observations. Still experimenting: kit compositions and existing trial gear prices; no claim of proven balance or fixed progression target.
+
+
+## V75 — highlighted stash item name
+
+User requested a small name tooltip on the highlighted stash item. Add a non-interactive tag anchored to the selected square: mouse hover, keyboard highlight and phone tap. Clamp horizontally and show below first row/above other rows so it stays in the stash grid. Hide on empty/moving stack, mouse leave or page/reset; phone selection retains its name after touch ends. Mouse hover changes highlight but never transfers stock. Existing mouse-click/E/Pack one semantics retained. No extra descriptions, gear/economy changes or new gameplay.
+
+
+## V76 — meat, berries and campfire Packed Lunch
+
+Agreed behaviour: after rejecting a cloth-only food recipe in favour of food resources, user accepted meat/berries from cupboards/crates and Packed Lunch1meat+1berries, known from the start. Keep campfire crafting from the preceding proposal; this supersedes its2cloth suggestion. Mushrooms remain for a later potion pass, berry-blind ability remains unimplemented. Add two one-square material items, shared-bank-on-escape and existing inventory/drop/share/loss/save rules; no direct eating/healing/sale value/XP or starter grant.
+
+Cook at campfire using shared ingredients, pack lunch first with stash overflow; other gear uses workbench. Server and solo enforce matching station, no spending on missing/held/invalid attempts. Existing lunch2second revive/1health, interruption and disguise-break behaviour unchanged. Shared stock spending is authoritative; contested last ingredient pair makes only one lunch. Existing saves default missing food counts0without discarding prior inventory/settings. No paid lunch recipe or profile migration. Guide, recipe list and Team rescue material totals updated.
+
+Still experimenting: cupboard/crate material pool weights scrap2,cloth2,meat1,berries1. Thus one-third of material results are food, equal meat/berries, with unchanged overall empty/valuable/rare/count probabilities and no food in chests. It reduces those containers' scrap/cloth yield; new runs use it, current saved tuning retains values. This split is an assistant implementation choice for initial testing, not a user-set balancing target. Historical balance reports predate food; audit script now reports food and identifies current-generator versus old-tuning presets.
+
+
+## V77 — map resource biases with room for content
+
+Agreed behaviour: user accepted map resource biases, then explicitly asked to leave room for more content. Manor favours meat/cloth, Hold scrap/meat, Sanctuary berries (mushrooms later). Every basic resource remains obtainable on each map; preserve overall resource/valuables/empty/count/rare probabilities. Map table shows Common finds before choosing a route.
+
+Implemented one shared data registry keyed by map and arbitrary container/resource IDs, with common labels sourced from item names. Integer relative weights within material outcomes only. Manor stores meat4/cloth3/scrap1/berries1, chest cloth3/scrap1; Hold stores meat4/scrap3/cloth1/berries1, chest scrap3/cloth1; Sanctuary stores berries6/cloth1/scrap1/meat1, chest scrap1/cloth1. All4basics retain positive cupboard/crate weights. Unknown maps/containers use established fallback pools, protecting future additions without adding placeholder resources. New resource definitions still need normal item/save/recipe integration. No content editor built.
+
+Still experimenting: exact weights are assistant-selected first-playtest values. Layout/container/depth differences mean biases do not promise equal per-run yield. New runs apply weights; active rolled contents, saved tuning, stock, recipes and XP remain intact. Extension process and compatibility documented in docs/resource-profiles.md.
+
+
+## V78 — throwable berry chase break
+
+Agreed behaviour: user accepted berries as the first active ability/tool, using existing resource as a choice against cooking. Equip from Sack, Space/Use aims, next fresh press throws; hit blinds guard for1second and breaks chase, normal recognition afterwards. No paid unlock/level gate proposed. Added equipment capability to the existing berries material; real unused portions still bank/cook as before. Cancel retains exact equipped portion; switching equipment/downing/missing item clears ready state.
+
+Implementation choices: one portion spent on valid launch, including misses (announced in readback),4tile/10tile-second projectile and normal solid/locked/first-guard collision. Blinded guard stops briefly and clears attack, target, hiding knowledge, last-seen and tracking trail. No sensing/strikes during1second, then normal observation/return resumes; no refresh while already blind. Sleeping guards unaffected; sleep clears prior blindness; independent snare timer continues. A blinded carrier/pickup claim pauses and resumes, without sleep-dart's captive-drop effect. No damage or direct extra/refunded reinforcement alert. Successful throwing breaks disguise. Shared authoritative effects/selected-copy validation, no auto-spare substitution; fresh input required.
+
+Shared dart sweep extracted to src/projectiles.js, retaining previous dart behavior. Berries use same aim/bounds/input/renderer foundations; purple pellet/reticle and brief BLIND head label/cone suppression. Replaceable berryThrow/berryHit cues and guide entry explain resource tradeoff. Tagged free test berries cannot add real food/XP. Still experimenting: range/speed and future ability-unlock structure; user’s1second blind is the implemented effect. No change to food/map pools or lunch recipe.
+
+## V79 — shared potion station and mushrooms
+
+Potion brewing moves from the workbench to a separate lair station. Build it once for 30 shared gold (initial trial price); everyone in that lair benefits. Guard disguise retains its 50 personal XP recipe unlock and now brews with 1 mushroom + 1 berries. Existing learned recipes and stocked potions remain usable. The planned station occupies a solid one-tile worksite by the right wall, using shared prop placement, a reachable approach and grounded scene ordering. No new collision appears during construction.
+
+Mushrooms are one-square shared materials, available in cupboards/crates on every named map. Manor/Hold add weight1; Sanctuary uses berries4/mushroom4/cloth1/scrap1/meat1 and advertises both common ingredients. Chests remain scrap/cloth; item-count/empty/valuable rolls are unchanged. New resources start at zero. Old saves default to an unbuilt station; solo saves, server checkpoints, snapshots and backups preserve the shared building. Domain and server checks reject brewing before building, workbench brewing, remote building, insufficient gold and duplicate builds without spending extra stock.
+
+## V80 — Vanish potion
+
+Agreed slice: add Vanish first at the potion station; invisibility ends on a hit and has a short maximum duration. Implementation trial values: 8seconds, 75personal XP recipe, 2mushrooms+1cloth per brew. Searching and successful gear use end it too, as stated in the readback. Equip from Sack, move freely, Space/phone Use drinks the exact selected bottle once. Repeated/forged requests cannot spend spares; cannot refresh or stack with disguise. No passive free stock or starter unlock. Lucky potion deferred.
+
+Vanish blocks close/far guard sight and new trails, while existing searches, last-seen positions and already committed directional swings continue. Taking an accepted hit removes Vanish and does normal damage; rejected/invulnerable hits do not remove it. Expiry restores normal sight and downing clears it. Teammates remain independently visible. Translucent goblin sprite remains readable to players, with VANISH countdown in the existing concealment HUD.
+
+Shared POTIONS registry and equipPotion/drinkPotion paths reuse reserved potionId, timing, interruption hooks and placeholder potionDrink sound. Legacy disguise APIs/command remain strict. Authoritative drink-potion derives type/duration from the owned bottle; no client supplied effect/duration. Shared snapshots include vanishLeft. Save registry/defaults preserve existing data, new stock defaults0; learned recipe persists in personal profile. Both potions require the built shared station for brewing. Guide, XP purchase, brew card and tagged non-bankable test supplies included.
+
+## V81 — Lucky potion
+
+Agreed behaviour: drink Lucky for +5percentage points chance of finding gold coins in your own completed searches for the remainder of this run, one active dose per goblin, no stacking. Actual searching goblin owns the bonus; coins spill into ordinary shared floor loot and contribute normally to the shared haul/personal team XP if recovered. Does not change silver/copper, sale prices or other loot. Damage, searching, successful gear use and down/revive preserve luck; a new run/home vitality reset removes it. Drinking Lucky breaks concealment; later disguise/Vanish may coexist with luck.
+
+Trial recipe:50personal XP, brew1berries+1scrap at the built shared potion station. Recipe persists on goblin, stock on lair, old saves default0new stock. Equip chosen bottle, move, Space/phone Use drinks once. Duplicate doses retain the spare bottle. Shared registry distinguishes run effects from timed concealment; search/gear interruption only clears concealment. Boolean effect appears in authoritative player snapshots and separate LUCKY badge. Guide, recipe/brew cards and tagged free test bottles use existing systems.
+
+Implementation: original container generation/RNG and ordinary searches unchanged. Compute original whole-container probability p of at least one gold coin from empty/count/material/rare/pool probabilities, including depth, tuning and Hard rare bonus. Treasure containers replace normal contents, so p=0there. Only gold-free lucky completions get an independent deterministic coin roll at min(1,.05/(1-p)), giving overall min(1,p+.05). Existing coin searches gain no extra. Success appends one coin, preserving resources, keys and prizes; empty containers may become one item and two-item containers may become three. This is an explicit extra-coin search effect, not a valuable replacement. Roll hashes run seed/container ID separately from original RNG; cancellation, swapping searcher and retries cannot reroll. Only completed server/solo search applies it, with shared searched flag/claim preventing duplicate loot. No client effect/odds/contents fields accepted.
+
+## V82 — approved visual lair book screens
+
+Agreed behaviour: user selected Recipe book mockup, then requested sprites/icons with minimal text and explicitly requested a single primary control that transforms when actions are mutually exclusive (Unlock→create). User approved visual potion, workbench, campfire and stash previews, then authorised applying them to the game. Later top-down brewing bench scenery remains deferred. V81 standalone/ZIP kept as fallback.
+
+Implemented one shared parchment book shell with a stable recipe sidebar and selected detail page for workbench/potion/campfire. One primary action reads current state: Build potion station→Unlock recipe→Brew; Unlock→Craft; Cook lunch; Unlock permanent upgrade→noninteractive Owned stamp. No competing buy/craft cards or recipe-library tabs. Own XP and shared ingredient counts retain their existing ownership and costs. One short effect summary, temporary pixel item/ingredient sprites, quantities and available counts; info button reveals exact effect, controls, limits and ingredient names. Full guide and tagged Test supplies stay in secondary panels. Sidebar nodes remain stable while shared snapshots update counts.
+
+Stash keeps actual shared6x6 and prepared3x3 grids with mobile3x3 paging, original item footprints, quantities, Q/WASD/E/R and stack rearranging. Mouse/touch select before the shared Pack1/Return action; R or secondary Move stack→Cancel move preserves explicit rearranging, while primary becomes Place stack as required. Selected item name/source/sprite and info are shown once. Hover shows only a tooltip and cannot replace an explicit target. Unknown or larger items retain original footprint art;19named resources/equipment/coins get shared station-only placeholder sprites. Dungeon rendering, loose-loot interaction, collision and gameplay art remain unchanged.
+
+Network primary actions disable while waiting for both private acknowledgement and fresh authoritative state; failed acknowledgements restore usable controls. Native repeated key activation and double-click follow-ups cannot unlock and inadvertently craft. Existing server commands, validations, shared-building/recipe/stock persistence and sack-full crafting fallback remain authoritative. No server/save schema, economy, cost, recipe or dependency change. New modules station-art, station-item-view, station-book; shared inventory-grid uses book option only for lair; lair/stash views, inline station styles, online acknowledgement wiring and standalone module list updated.
+
+## V83 — approved map and departure screens
+
+Agreed: integrate the approved illustrated route/departure previews with compact landscape layouts. Map planning shows three route cards, resource sprites, Normal/Hard and Set route; unchanged selection shows disabled Route set. Full difficulty/resource explanation is on info. Sack removed from planning and shown only as the actual prepared grid at departure, without a name/capacity/free-space heading. Departure displays the real participant roster/portraits, shared route and readiness, Board→Hop out, and existing authoritative three-second countdown. Existing E at minecart now opens the screen; E within it toggles the seat. Hop out cancels readiness. Lair/Escape closes only the view (the existing seat remains); outside the panel E still hops out if aboard. Closing is disabled while a network boarding request is pending. No save, cost, cart authority, item footprint, or multiplayer participation changes.
+
+Implementation: src/loadout-view.js shares landscape art across route cards/ticket and uses resource registry/station sprites and shared inventory renderer. index.html uses viewport-contained paper shells, 44px action targets and compact-height two-column departure; long details/rosters scroll inside. Solo frame continues cart timing while dialog pauses movement. Online snapshots drive the roster, countdown and seat; a pending request prevents double toggles until seat state changes or rejection arrives. Panels close on launch, identity changes, home navigation and disconnect. scripts/build.mjs embeds every goblin image reference, including the new portraits.
+
+Verification: 364/364 full tests pass (v83-tests.log). Additional updated real online event-wiring test passes (v83-online.log), including actual server/session board/cancel/reboard and duplicate-request suppression; solo integration covers opening then boarding, cancellation beyond original deadline, sack conservation and launch. New departure view test covers actual bag labels, peer name, acknowledgement vs seat snapshot, authoritative countdown/cancel, shared route changes and rejection recovery. Build/standalone syntax/embedded assets/unique IDs and ZIP source bytes/integrity checked. No rendered browser or physical-phone test claimed; phone fit/touch playtest deferred by user. No production data or dependency changes. V82 files retained as fallback.
+
+Deliverables: green-team-routes-v83.html/.zip, ZIP root green-team-v83. Preserve whole data folder; npm ci/start:lan and refresh old tabs. No Git remote configured; no GitHub update claimed.
+
+## V84 — visual run-end book
+
+Agreed: update the run-end screen to match the new sprite-led parchment UI, prominent gold/XP, optional details and one Return to lair action. Recovered loot (or personal lost items for a downed goblin) appears as grouped sprite tiles with quantities; select a tile to reveal name and per-unit sale value. Shared/team gold and personal XP remain separate, including left-behind results. Info toggles the existing full text/list breakdown, elapsed time and XP balance; Escape returns from details without dismissing the result. Return retains existing solo/online dismissal handlers.
+
+Files: index.html paper run-end layout with fixed header/footer, scrolling summary/detail content and compact-height two-column rewards/loot; src/results-view.js state/reset/outcome labels and sprite painting; src/item-list.js optional tile mode reuses grouping by type and per-unit value, station sprite renderer and real footprints with original item fallback. Existing detailed item list is unchanged. No reward, banking, save or server mechanics changed. Tests/results-view.test.js checks stacked quantities, selection/name/value, selection reset, escape/left-behind/down/admin/empty states and details/Escape focus behaviour; existing real solo/online interaction fixtures cover return and rewards. Browser/physical-phone tests remain deferred. V83 retained as fallback.
+
+V84 verification: 364/364 full tests passed (v84-tests.log); standalone JavaScript syntax, 230 unique markup IDs, embedded assets and ZIP exact source bytes/integrity verified. Deliverables green-team-results-v84.html/.zip, ZIP root green-team-v84. No production data/dependency changes or Git remote; no GitHub update claimed.
+
+## V85 — stable goblin pixels while walking and turning
+
+User reported goblin pixels looking uneven and changing during movement. The16x16 source was being rasterised at1.5x (24x24) into a half-resolution scene, then enlarged by CSS, producing uneven source-pixel widths. Renderer now draws into a2x backing bitmap with a2x world transform: each goblin source pixel occupies exactly3x3 bitmap pixels, preserving the existing apparent48px sprite, facing, hop, depth order and gameplay scale. Canvas bitmap matches rounded CSS bounds, including odd phone dimensions, avoiding the former fractional final enlargement. Sprite art is unchanged.
+
+src/viewport.js supplies logical scene dimensions to pointer/world conversion and dart/bell/berry aim bounds. src/render.js retains world coordinates/FOV and sets scene size independently of bitmap size. src/darts.js uses that shared logical size; scripts/build.mjs includes viewport helper. One extra scene raster pixel per axis increases bitmap area4x relative to V84; physical phone performance/fit remain untested. No mechanics, saves, actor size, dependency or server changes.
+
+Verification:365/365 full tests passed (v85-tests.log), then3/3 targeted renderer/real solo/real online tests passed after odd-viewport rounding refinement (v85-targeted-final.log). New renderer regression checks walking/facing sizes, exact doubled transform, resize667x375, pointer target equivalence and dart aim equivalence. Native Canvas actual renderer16frames at800x600 and667x375, walking phases and both facings, match intact3x source pixels byte for byte (v85-pixel-qa.mjs; v85-sprite-qa.png inspected). This is raster verification, not a browser/device playtest. Build/standalone syntax, unique IDs/embedded assets and ZIP integrity/exact bytes verified. Deliverables green-team-sprite-fix-v85.html/.zip; ZIP root green-team-v85; V84 retained as fallback. Preserve whole data folder, npm ci/start:lan, refresh tabs. No production data accessed; no Git remote/GitHub update claimed.
+
+## V86 — quiet item feedback
+
+User requested replacing the distracting whole-window craft/transfer flash with a small flash and grow/shrink on the icon itself. Shared feedback remaps lair-panel effects to the selected recipe hero or stash context icon. A300ms pulse goes1→1.1→.98→1 with mild brightness; no panel border/glow or panel movement. Reduced motion uses180ms brightness only. Rapid pulses cancel the previous icon animation. Network feedback still waits for the matching private receipt; failed actions use the same small icon treatment and existing messages. Dungeon pickup feedback and sound slots are unchanged.
+
+src/lair-view.js caches the last painted icon so transferring the final item out can finish its pulse, including fresh online snapshots; timed cleanup clears only an empty selection, and a per-effect token prevents an old cleanup clearing a newer pulse. src/feedback.js owns routing, animation and cleanup. Tests cover station icon targeting/no panel animation, reduced motion, authoritative receipts and existing solo/online actions. Physical phone/browser visual testing remains deferred. V85 retained as fallback.
+
+V86 validation:366/366 full tests passed (v86-tests.log); after icon-cache optimisation and added final-item cleanup regression,14/14 targeted feedback/station/online tests passed (v86-targeted-final.log). Build/standalone syntax,230unique markup IDs, embedded assets and ZIP exact source bytes/integrity verified. Deliverables green-team-icon-feedback-v86.html/.zip (root green-team-v86). No production data/dependency changes; no Git remote/GitHub update claimed.
+
+## V87 — campfire passive grid and workbench lunch
+
+Agreed: campfire becomes an icon grid with the highlighted ability explained on the right. WASD navigates, E or a grid-slot click performs Unlock→Activate→Deactivate; no separate unlock/equip button. Activation gets a green border and corner tick. Three active personal slots, room to extend the passive registry later. Packed Lunch moves to the workbench, still known/free to learn and using1meat+1berries.
+
+First passives: Quick Fingers keeps its existing30XP/+10% search-speed values; unlocking no longer automatically activates new purchases. Quiet Hands trial75XP preserves remaining Vanish invisibility when a valid container search begins; hits/gear use and the original expiry still break/end it. Guard disguise still breaks on searching. Loose loot pickup already preserves invisibility. Lucky Goblin trial50XP adds5percentage points to the searching goblin's completed-search gold chance, stacking with the Lucky potion for10points; original generated rolls, other loot and selling prices unchanged. Same deterministic completion stream and gold-free-only, one-coin/no-replay rules apply to the combined bonus. Existing Quick Fingers purchases without a saved selection migrate active; new unlocks require a separate activation press.
+
+Implementation: profile.js passive registry/three-slot validation/desired-state activation/personal effects and optional activePassives saves. Solo and server derive effects from the personal profile at launch. save-store validates owned, unique, known passive selections and defaults old Quick Fingers appropriately without mutating input saves. Server set-passive accepts a boolean desired state only near campfire while at home and not aboard; recipes/unlocks stay personal, activation/deactivation costs no XP. Server derives effect fields, rejects unlocked ownership forgery and mid-run edits. Own/peer snapshots include quietHands/passiveLuck; Lucky HUD shows the combined5/10 bonus. No items or shared supplies are spent on activation.
+
+New passive-view.js uses three stable native grid-slot buttons, keyboard highlight/focus and right-side effects/limits/state; future entries extend the registry. lair-view retains authoritative pending confirmation and uses the new panel only at campfire. Grid is separated from the scrollable recipe book; compact landscape two-column layout, green active border/tick, separate highlight outline and personal active-slot count. Existing sprite icons reused. Icon-only feedback retained. Workbench now contains lunch; guides/help and server crafting-station checks updated. Existing recipe costs, sacks, team rewards, potion consumption and invisibility hit/expiry rules stay intact.
+
+Verification:373/373 full tests pass (v87-tests-complete.log),22/22 final targeted UI/domain/reward/real solo/online tests pass after paper-panel height/legacy-code cleanup (v87-targeted-final.log). Five new passive domain tests cover ownership/separate unlock activation/personal effects,3-slot validation, desired-state replay/malformed inputs, solo save/reload/old Quick Fingers migration and invalid server saves, actual valid searches preserving only Vanish, combined lucky chance/no extra original rolls/one-coin replays, authoritative campfire range/ownership/launch/run restrictions and two actual sockets confirming personal unlock/activate/deactivate while rejecting replays/forged purchases. New UI test covers WASD/E, no repeated unlock/activation, ticks, no book action and workbench lunch. Existing food socket test now contests lunch at workbench and rejects campfire. Existing search/economy/potion/persistence/admin/hub/socket tests pass. Build/standalone syntax/unique IDs/embedded assets and ZIP exact source bytes/integrity checked. No rendered browser/physical phone test claimed; phone testing deferred by user.
+
+Deliverables green-team-passives-v87.html/.zip; ZIP root green-team-v87. Preserve whole data folder, npm ci/start:lan and refresh tabs. V86 retained as fallback. No production data accessed, dependency changes or Git remote; no GitHub update claimed.
+
+## V88 — raid minecart room, shared cargo and return boarding
+
+Agreed: every playable dungeon has a small starting cart room, connected to the main dungeon through one hallway. Interact with the cart to unload into a bounded shared6x6 hold, retrieve supplies/loot, or separately board to leave. Cargo is stored, not banked: successful escape recovers it; full wipe/admin abort/restart loses it. Starting capacity36physical squares uses actual item shapes and stack counts, not the permanent stash's type-stack layout. Auto-fit transfers try rotations; manual cargo rearrangement is deferred. Run-only treasure keys stay in sacks.
+
+Room geometry: dungeonConfig enables cartRoom for solo/server/builder previews. The main room generator reserves a northern strip before carving; cart-room.js adds a7x5 room with one single-width hallway to the northernmost main floor, avoiding crossed rooms and unintended doors. A wall minecart is placed with shared PROP_RULES/placeProp, its one-tile solid footprint joins every shared solid-mask rebuild, and spawn/interaction sits at its reachable approach. It remains separate from ordinary rooms, searchables, hiding spots, guard/cage assignments and optional treasure selection. A wall torch uses the existing lighting/placement system; original main-room torch indices/phases stay stable. Rendered cart body participates in grounded depth order. Native actual renderer inspected at844x390 (v88-cart-room-qa.png); this is raster QA, not browser/phone layout verification.
+
+Domain: run-cart.js owns finite cargo, exact-instance atomic deposit/retrieve, desired-state boarding and3second countdown. Loot fits/findSpace accept an optional grid size, default unchanged3x3. Counts, rotation, sale multiplier, debug/test tags and IDs travel with the item. Transfers require a free cursor and reject run-only keys, full target or wrong ownership without spending anything. Server validates actual cart proximity, active/not-hiding/not-placing state and disallows transfers/actions while aboard. Shared claims serialize so only one client retrieves an item. Successful transfers clear stale equipped references for that exact item. Recovered cargo joins eligible connected standing sacks for normal bank/reward settlement; sale and personal team-XP attribution remain the existing rules. Depositor death does not lose already stored cargo if teammates escape. Run cargo/readiness never enters durable saves; interrupted runs remain lost on restart. Fulldown/abort results include lost cart cargo. Result details count recovered cart squares separately from sack squares and include deposited loot once. No XP or shared stock is credited at deposit time.
+
+Return UI: raid-cart-view.js shares item/grid rendering and parchment shell, actual6x6 cargo beside personal3x3 sack, select then Deposit/Retrieve, WASD/E and Q grid switching. Coarse pointers view four spatial3x3 cargo pages; items keep their true shapes across page boundaries. Names appear for selection, icon-only feedback remains, and network controls wait for a matching private receipt plus changed state. Board to leave→Hop out is separate from transfer; all connected active survivors must board for the server-owned3second return timer. Movement is stopped while aboard, but guards/time keep running; leaving reach, downing or disconnect invalidates seats. Continue raid/Escape cancels your boarding, including a queued boarding request. Cart interaction takes priority over nearby downed-body interaction while inside cart reach, allowing lunch retrieval; step clear of cart reach to revive. Legacy proximity-gated extract API remains for existing scripted integrations (requires every connected standing goblin at the cart, free cursors; immediate settlement); shipped game clients use explicit cart-board and countdown. Existing solo domain finishRun remains a pure immediate settlement operation invoked by its cart timer.
+
+Verification: full suite and targeted results recorded below. New run-cart tests cover150room layouts/three architectures, single doorway and connected bounded floors, solid cart/reachable approach, exact shaped capacity/stack conservation/keys/full grids/held item/replay, solo deposit-only vs escape/wipe, authoritative shared claims/remote/aboard rejection/countdown cancel/rewards once, deposited loot recovered after depositor death, wiped/aborted cargo loss, interrupted restart loss and two actual sockets competing for one cargo item then boarding to bank exactly once. New panel test covers paging, selected transfer, private-receipt+state gating, board/hopout and Continue raid cancellation. Results test covers cargo square totals/loss tiles. Existing real solo/online interaction fixtures updated to walk actual generated paths and use the new return panel; original recorded treasure-door regression layouts remain explicitly constructed without the new cart-room geometry so those exact past failures retain coverage. Guide/help/abandon text updated. Physical phone/browser playtesting remains deferred by user.
+
+Files include new cart-room/run-cart/raid-cart-view modules; world/generator-settings/prop-placement/loot/run/lair/render/lighting/feedback/results/main/online/server dungeon session/build/index, tests and documentation. No production saves accessed, dependency changes, or Git remote; no GitHub update claimed. Deliverables green-team-raid-cart-v88.html/.zip; root green-team-v88. Preserve whole data folder, npm ci/start:lan and refresh old tabs. V87 kept as fallback.
+
+V88 final validation:381/381 full tests passed (v88-tests-release.log);20/20 release-targeted cart/panel/online/results tests passed (v88-release-targeted.log), plus final real solo interaction check (v88-solo-final.log). Standalone syntax,265unique markup IDs, embedded sprite assets and ZIP source-byte/integrity checks passed. Actual shared renderer room inspected at844x390; no browser/physical-phone claim.
+
+
+## V89 · chase and awareness passives
+Agreed behaviour: extend the existing campfire grid with a speed burst on spotting, nearest-guard awareness while hiding, and brief reduced visibility after searching. Personal unlocks and three equipped slots remain. No new action buttons.
+Still experimenting: Panic Sprint50XP, +20% for3s/20s cooldown; Hideout Sense50XP, own-map nearest amber square only fully hidden; Fade Away75XP, initial notice time doubled for3s after a completed (even empty) search, with no effect on established chases. These values are tuning choices for playtesting. Burst cannot stack/refresh from other guards during cooldown. Timers reset on new runs, burst/veil clear on downing, cooldown continues. Other players do not gain effects from an equipped teammate. Marker is computed locally for the viewer, never added to shared scrying pings; existing dungeon guard snapshots remain unchanged.
+
+
+## V90 · approved campfire preview applied
+Agreed: left grid contains sprites and active corner ticks only; names, description and action live on the right. Larger centered active count, prominent top XP, no bottom keyboard instructions. Replace quoted E sentences with a keycap plus short action label. Hold E for one second to unlock and spend XP; keycap fills, release cancels. Pointer/touch users hold the grid slot. Activate/deactivate remain single presses on owned slots. Completing an unlock must not equip automatically. Enter/Space offer the same hold through focused native slots. Cancel on selection change, touch cancellation, close, lost focus or hidden tab. Existing personal ownership, three-slot limit and server purchase validation remain.
+
+
+## V91 · last visible position before hidden tracking
+Agreed: after line of sight breaks, guards continue running to the last position at which they actually saw the player. Then use the existing internal tracking route, followed by a local search and return. No actual/visible footprint graphics. Reacquiring sight immediately resumes direct chase. Store a fixed approach flag alongside the existing search state, keep bounded trail capture while approaching, and consume no tracking points before arrival. Direct approach uses existing heat/tuning-aware chase speed, later tracking uses existing search speed. Unreachable points fall back rather than locking a guard. Solo and multiplayer share the rule; distraction/sleep/target changes clear the pending approach.
+
+
+## V92 · scene-anchored cart and one-way shared cargo
+Agreed: avoid fullscreen dungeon menus; replace cart paper modal with a small speech-bubble cargo grid anchored to the cart. Tap E opens it and the sack on the right; hold E1second at cart boards. E hops out once aboard. Inspect shared cargo but never retrieve deposits during a run, regardless of depositor. Shared finite6x6 hold, shaped items, run-key exclusions and banking only on successful team escape remain. Guard/time simulation continues.
+Implementation choice: nonmodal stage-local dialog, transparent outside panels, above-cart positioning when it fits and beside-cart placement on shorter screens. Existing3x3 phone cargo pages retained. WASD/E deposits selected sack item; Q switches grid focus. Hold the Hop in control on touch/mouse, or hold E while inspecting cargo; release/cancel/blur/range loss/close cancels an incomplete hold. ×/Escape/Tab or dungeon click closes and cancels an existing boarding seat. No new full-menu navigation or separate cargo ownership. Existing server serial action validation handles simultaneous final-space deposits atomically.
+Inspiration: Grounded storage places player inventory alongside container and confirms selected-item deposits (https://grounded.wiki.gg/wiki/Storage_Chest); Sea of Thieves container inventory separates inventory focus and transfer (https://www.trueachievements.com/game/Sea-of-Thieves/walkthrough/2). Adapted for the user's one-way cart deposits, not copied as two-way storage.
+
+
+## V93 · approved compact station preview applied
+Agreed: carry the reviewed workbench layout into crafting/brewing: much smaller icon-only grids, locks over unlearned recipes, visible empty room for future items and mobile-friendly controls. Selected name/effect on right, ingredient sprites with available/required counts, one keycap action changing from Hold to unlock into Craft/Brew. Unlock1s holds cancel safely and never also craft on release. Future slots are noninteractive and distinct from locks. Workbench6recipes+6reserved, potion3recipes+9reserved; no new recipe content.
+Implementation choices: potion station build uses the same1s confirmation for shared-gold spend. Desktop64px cells shrink to48px for compact landscape and44px on narrow screens. Actual recipe selection supports WASD; native focused action supports E/Enter/Space and touch hold/tap. Preserve recipe prices, ownership, shared material validation and actual craft destinations (sack first, shared stash fallback); isolated preview's sample stash counter was illustrative, not a new destination rule. Details/help remain optional; footer Back label shortened. Existing item-local success feedback retained. Actual phone/browser QA still deferred.
+
+
+## V94 · matching panels and space-filling reserved grids
+Agreed: workbench right side uses the campfire panel size; campfire uses compact workbench grid sizes and placeholders. Both left sides fill with grid slots. Apply same shared station treatment to potion station. Keep actual action behaviours and costs.
+Implementation: common1.3:1 panel split, gutter/padding/detail width and compact cell sizing. Shared station-grid helper measures available content area and fills whole rows/columns with decorative plus slots. At least one future row remains; very tight panels can scroll rather than hide real actions. ResizeObserver updates dimensions and actual column count for keyboard navigation. Right details have independent scroll.64px cells normally,48px for short/narrow layouts,44px at very narrow widths. No gameplay, save or purchase changes.
+
+
+## V95 · approved packing-first stash
+Agreed: preparing the sack is primary, organisation secondary. Apply reviewed two-grid preview, single selected name/short effect and changing Pack1/Return×N action. D/A crosses facing grid edges, sack centred vertically against stash; remove visible Shared stash text. Menu is inset so lair remains visible behind it. Keep phone hit areas/paging and expose item-specific blocked reasons. Empty stash cells remain real storage, not decorative future recipe slots.
+Implementation: keyboard crossing maps actual row-centre screen coordinates to nearest receiving row; paged stash navigation uses local3x3indices, preserves the page on return and does not cross while carrying a stash stack for rearrangement. Secondary Arrange lives with footer tools, extended details behind i. Dashed destination calls existing packItem on a cloned bag, including automatic rotation and stack merging; cannot reserve or spend anything. Render selection only on active grid. Existing one-unit take/whole-stack return/server authority preserved, test supplies labelled Remove test. Currency/count headings hidden; stack counts and accessible ownership labels remain. Right/left canvas sizes preserve44pxphone cells. Physical-phone/browser rendering QA deferred.
+
+
+## V96 · content-sized stash and automatic alphabetical order
+Agreed: reduce whitespace/window size, remove bottom buttons and i, centre Lair stash title, close X at top left. Replace player-facing manual arrangement with alphabetical automatic sorting. Keep packing strip/action and visible background.
+Implementation: content-sized stash shell,540pxdesktop/380pxtouch maximum widths and existing viewport margins/internal overflow. Footer and i hidden for stash only, shared station controls retained elsewhere. Close X invokes normal cleanup. Sorted display is derived by English item names, without rewriting authoritative shared slot arrangements or stock. R/Arrange inactive in this view; underlying compatibility API remains for saved/server data and legacy callers. Selection follows type through reordered peer changes; depleted selected type clears to an empty slot rather than silently selecting another transfer. Other station UI/domain/ownership/capacity unchanged.
+
+
+## V97 · carry tidy stash treatment across lair stations and map
+Agreed: another equivalent pass over campfire/craft/potions/map after approving the compact stash. Smaller inset windows, visible lair background, centred titles and top-left close, reduced peripheral buttons/text.
+Implementation: station windows bounded720pxwide/480pxhigh desktop and660pxwide/viewport-minus48pxon short landscapes, with existing responsive real grids and internal scrolling. Remove footer toolbar/i for those screens; existing ability and recipe primary actions/XP/materials retained. Critical item limits shown concisely inline and success/failure status moved beside action. No recipes, currency costs, effects or multiplayer validation changes. Station Guide/Test controls no longer visible in player footer; compatibility handlers/data remain.
+Map: content-sized620pxpanel, destination art/names, common finds, difficulty and contextual E/Set route. Inline standard-vs-Hard tradeoff replaces info button; current route tick and accessible label distinguish saved choice from selected draft. Removed duplicate visible route-status and Lair footer button. X/Escape cancels draft, Set route commits existing command and E repeats ignored. No departure changes.
+
+## Game Workshop · 20 October 2026
+
+Agreed direction: tileset drawing guidance/templates; importing tilesets, item sprites and audio; editing costs and drop rates; map-specific graphs; testing drafts in conversation.
+
+First implementation for review: separate disposable solo workshop based on V97, not an automatic change to multiplayer saves. Uses the existing five32pxtile mapping in a128×64atlas. Per-map loot edits and charts share the current search pools/depth/count rules; existing generator/run-setting bounds are retained. Imported assets/settings travel together in a version1JSON export. Exact averages exclude treasure replacements and personal Lucky effects. Broader animation/furniture authoring and multiplayer editor writeback remain future work.
+
+### Approved next slice: prove the tileset workflow
+
+Add a bright diagnostic sheet, review wall/corner/hallway joins, and verify importing, playing, exporting and reopening before expanding editor features. The test sheet preserves existing transparency, numbers/colours all five pieces and marks source orientation. It is applied only to the selected map draft. Three join views use production terrain-layer rules. Automatic draft saving remains a later improvement, not part of this slice.
+
+### Lair artwork setup approved
+
+The lair also needs its own terrain and station art in a separate workshop section, with drawing templates and the real room layout preview. Added independent five-piece terrain sheet and static PNG slots for stash, workbench, campfire, map table, departure minecart and both potion-building states. Larger legacy station visuals use 64×64 canvases with their interaction anchor at (32,48); potion visuals use32×32 at (16,16). These are replacement art bounds, not new colliders or a layout editor. Existing station locations/targets remain unchanged. Custom bodies use grounded depth ordering. Rails/rug/bedding retain current drawing. Version2 project export carries the new lair section; exact version1 exports migrate without replacing earlier choices.
+
+## Deep layered terrain workshop — approved direction, 20 October 2026
+
+The 47-pattern guide was too large and too shallow for the intended full-height walls. User approved a simpler assembled-room concept with substantial wall faces and separate caps, and requested map/tools changes toward it. Replaced the proposed atlas with a 128×128 4×4 layered sheet: 13 active pieces and three spare cells. One 32px floor, cap and full-height face, four cap edge trims, four inside-corner overlays and two face ends. Screen-down wall projection, local foreground fade and boundary shell composition are first-pass implementation choices for playtesting. Same floor/collision/guard geometry and station anchors. Workshop default terrain is the new example for lair/all three maps. User PNGs auto-detect deep vs legacy dimensions; legacy art is never repainted or converted. Existing V97/multiplayer downloads are unchanged. Continue validating actual art feel and phone movement before promoting the sample to a multiplayer release.
+
+## Narrow corridor visibility correction
+
+User reported one-tile vertical hallways hidden by the raised walls. Rendering must preserve visibility of every walkable floor cell even when no goblin is nearby. Raised caps whose projected destination is floor now draw as a six-pixel cutaway lip inside their own wall cell, after the face. Other caps keep their full elevation; tall faces and the existing grid remain. No additional drawing pieces or changes to generator widths are required.
+
+## Reference-style classic walls — 20 October 2026
+
+User supplied upload/image.png to identify the chosen Classic Roguelike Tileset reference, then accepted the readback: a continuous outline, taller back faces, narrow sides, low foreground rims, coherent corners/ends and visible one-tile paths. This supersedes the raised-block/cutaway experiment as the target direction. Build a small proof before switching workshop defaults. Exact texture/palette matching is secondary to the wall silhouette and join readability.
+
+## Classic wall workshop integration approved — 20 October 2026
+
+User approved classic-walls-preview.png and requested the map/sprite/tile workshop update. Default lair and all dungeon test terrain now use that fixed-silhouette style. New128×96sheet has9pieces: floor, back, left/right sides, front rim and four outer corners;3sparecells. Unlike the prior raised-cap experiment, these cells do not project into walkable floor and do not require proximity fading. The renderer combines fixed pieces for inside joins/ends. Existing128×64and128×128art remains supported without converting PNGs. The approved proof layout is selectable alongside existing join scenes. Station/item/audio/balance workflows and isolated-save rules are retained.
+
+## Ordinary room-door trial — 21 October 2026
+
+Agreed experiment: hold E to open an ordinary room door progressively; releasing before fully open closes it quickly, while fully opening leaves it open. This is separate from key-operated treasure locks.
+
+Trial values: 2s to open, .3s to close, stationary hold, one opener at a time. Closed and partly open doors block movement and sight; full opening releases both for the whole team. Interrupted holds cancel on movement, hit, unavailable state, stale/disconnected input or incompatible actions. Initial placement is at most one suitable single-width, single-entrance ordinary room; spawn, treasure/key-source rooms, initial guards and cages are excluded. Some layouts have no suitable door. Wider doors and guard-operated doors are deferred until the basic interaction is reviewed.
+
+
+## Door gaps and guard test room — 21 October 2026
+
+Agreed: closed ordinary doors block guard sight; opening gaps reveal the room progressively according to the panel position. Releasing E before latching closes the panel and breaks sight again. Guards retain last-seen pursuit/search memory. Fully opening leaves the door open for the run. This supersedes the trial's all-or-nothing sight mask; movement remains blocked until fully open.
+
+Built a disposable two-room workshop fixture with one guard looking toward the door, searchable furniture, a hiding barrel and an escape point. Uses real guard/search/hiding/door rules, without reinforcements, normal-save access or external calls. Test-room loot remains in containers; the separately discussed visible surface coins/keys are not implemented in this pass.
+
+
+## Room purposes and loot — 21 October 2026
+
+Agreed direction: rooms should have purposes such as dining hall, storage room, prayer room, bedroom, kitchen and armoury, and purpose can influence loot. Implemented first-pass seed-based room assignments in actual solo, server dungeon and generator previews, plus room/furniture snapshot metadata. Arrival room remains the original setup.
+
+Still experimenting: the initial room weights, weighted material multipliers and placeholder furniture sets. Reuse the existing one-tile placement/solid mask, doorway reservations, object counts, search durations and empty/one/two/rare/depth rolls. Map cupboard supply weights provide the room's material base before room preference multipliers. Existing item registry supplies all common and rare valuables. Special treasure-room/key placement rules remain unchanged. Larger furniture footprints, room-specific architectural shapes, surface coins and placed keys remain future passes.
+
+## Visible furniture coins and treasure keys — 21 October 2026
+
+Agreed: visible coins on suitable furniture and the treasure key placed visibly rather than requiring a container search. Tap E to pack into the ordinary finite sack; escape banks coins, and the matching run key opens the shared treasure lock once. Multiplayer has one authoritative shared item: the first successful pickup removes it for everyone. Full sacks leave it in place. Searching the supporting furniture is a separate action and never produces a duplicate key.
+
+Trial implementation: original small sprites/glints, furniture-specific surface anchors, and at most one copper/silver coin on an eligible surface in each non-arrival room (60% chance; 75/25 copper/silver). Coins are extra to existing container rolls; Balance charts explicitly exclude them. These rates remain trial source data rather than new editor controls. Key placement prefers a usable surface outside the treasure room, with reachable approach. No new static props, footprints, collision or save schema. Workshop offers Try visible key & coins (Manor seed 1, beside key, guards removed) plus coins in all six existing room fixtures.
+
+## Dining and storage room layouts — 21 October 2026
+
+Agreed next slice: make dining halls and storage rooms recognisable through their arrangement, testing the existing doors, sight, hiding and visible loot together before extending the other four room types.
+
+Implementation for review: dining rooms favour a central two/three-tile table with aligned benches separated by a one-tile aisle; storage rooms favour north/south two-tile shelf rows with end circulation and separated columns. The shared placement system retains protected doorway/corridor/centre cells, legal interaction approaches and connected floor. The whole room falls back to its compact arrangement when its existing number of searchable objects cannot fit. Original search counts and loot rules remain; changed walking distances can change depth-based individual rolls. No new furniture sight-blocking or hiding mechanic. Existing door-panel sight is retained. Default guard patrol stops shift to the nearest legal floor cell if interior furniture occupies their original stop. No extra stock, player actions or save migration.
+
+Still experimenting: exact footprints, placement preferences, original placeholder art and how often compact rooms fall back. The other four room types retain their earlier arrangements; dedicated furniture artwork/import templates remain a later pass after layout review.
+
+## Remaining room layouts and furniture authoring — 21 October 2026
+
+Agreed: complete the prayer room, bedroom, kitchen and armoury arrangements, then provide furniture drawing templates and imports using stable actual footprints.
+
+First implementation: prayer altar against the back wall with pews flanking the central aisle; bedroom bed along a side wall, wardrobe/dresser along the back and an existing hiding barrel in a corner; kitchen stove/pantry at the back with an interior work counter; armoury racks on opposite walls with an equipment chest. Preferred whole-grid placements use the existing protected lanes, approaches and connected-floor validation, retaining the compact room fallback and original searchable count. Bedrooms may receive a corner hiding barrel even when outside the usual hiding interval. Exact arrangements and original placeholder art remain trial choices.
+
+Furniture authoring: 25 exact-size PNG slots cover the existing kinds and compact/multi-tile variants, at 32 source pixels per floor tile. Each has transparent blank, current-art example and guide PNGs. Guides identify the solid footprint, floor grid, depth edge and any loose-coin/key anchor. Workshop imports use the exact matching footprint across all map cultures; searched art fades automatically. New artwork is isolated in workshop drafts/playtests until explicitly integrated elsewhere. The optional furniture field extends version 2 projects; earlier version 1/2 exports migrate with an empty field and preserve settings/assets. PNGs are size checked, included in exports, and decoded before a test starts. Collision, anchors, loot rules and player action rules are unaffected by art imports.
+
+## Workshop cleanup — 21 October 2026
+
+User preferred a cleanup over adding more workshop systems. Kept existing asset/balance/game behavior and reorganised the editor: project actions and draft status in the header; single-row scrollable navigation; map/difficulty context only for map tiles, balance and playtest; art tools in consistent cards; guides, diagnostic sheets and detailed costs behind expandable sections. Playtest separates dungeon/lair exploration from room selection, with specialised checks in a collapsed group. Stop is disabled while no test is running. No autosave or new game features in this pass.
+
+## GitHub Pages solo release — 21 October 2026
+
+Agreed: polish and package the game with workshops secondary, ready for the user to create a GitHub Pages site; multiplayer is understood to be unavailable on static hosting. No repository/account or automatic publication was requested.
+
+Created a public title page with direct solo entry, first-raid instructions and a restrained footer link to Creator tools. Creator page links the existing combined workshop, drawing templates and disposable trials. Main game retains normal starting resources, progression and browser save keys; no workshop XP/stock or storage-disabling adapter is used. Release-only renderer uses the approved classic terrain across the lair and all three maps. In-game menu returns to the title; trial menus return to Creator tools. Workshop art/balance drafts remain separate from normal saves. Server/admin pages are absent from active static navigation; source/server code is preserved as a download for future development.
+
+Publishing format: ready-made root-level index/game/creator HTML, relative asset/navigation paths, workshop and trial subdirectories, drawing-template/source downloads and a publishing README. Deploy from main/root without a Node build step. Creator tools are secondary public pages, not an authenticated private area. Build/repackage command is npm run build:pages; actual publication remains with the user.

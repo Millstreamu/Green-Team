@@ -68,7 +68,7 @@ test('lair uses normal walkable world rules and station interactions require rea
   const world = createLairWorld(); assert.ok(canStand(world, world.spawn.x, world.spawn.y));
   assert.equal(lairTarget(world, world.spawn), null);
   for (const station of world.stations) {
-    assert.ok(canStand(world, station.x, station.y));
+    assert.equal(canStand(world, station.x, station.y), station.kind !== 'potion');
     assert.equal(lairTarget(world, { x: station.x, y: station.y + 1 }).kind, station.kind);
     assert.notEqual(lairTarget(world, { x: station.x, y: station.y + 3 })?.kind, station.kind);
   }

@@ -1,4 +1,4 @@
-import { reachableTreasureTiles } from './treasure.js';
+import { reachableTreasureTiles, treasureDoorCells } from './treasure.js';
 import { CONFIG, COMBAT } from './config.js';
 import { canStand, isFloor, isWalkable } from './world.js';
 import { propCells, reservedRoomTiles } from './prop-placement.js';
@@ -61,7 +61,7 @@ export function checkDungeon(preview) {
       if (reserved.has(key) || world.corridorTiles?.[key]) issue('corridor', `${label} occupies a protected path.`, point);
       if ((objects.includes(prop) || hidingSpots.includes(prop)) && !world.solidTiles?.[key]) issue('solid', `${label} is missing its solid movement tile.`, point);
     }
-    if (prop.type === 'cupboard' && (!room || prop.tileY !== room.y || isFloor(world, prop.tileX, prop.tileY - 1))) issue('back-wall', 'Cupboard is not on a back wall.', prop);
+    if (prop.type === 'cupboard' && prop.placement !== 'free' && (!room || prop.tileY !== room.y || isFloor(world, prop.tileX, prop.tileY - 1))) issue('back-wall', 'Cupboard is not on a back wall.', prop);
     if (reachable(prop.approach, `${label} approach`)) route(world.spawn, prop.approach, `${label} approach`);
   }
   for (const guard of guards) {
@@ -85,9 +85,15 @@ export function checkDungeon(preview) {
   if (actualWorld.treasure) {
     const door = actualWorld.treasure, room = world.rooms[door.roomIndex], closed = { ...actualWorld, lockedTiles: new Uint8Array(world.tiles.length) };
     for (const cell of door.cells) closed.lockedTiles[cell.y * world.width + cell.x] = 1;
+    const expected = treasureDoorCells(world, room);
+    const sameCell = (a, b) => a.x === b.x && a.y === b.y && (a.side ?? door.side) === b.side;
+    if (!expected || expected.length !== door.cells.length || !expected.every(c => door.cells.some(d => sameCell(d, c)))) {
+      issue('treasure-doorway', 'Treasure gate is not aligned with a bounded doorway.', door);
+    }
     const lockedReach = reachableTreasureTiles(closed), inRoom = p => p.x >= room.x && p.x < room.x + room.w && p.y >= room.y && p.y < room.y + room.h;
     const source = objects.find(o => o.id === door.keyContainerId);
-    if (!source?.contents.includes('treasureKey') || inRoom(source) || !lockedReach.has(keyAt(source.approach))) issue('treasure-key', 'Treasure key cannot be found before opening the door.', source?.approach ?? door);
+    const key = preview.ground?.find(i => i.type === 'treasureKey' && i.keyId === door.keyId && i.surfaceId === source?.id);
+    if (!(source?.contents.includes('treasureKey') || key) || inRoom(source) || !lockedReach.has(keyAt(source.approach))) issue('treasure-key', 'Treasure key cannot be found before opening the door.', source?.approach ?? door);
     if (lockedReach.has(room.cy * world.width + room.cx)) issue('treasure-bypass', 'Treasure room can be entered without its key.', door);
     for (const key of reached) if (!inRoom({ x: key % world.width + .5, y: Math.floor(key / world.width) + .5 }) && !closed.lockedTiles[key] && !lockedReach.has(key)) issue('treasure-route', 'Locked door blocks another route or the way home.', { x: key % world.width + .5, y: Math.floor(key / world.width) + .5 });
   } else if (world.rooms.length > 1) issue('missing-treasure', 'No safe optional treasure room could fit in this layout.', null, 'warning');

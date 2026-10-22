@@ -1,9 +1,10 @@
+import { createRunCart } from './run-cart.js';
 import { clearPath, itemCells, LOOT_TYPES, itemCount } from './loot.js';
 
 export const TUNNEL_REACH = 0.7;
 
 export function createRun(world, now = 0) {
-  return { phase: 'exploring', entrance: { ...world.spawn }, startedAt: now, job: world.job ? { ...world.job } : null, result: null };
+  return { phase: 'exploring', entrance: { ...world.spawn }, startedAt: now, job: world.job ? { ...world.job } : null, result: null, cart: createRunCart() };
 }
 
 export function atTunnel(run, world, player) {
@@ -13,8 +14,8 @@ export function atTunnel(run, world, player) {
 export function finishRun(run, world, player, loot, now) {
   if (run.phase !== 'exploring' || loot.held || !atTunnel(run, world, player)) return null;
   // Snapshot only what was packed, never loose loot or an extra cursor item.
-  const items = loot.bag.filter(item => !LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].runOnly).map(item => ({ ...item }));
-  run.result = { outcome: 'escaped', job: run.job, items, count: items.reduce((n, item) => n + itemCount(item), 0), slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
+  const items = [...loot.bag, ...(run.cart?.items ?? [])].filter(item => !LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].runOnly).map(item => ({ ...item }));
+  run.result = { outcome: 'escaped', job: run.job, items, count: items.reduce((n, item) => n + itemCount(item), 0), slots: items.reduce((n, item) => n + itemCells(item).length, 0), elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)), cartSlots: (run.cart?.items ?? []).filter(item=>!LOOT_TYPES[item.type].equipment&&!LOOT_TYPES[item.type].runOnly).reduce((n,item)=>n+itemCells(item).length,0) };
   run.phase = 'results';
   return run.result;
 }
@@ -23,8 +24,8 @@ export function finishRun(run, world, player, loot, now) {
 // A future team session can wait for recovery before choosing this outcome.
 export function loseRun(run, loot, now) {
   if (run.phase !== 'exploring') return null;
-  const lostItems = [...loot.bag, ...(loot.held ? [loot.held] : [])].map(item => ({ ...item }));
+  const lostItems = [...(run.cart?.items ?? []), ...loot.bag, ...(loot.held ? [loot.held] : [])].map(item => ({ ...item }));
   run.result = { outcome: 'down', job: run.job, items: [], count: 0, slots: 0, lostItems, elapsed: Math.max(0, Math.floor((now - run.startedAt) / 1000)) };
-  loot.bag.length = 0; loot.held = null; run.phase = 'results';
+  loot.bag.length = 0; loot.held = null; if (run.cart) run.cart.items.length = 0; run.phase = 'results';
   return run.result;
 }
