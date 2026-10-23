@@ -1275,3 +1275,7 @@ Task: third slice of "edit menu items" — menu colours and menu art with one sh
 Checks: 470/470 tests pass (new test covers defaults, validation, migration, generated CSS, the stylesheet reaching a real sandbox lair, and wrong-size art being refused). Browser: a lair playtest with dark paper, a red/blue test frame and green/yellow slots showed the nine-slice frame and slot art on the campfire menu; an early pass found some fixed dark text (ability title, XP badge, hold prompt) unreadable on dark paper, which was fixed by theming those colours and keeping key caps dark-on-light, then rechecked. The Menus tab preview updated live from colour changes. Not checked on screen: workbench lock overlay, stash, map table and departure with custom art; phones.
 
 Next: discuss "new items" (copy an existing behaviour with its own name, art, recipe and numbers) before building.
+
+## Workshop menu work closed — 23 October 2026
+
+User dropped the planned "new items" workshop slice: new items will be added through AI code changes instead. No code changed. The menu-editing work (ability icons, words, menu look) is complete apart from on-screen checks of the stash, map table and departure with custom menu art, and phone testing.

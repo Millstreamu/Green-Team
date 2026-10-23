@@ -1018,3 +1018,7 @@ Publishing format: ready-made root-level index/game/creator HTML, relative asset
 **Agreed behaviour:** user chose both layers (colours and art) with one shared look for all lair menus. A Menus tab sets paper, ink, faded text, frame & lines and accent colours, and accepts a 48 × 48 nine-slice window frame plus 32 × 32 normal, selected and empty slot squares and a lock overlay. A live preview shows a small workbench. Playtests layer a generated stylesheet over the game's own; production menus, layout and controls are unchanged. Light E/XP key caps keep dark text on any paper. Saved in project exports; older exports load with the original look.
 
 **Still experimenting:** slot and lock squares stretch to the slot size (64, 48 or 44 px), which can soften very fine pixel detail; the frame uses a 16 px border, slightly wider than today's 5–11 px. The stash grid, map route cards and sack canvas keep their own drawing. Per-station looks were deferred by the user. Next: new items reusing existing behaviours, after discussion.
+
+## New items stay with AI coding — 23 October 2026
+
+**Agreed behaviour:** user decided new items will be made through AI code changes, not a workshop feature. The workshop "edit menu items" work ends with ability icons, menu words and menu look. This replaces the earlier "Next: new items" notes above.
