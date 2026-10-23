@@ -59,3 +59,12 @@ User accepted +5percentage points gold-finding for the current run, per searchin
 ## Barrel Anchor and Shadow Stillness playable update — 23 October 2026
 
 User chose the hiding-spot anchor with a cooldown and no teammate use, and Shadow Stillness, and accepted the suggested rules. Both are campfire abilities (one of three active slots). Barrel Anchor (75 XP): in a hiding barrel Space sets your anchor (first time), R or the phone Rotate button moves it to the current barrel; from another barrel Space moves you into the anchor still hidden, with a 30-second cooldown. Personal and reset each raid; refused if someone is inside; guards that saw you hide search from the barrel you left; anchor shows as a purple mark on your map. Shadow Stillness (150 XP): shadow is floor more than 4 tiles from every torch whose wall-blocked light reaches it (the same torches and light shapes the game draws); standing still there for 1 second makes guards unable to see you beyond 1.5 tiles. Moving, searching, hiding entry, gear use or a hit ends it. HUD shows SHADOW / UNSEEN IN SHADOW and the goblin fades. Values live in HIDING.anchorCooldown and SHADOW in src/config.js and are trial values for playtesting.
+
+## Five more campfire abilities playable — 23 October 2026
+
+User asked for the remaining recorded ideas and settled the open details: Sack Sacrifice places the item on the ground and holds Space for 10 seconds to open all searchables in the room, must be worth gold (not a material); better sale prices belong to whoever put the item in the cart, or whose sack it is in when the raid ends. Suggested numbers were accepted. All five are campfire abilities (one of three active slots), values in ABILITY in src/config.js:
+- **Tough Hide** (75 XP): +1 heart each raid (4 total).
+- **Haggler** (75 XP): +20% gold for your own sack and the cart items you loaded; extra gold only, XP unchanged.
+- **Treasure Sense** (50 XP): every 20 seconds a straight-line arrow points at the locked treasure room for 3 seconds.
+- **Crate Trap** (50 XP): hold E 2 seconds on a searched crate (plain or supply crate); the first guard within 1.5 tiles of it is stunned for 1 second and one alert is added toward extra guards. One rigged crate per goblin.
+- **Sack Sacrifice** (75 XP): with a dropped valuable worth 5+ gold in reach, hold Space 10 seconds to spend it and open every unsearched container in its room (not a locked treasure room). Moving, a hit or releasing Space cancels it.

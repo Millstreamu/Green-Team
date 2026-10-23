@@ -2,6 +2,9 @@ import { equipBerries, beginBerryAim, throwBerry, updateBerries } from '../src/b
 import { equipOrb, useOrb, updateScrying } from '../src/scrying.js';
 import { equipPotion, drinkPotion, drinkDisguise, isPotion } from '../src/potions.js';
 import { inShadow, updateShadowStillness } from '../src/shadows.js';
+import { applyAbilityVitality } from '../src/passive-effects.js';
+import { beginRig, updateRig, updateCrateTraps, beginSacrifice, updateSacrifice } from '../src/room-abilities.js';
+import { LOOT_TYPES } from '../src/loot.js';
 import { litTorches } from '../src/lighting.js';
 import { equipDart, beginDartAim, fireDart, updateDarts } from '../src/darts.js';
 import { equipBell, beginBellAim, throwBell, updateBells } from '../src/bells.js';
@@ -21,7 +24,7 @@ export function createDanger(world, participants, objects) {
   const guards = createGuards(world), traps = [], clouds = [], darts = [], bells = [], scryPings = [], berryShots = [];
   const obstacles = [...objects, ...hidingSpots], pressure = createPressure(world, obstacles);
   for (const p of participants) {
-    Object.assign(p, createVitality()); p.hiding = null; p.enteringHide = null;
+    Object.assign(p, createVitality()); applyAbilityVitality(p); p.hiding = null; p.enteringHide = null; p.sacrificing = null; p.useHeld = false;
     p.placement = createPlacement(); p.quickType = null; p.dartId = null; p.bellId = null; p.potionId = null; p.orbId = null; p.berryId = null; p.downSpilled = false; p.downItems = [];
   }
   const rescue = createRescue(world, participants, guards, [...obstacles, ...pressure.doors.map(d => d.spawn)]);
@@ -31,7 +34,7 @@ export function createDanger(world, participants, objects) {
   return {
     guards, hidingSpots, traps, clouds, darts, bells, pressure, rescue,
     cancel(p, releaseSpot = false) {
-      rescue.cancel(p); cancelHiding(p); cancelPlacement(p.placement);
+      rescue.cancel(p); cancelHiding(p); cancelPlacement(p.placement); p.rigging = null; p.sacrificing = null;
       if (releaseSpot) { p.quickType = null; p.dartId = null; p.bellId = null; p.potionId = null; p.orbId = null; p.berryId = null; leaveHiding(p); }
     },
     action(p, m) {
@@ -106,6 +109,16 @@ export function createDanger(world, participants, objects) {
         if (p.quickType !== 'smoke' || p.placement.itemId || p.hiding) return false;
         return useSmoke(p.loot, p, clouds);
       }
+      if (m.type === 'rig') {
+        const object = objects.find(o => o.id === m.id);
+        if (!object || p.loot.held || !beginRig(world, p, object, objects)) return false;
+        cancelPlacement(p.placement); p.searchHeld = true; p.inputAge = 0; return true;
+      }
+      if (m.type === 'sacrifice') {
+        const item = p.loot.ground.find(i => i.id === m.id);
+        if (!item || p.loot.held || p.placement.itemId || !beginSacrifice(world, p, item, objects)) return false;
+        p.useHeld = true; p.inputAge = 0; return true;
+      }
       if (m.type === 'anchor') {
         const result = useHidingAnchor(p, hidingSpots, guards, m.here === true), text = anchorMessage(result, p);
         if (text) p.notice = { id: `${world.seed}-${p.id}-anchor-${++anchorNotices}`, text };
@@ -154,9 +167,17 @@ export function createDanger(world, participants, objects) {
         const holding = p.inputAge <= .4 && p.searchHeld;
         updateHiding(world, p, holding, dt, witnesses(p), !!p.loot.held || !!p.placement.itemId);
         // Same torches clients draw from the snapshot's furniture, barrels, cages and guard doors.
+        const rigged = updateRig(world, p, holding, dt, objects);
+        if (rigged?.type === 'rigged') p.notice = { id: `${world.seed}-${p.id}-n-${++anchorNotices}`, text: 'Crate rigged. The first guard to come close is stunned, but it raises the alarm count.' };
+        const offered = updateSacrifice(world, p, p.inputAge <= .4 && p.useHeld === true, dt, p.loot, objects);
+        if (offered?.type === 'sacrificed') p.notice = { id: `${world.seed}-${p.id}-n-${++anchorNotices}`, text: `${LOOT_TYPES[offered.item.type].name} sacrificed. ${offered.opened.length} ${offered.opened.length === 1 ? 'container springs' : 'containers spring'} open.` };
         if (p.shadowStillness) updateShadowStillness(p, dt, inShadow(litTorches(world, [...objects, ...hidingSpots, ...rescue.cages, ...pressure.doors.map(d => d.spawn)]), p), !!p.search?.active || !!p.enteringHide);
         const point = p.placement.aimPoint ?? placementPoint(p);
         updatePlacement(p.placement, world, p, p.loot, traps, obstacles, point, holding, dt);
+      }
+      for (const sprung of updateCrateTraps(objects, guards, pressure)) {
+        const owner = participants.find(p => p.id === sprung.ownerId);
+        if (owner) owner.notice = { id: `${world.seed}-${owner.id}-n-${++anchorNotices}`, text: 'Crate trap sprung! A guard is stunned, and the alarm count rises.' };
       }
       rescue.tick(dt);
       updatePressure(world, pressure, guards, dt);

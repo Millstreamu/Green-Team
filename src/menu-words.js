@@ -1,4 +1,4 @@
-import { TRAPS, SMOKE, DART, BELL, DISGUISE, VANISH, SCRY, RESCUE, BERRY, LUCKY, PROGRESSION, HIDING, SHADOW } from './config.js';
+import { TRAPS, SMOKE, DART, BELL, DISGUISE, VANISH, SCRY, RESCUE, BERRY, LUCKY, PROGRESSION, HIDING, SHADOW, ABILITY, COMBAT } from './config.js';
 import { AWARENESS } from './passive-effects.js';
 
 // Menu wording for gear and abilities. {placeholders} are filled from the live effect
@@ -22,7 +22,12 @@ export const MENU_WORD_VALUES = Object.freeze({
   hideSense: () => ({}),
   searchVeil: () => ({ seconds: AWARENESS.veilSeconds }),
   hidingAnchor: () => ({ cooldown: HIDING.anchorCooldown }),
-  shadowStillness: () => ({ stillSeconds: SHADOW.stillSeconds, lightReach: SHADOW.lightReach, closeRange: SHADOW.closeRange })
+  shadowStillness: () => ({ stillSeconds: SHADOW.stillSeconds, lightReach: SHADOW.lightReach, closeRange: SHADOW.closeRange }),
+  extraHeart: () => ({ hearts: ABILITY.extraHearts, total: COMBAT.health + ABILITY.extraHearts }),
+  haggler: () => ({ bonus: percent(ABILITY.saleBonus) }),
+  treasureBearing: () => ({ every: ABILITY.bearingEvery, seconds: ABILITY.bearingShow }),
+  crateTrap: () => ({ rigSeconds: ABILITY.rigSeconds, stun: ABILITY.trapStun }),
+  sackSacrifice: () => ({ seconds: ABILITY.sacrificeSeconds, minGold: ABILITY.sacrificeMinGold })
 });
 export const GEAR_WORDS = Object.freeze({
   berries: { summary: '{blindSeconds}s blind / lunch ingredient', effect: 'A thrown berry up to {range} tiles blinds the first guard hit for {blindSeconds}s and breaks their chase.', limits: 'Throwing spends one portion, including misses, and breaks disguise. Walls/solid props/locks stop it. No refresh while already blind; sleeping guards stay asleep. Keep berries for workbench lunches instead if needed.' },
@@ -44,6 +49,11 @@ export const ABILITY_WORDS = Object.freeze({
   hideSense: { effect: 'While hiding, see the nearest guard on your map.', limits: 'Amber square · your map only. Ends when you leave hiding.' },
   searchVeil: { effect: 'After searching, guards take twice as long to notice you for {seconds} seconds.', limits: 'Completed searches only, including empty containers. Existing chases continue.' },
   hidingAnchor: { effect: 'In a hiding barrel, Space sets it as your anchor. From any other barrel, Space takes you back to it, still hidden.', limits: 'Your anchor only; teammates cannot use it. {cooldown}-second cooldown. Fails if someone is inside. R or Rotate moves it. Resets each raid.' },
+  extraHeart: { effect: 'Start every raid with +{hearts} heart ({total} in all).', limits: 'Lost hearts still need a Packed Lunch revive or the end of the raid.' },
+  haggler: { effect: 'Loot you carry out, or load into the raid cart, sells for {bonus}% more gold.', limits: 'Your sack or what you put in the cart only. Extra gold goes to the shared stash; XP is unchanged.' },
+  treasureBearing: { effect: 'Every {every} seconds, an arrow points toward the locked treasure room for {seconds} seconds.', limits: 'Straight line, not the path. Only while the treasure room is locked.' },
+  crateTrap: { effect: 'Hold E on a searched crate for {rigSeconds} seconds to rig it. The first guard to come close is stunned for {stun} second.', limits: 'One rigged crate at a time. A sprung trap adds one alert toward extra guards.' },
+  sackSacrifice: { effect: 'Drop a valuable, then hold Space beside it for {seconds} seconds: it is spent and every unsearched container in the room opens.', limits: 'Worth {minGold} gold or more; materials do not count. Not inside a locked treasure room. Moving or a hit cancels it.' },
   shadowStillness: { effect: 'Stand still in shadow for {stillSeconds} second and guards cannot see you.', limits: 'Shadow is anywhere more than {lightReach} tiles from torch light. Guards within {closeRange} tiles still spot you. Moving, searching, using gear or a hit ends it.' }
 });
 export function fillMenuWords(text, id) {

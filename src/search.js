@@ -141,6 +141,13 @@ function spillContents(world, object, loot) {
   });
 }
 
+// Completes a container exactly like a finished search: luck, then spill its contents.
+export function openContainer(world, player, object, loot) {
+  object.searched = true;
+  applyLuckyFind(world, player, object);
+  spillContents(world, object, loot);
+}
+
 export function updateSearch(session, world, player, loot, holdingE, dt) {
   const object = session.active;
   if (!object) return null;
@@ -150,10 +157,8 @@ export function updateSearch(session, world, player, loot, holdingE, dt) {
   }
   session.elapsed += Math.max(0, dt);
   if (session.elapsed + 0.000001 < session.duration) return null;
-  object.searched = true;
   completeSearchPassive(player);
-  applyLuckyFind(world, player, object);
-  spillContents(world, object, loot);
+  openContainer(world, player, object, loot);
   cancelSearch(session);
   return { type: 'completed', object, count: object.contents.length };
 }

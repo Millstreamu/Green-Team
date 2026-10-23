@@ -17,7 +17,12 @@ export const PERSONAL_UPGRADES = Object.freeze({
   luckyGoblin: Object.freeze({ name: 'Lucky Goblin', cost: 50, kind: 'passive' }),
   quickSearch: Object.freeze({ name: 'Quick fingers', cost: PROGRESSION.quickSearchCost, kind: 'passive' }),
   hidingAnchor: Object.freeze({ name: 'Barrel Anchor', cost: 75, kind: 'passive' }),
-  shadowStillness: Object.freeze({ name: 'Shadow Stillness', cost: 150, kind: 'passive' })
+  shadowStillness: Object.freeze({ name: 'Shadow Stillness', cost: 150, kind: 'passive' }),
+  extraHeart: Object.freeze({ name: 'Tough Hide', cost: 75, kind: 'passive' }),
+  haggler: Object.freeze({ name: 'Haggler', cost: 75, kind: 'passive' }),
+  treasureBearing: Object.freeze({ name: 'Treasure Sense', cost: 50, kind: 'passive' }),
+  crateTrap: Object.freeze({ name: 'Crate Trap', cost: 50, kind: 'passive' }),
+  sackSacrifice: Object.freeze({ name: 'Sack Sacrifice', cost: 75, kind: 'passive' })
 });
 export function createProfile(id = 'local-goblin') { return { id, xp: 0, earnedXp: 0, purchases: [], activePassives: [] }; }
 export function loadProfile(storage) {
@@ -77,7 +82,7 @@ export function personalSearchRate(profile) { return passiveActive(profile, 'qui
 // Display-only level; spending available XP never reduces lifetime progress.
 export function profileLevel(profile) { return 1 + Math.floor((profile.earnedXp ?? 0) / PROGRESSION.levelXp); }
 
-export const PASSIVE_IDS = Object.freeze(['quickSearch','quietHands','luckyGoblin','panicSprint','hideSense','searchVeil','hidingAnchor','shadowStillness']);
+export const PASSIVE_IDS = Object.freeze(['quickSearch','quietHands','luckyGoblin','panicSprint','hideSense','searchVeil','hidingAnchor','shadowStillness','extraHeart','haggler','treasureBearing','crateTrap','sackSacrifice']);
 export const PASSIVE_LIMIT = 3;
 export function activePassives(profile) {
   // Existing Quick Fingers purchases remain equipped on old saves.
@@ -94,4 +99,4 @@ export function setPassiveActive(profile,id,active) {
   if(active&&current.length>=PASSIVE_LIMIT)return false;
   profile.activePassives=active?[...current,id]:current.filter(value=>value!==id);return true;
 }
-export function passiveEffects(profile) { return {searchRate:personalSearchRate(profile),quietHands:passiveActive(profile,'quietHands'),passiveLuck:passiveActive(profile,'luckyGoblin'),panicSprint:passiveActive(profile,'panicSprint'),hideSense:passiveActive(profile,'hideSense'),searchVeil:passiveActive(profile,'searchVeil'),hidingAnchor:passiveActive(profile,'hidingAnchor'),shadowStillness:passiveActive(profile,'shadowStillness')}; }
+export function passiveEffects(profile) { return {searchRate:personalSearchRate(profile),quietHands:passiveActive(profile,'quietHands'),passiveLuck:passiveActive(profile,'luckyGoblin'),panicSprint:passiveActive(profile,'panicSprint'),hideSense:passiveActive(profile,'hideSense'),searchVeil:passiveActive(profile,'searchVeil'),hidingAnchor:passiveActive(profile,'hidingAnchor'),shadowStillness:passiveActive(profile,'shadowStillness'),extraHeart:passiveActive(profile,'extraHeart'),haggler:passiveActive(profile,'haggler'),treasureBearing:passiveActive(profile,'treasureBearing'),crateTrap:passiveActive(profile,'crateTrap'),sackSacrifice:passiveActive(profile,'sackSacrifice')}; }

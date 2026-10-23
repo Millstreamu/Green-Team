@@ -1,5 +1,5 @@
 import { drawRoomDoor, drawRoomDoorHints } from './room-door-view.js';
-import { drawHiddenGuardMark } from './passive-effects.js';
+import { drawHiddenGuardMark, treasureBearing } from './passive-effects.js';
 import { drawRaidCart } from './raid-cart-view.js';
 import { sceneViewport } from './viewport.js';
 import { drawScrying } from './scrying.js';
@@ -16,7 +16,8 @@ import { drawSmoke } from './smoke-view.js';
 import { drawLair, drawPotionStation } from './lair-drawing.js';
 import { lairTarget } from './lair.js';
 import { drawTraps } from './trap-view.js';
-import { CONFIG, GOBLIN_ART, SEARCH } from './config.js';
+import { CONFIG, GOBLIN_ART, SEARCH, ABILITY } from './config.js';
+import { drawPixelProgress } from './world-ui.js';
 import { isFloor } from './world.js';
 import { itemCells } from './loot.js';
 import { drawItem } from './item-view.js';
@@ -179,6 +180,21 @@ export async function createRenderer(canvas, mapCanvas) {
     // Labels, interaction outlines and progress remain readable above the scene.
     drawSearchables(ctx, objects, !loot.held && !tunnelReady ? searchTarget : null, searchSession, ox, oy, 'ui');
     drawHidingSpots(ctx, hidingSpots, hideTarget, player, ox, oy, 'ui');
+    // Rigged crates show a small tripwire; rigging and sacrifice show progress.
+    for (const object of objects) if (object.riggedBy) {
+      const x = Math.round(object.x * t + ox), y = Math.round(object.y * t + oy) - 14;
+      ctx.fillStyle = '#2b1712'; ctx.fillRect(x - 7, y - 1, 14, 3); ctx.fillStyle = '#d0533f'; ctx.fillRect(x - 6, y, 12, 1); ctx.fillRect(x - 1, y - 3, 2, 2);
+    }
+    if (player.rigging?.object) drawPixelProgress(ctx, player.rigging.object.x * t + ox, player.rigging.object.y * t + oy - 30, player.rigging.elapsed / ABILITY.rigSeconds);
+    if (player.sacrificing?.item) drawPixelProgress(ctx, player.sacrificing.item.x * t + ox, player.sacrificing.item.y * t + oy - 18, player.sacrificing.elapsed / ABILITY.sacrificeSeconds);
+    const bearing = treasureBearing(world, player);
+    if (bearing !== null) {
+      // Treasure Sense arrow circles the goblin, pointing straight at the locked room.
+      const cx = player.x * t + ox, cy = player.y * t + oy - 10, r = 22;
+      ctx.save(); ctx.translate(Math.round(cx + Math.cos(bearing) * r), Math.round(cy + Math.sin(bearing) * r)); ctx.rotate(bearing);
+      ctx.fillStyle = '#2b2416'; ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-5, -7); ctx.lineTo(-2, 0); ctx.lineTo(-5, 7); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f1cf5e'; ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(-3, -5); ctx.lineTo(-1, 0); ctx.lineTo(-3, 5); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
     for (const guard of guards) drawGuard(ctx, guard, ox, oy, 'ui');
     for (const actor of [...teammates, player]) if (!actor.hiding && actor.name) {
       const sx = Math.round(actor.x * t + ox), sy = Math.round(actor.y * t + oy);

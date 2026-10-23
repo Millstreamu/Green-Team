@@ -107,7 +107,7 @@ export function createLairSession({ store = null, getTuning = () => undefined, g
         if (!Number.isFinite(message.x) || !Number.isFinite(message.y) || Math.abs(message.x) > 1 || Math.abs(message.y) > 1) return false;
         if (p.waiting) return false;
         p.input = { x: message.x, y: message.y }; p.inputAge = 0;
-        p.searchHeld = message.searchHeld === true; return true;
+        p.searchHeld = message.searchHeld === true; p.useHeld = message.useHeld === true; return true;
       }
       if (dungeon) {
         const result = dungeon.action(p, message);
@@ -173,7 +173,8 @@ export function createLairSession({ store = null, getTuning = () => undefined, g
         dungeon: p.location === 'dungeon' ? dungeon?.snapshot() : null,
         camp: { counts: camp.counts, slots: camp.slots, destination: camp.destination, buildings: camp.buildings },
         players: [...players.values()].filter(q => q.location === p.location && (q.connected || q.inRun)).map(q => ({ id: q.id, name: q.name, x: q.x, y: q.y, facing: q.facing, moving: q.moving, phase: q.phase, state: q.state, health: q.health, maxHealth: q.maxHealth, invulnerable: q.invulnerable, disguiseLeft: q.disguiseLeft ?? 0, vanishLeft: q.vanishLeft ?? 0, lucky: q.lucky === true, passiveLuck: q.passiveLuck === true, quietHands: q.quietHands === true, hideSense: q.hideSense === true, panicLeft: q.panicLeft ?? 0, searchVeilLeft: q.searchVeilLeft ?? 0,
-          hidingAnchor: q.hidingAnchor === true, anchorCooldown: q.anchorCooldown ?? 0, anchorSpotId: q.id === p.id ? q.anchorSpotId ?? null : null, shadowStillness: q.shadowStillness === true, inShadow: q.inShadow === true, shadowHidden: q.shadowHidden === true,
+          hidingAnchor: q.hidingAnchor === true, anchorCooldown: q.anchorCooldown ?? 0, anchorSpotId: q.id === p.id ? q.anchorSpotId ?? null : null, shadowStillness: q.shadowStillness === true, inShadow: q.inShadow === true, shadowHidden: q.shadowHidden === true, treasureBearing: q.treasureBearing === true, bearingLeft: q.id === p.id ? q.bearingLeft ?? 0 : 0, crateTrap: q.crateTrap === true, sackSacrifice: q.sackSacrifice === true,
+          rigging: q.id === p.id && q.rigging ? { object: { id: q.rigging.object.id, x: q.rigging.object.x, y: q.rigging.object.y }, elapsed: q.rigging.elapsed } : null, sacrificing: q.id === p.id && q.sacrificing ? { item: { id: q.sacrificing.item.id, type: q.sacrificing.item.type, x: q.sacrificing.item.x, y: q.sacrificing.item.y }, elapsed: q.sacrificing.elapsed } : null,
           carrierId: q.carrierId ?? null, cageId: q.cageId ?? null,
           hiding: q.hiding ? { spot: { id: q.hiding.spot.id } } : null, enteringHide: q.enteringHide ? { spot: { id: q.enteringHide.spot.id }, elapsed: q.enteringHide.elapsed } : null, waiting: q.waiting, ghost: !q.connected, ghostSeconds: !q.connected ? Math.max(0, Math.ceil(60 - q.disconnectedFor)) : null })),
         cart: { selection: cart.selection, participants: cart.participants, aboard: [...cart.aboard], countdown: cart.countdown }, launched };

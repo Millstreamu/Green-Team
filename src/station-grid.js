@@ -7,7 +7,7 @@ export function stationGridCapacity(width,height,size=64,gap=8,count=0){
 export function createFillingStationGrid(grid,getCount,{className='book-placeholder',label='Reserved for future recipes'}={}){
  const slots=[];
  function refresh(){
-  const count=getCount();let layout={columns:3,total:12};
+  const count=getCount();let layout={columns:3,total:Math.max(12,Math.ceil((count+3)/3)*3)};
   if(typeof getComputedStyle==='function'&&grid.clientWidth>0&&grid.clientHeight>0){
    const css=getComputedStyle(grid),size=parseFloat(css.getPropertyValue('--station-slot'))||64,gap=parseFloat(css.columnGap)||8;
    layout=stationGridCapacity(grid.clientWidth,grid.clientHeight,size,gap,count);

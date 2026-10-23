@@ -21,6 +21,7 @@ import { createRenderer, screenToWorld } from './render.js';
 import { createLoot, selectTarget, LOOT_TYPES, bagItemAt } from './loot.js';
 import { generateDungeon, setSolidObjects } from './world.js';
 import { selectInteraction, SEARCHABLE_TYPES } from './search.js';
+import { canRig, sacrificeTarget } from './room-abilities.js';
 import { createSackView } from './sack-view.js';
 import { createResultsView } from './results-view.js';
 import { selectRescue } from './rescue.js';
@@ -75,7 +76,10 @@ const runView = () => ({ phase: 'exploring', entrance: state.dungeon.entrance, c
 function interaction() {
   const player = self(); if (!state?.dungeon || !player) return null;
   const at = pointer.active && pointer.overGame ? screenToWorld($('#game'), player, pointer) : null;
-  const normal = selectInteraction(world, player, loot.ground, state.dungeon.objects, at, state.dungeon.hidingSpots ?? []);
+  const picked = selectInteraction(world, player, loot.ground, state.dungeon.objects, at, state.dungeon.hidingSpots ?? []);
+  // Crate Trap: a searched crate is only offered when nothing else is in reach.
+  const crate = !picked && state.dungeon.objects.find(o => canRig(world, player, o, state.dungeon.objects));
+  const normal = picked ?? (crate ? { kind: 'rig', item: crate } : null);
   const rescue = selectRescue(world, player, state.players, state.dungeon.cages ?? [], at);
   if (!rescue) return normal;
   if (at) {
@@ -237,6 +241,7 @@ window.addEventListener('keydown', event => {
       else if (state.dartId) { clear(); send({ type: 'aim-dart', id: state.dartId }); }
       else if (state.orbId) { clear(); send({ type: 'use-orb', id: state.orbId }); }
       else if (state.potionId) { clear(); send({ type: 'drink-potion', id: state.potionId }); }
+      else if (!state.quickType && self().sackSacrifice && sacrificeTarget(world, self(), loot.ground, state.dungeon.objects)) { const offering = sacrificeTarget(world, self(), loot.ground, state.dungeon.objects); send({ type: 'sacrifice', id: offering.id }); tell(`Sacrificing ${LOOT_TYPES[offering.type].name}. Hold Space and stay still for 10 seconds.`); }
       else send({ type: 'smoke' });
     }
     return;
@@ -253,7 +258,7 @@ window.addEventListener('keydown', event => {
   if (!loot.held && chosen?.type === 'lunch') { tell('Carry a Packed Lunch, close the sack, and hold E near a downed teammate.'); return; }
   if (!loot.held && chosen && LOOT_TYPES[chosen.type].equipment) {
     input.clearMovement(); dragStart = null;
-    send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE') });
+    send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE'), useHeld: input.held('Space') });
     send({ type: 'equip', id: chosen.id }); sack.reset();
     tell(chosen.type === 'dart' ? 'Dart equipped. Move freely; Space aims, then Space fires.' : chosen.type === 'smoke' ? 'Smoke equipped. Space uses one.' : 'WASD aims. Release E, then hold E for a second to place. Esc cancels.'); return;
   }
@@ -262,7 +267,7 @@ window.addEventListener('keydown', event => {
   const target = interaction();
   if (target && ['revive', 'rescue'].includes(target.kind)) {
     if (target.kind === 'revive' && !loot.bag.some(i => i.type === 'lunch')) { tell('You need a Packed Lunch. Test lunches are in lair Debug supplies.'); return; }
-    input.clearMovement(); send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE') });
+    input.clearMovement(); send({ type: 'move', x: 0, y: 0, searchHeld: input.held('KeyE'), useHeld: input.held('Space') });
     send({ type: 'rescue', id: target.item.id }); return;
   }
 
@@ -272,6 +277,7 @@ window.addEventListener('keydown', event => {
     send({ type: 'unlock' }); return;
   }
   if (target?.kind === 'hide') { send({ type: 'hide', id: target.item.id }); return; }
+  if (target?.kind === 'rig') { send({ type: 'rig', id: target.item.id }); tell('Rigging the crate. Keep E held and stay still for 2 seconds.'); return; }
   if (target?.kind === 'search') {
     if (target.item.searcherId && target.item.searcherId !== player.id) { tell(`${target.item.searcherName} is searching that already.`); return; }
     send({ type: 'search', id: target.item.id });
@@ -349,7 +355,7 @@ setInterval(() => {
     aimDirty = false;
     const aim = screenToWorld($('#game'), self(), pointer); send({ type: 'aim', x: aim.x, y: aim.y });
   }
-  send({ type: 'move', ...(paused ? { x: 0, y: 0 } : input.read()), searchHeld: !paused && input.held('KeyE') });
+  send({ type: 'move', ...(paused ? { x: 0, y: 0 } : input.read()), searchHeld: !paused && input.held('KeyE'), useHeld: !paused && input.held('Space') });
 }, 100);
 function frame(time) {
   departureView.refresh();
@@ -385,7 +391,7 @@ function frame(time) {
     const rescuing = dungeon?.rescues?.find(a => a.actorId === player.id);
     const searching = dungeon?.objects.find(o => o.searcherId === player.id);
     $('#target-label').textContent = controlHint(!connected ? 'Connection lost' : player.waiting ? 'Waiting in the lair for the next run' : dungeon
-      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? `Hidden · E to exit${player.hidingAnchor ? ' · Space anchor' : ''}` : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · cargo / Hold E · hop in' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${searchableName(target.item)}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'door' ? 'Hold E · open door' : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
+      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? `Hidden · E to exit${player.hidingAnchor ? ' · Space anchor' : ''}` : player.enteringHide ? 'Hiding · hold E' : player.rigging ? 'Rigging crate · hold E' : player.sacrificing ? `Sacrificing ${LOOT_TYPES[player.sacrificing.item.type].name} · hold Space` : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · cargo / Hold E · hop in' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}${player.sackSacrifice && sacrificeTarget(world, player, [target.item], state.dungeon.objects) ? ' · hold Space · sacrifice' : ''}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${searchableName(target.item)}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'door' ? 'Hold E · open door' : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : target?.kind === 'rig' ? 'Hold E · rig crate trap' : 'Explore · Tab opens sack'
       : aboard ? `${state.cart.aboard.length}/${state.cart.participants.length} aboard · ${state.cart.countdown === null ? 'waiting for team' : `${Math.ceil(state.cart.countdown)}s`} · E hop out` : station ? `E · ${station.name}` : 'Tab · shared stash');
     sack.updateVisibility({ moving: player.moving && !sack.isNavigating(), targetId: target?.kind === 'loot' ? target.item.id : null, held: loot.held, pointer, active: !!dungeon && connected && player.state === 'active' && !player.hiding && !state.placement?.itemId && !modal() }, dt);
     sack.paint(loot, pointer);

@@ -10,7 +10,7 @@ import { canStand, moveActor } from './world.js';
 import { clearPath } from './loot.js';
 import { findPath, followPath } from './navigation.js';
 
-export function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active', knockbackLeft: 0, knockbackX: 0, knockbackY: 0, disguiseLeft: 0, vanishLeft: 0, lucky: false, panicLeft: 0, panicCooldown: 0, searchVeilLeft: 0, anchorSpotId: null, anchorCooldown: 0, shadowStill: 0, inShadow: false, shadowHidden: false }; }
+export function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active', knockbackLeft: 0, knockbackX: 0, knockbackY: 0, disguiseLeft: 0, vanishLeft: 0, lucky: false, panicLeft: 0, panicCooldown: 0, searchVeilLeft: 0, anchorSpotId: null, anchorCooldown: 0, shadowStill: 0, inShadow: false, shadowHidden: false, bearingClock: 0, bearingLeft: 0, rigging: null }; }
 export function tickVitality(player, dt, world = null) {
   tickPassiveEffects(player, dt);
   tickDisguise(player, dt);

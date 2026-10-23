@@ -1,13 +1,14 @@
 import { createSurfaceLoot } from './surface-loot.js';
 import { searchableName } from './room-types.js';
 import { createRoomDoors, beginRoomDoor, cancelRoomDoor, tickRoomDoors } from './room-doors.js';
-import { passiveStatus } from './passive-effects.js';
+import { passiveStatus, applyAbilityVitality, markHagglerItems } from './passive-effects.js';
 import { createRaidCartView, cartBubbleAnchor } from './raid-cart-view.js';
 import { transferCart, boardRunCart, tickRunCart } from './run-cart.js';
 import { equipBerries, beginBerryAim, throwBerry, updateBerries } from './berries.js';
 import { equipOrb, useOrb, updateScrying } from './scrying.js';
 import { equipPotion, drinkPotion, isPotion } from './potions.js';
 import { inShadow, updateShadowStillness } from './shadows.js';
+import { canRig, beginRig, updateRig, updateCrateTraps, sacrificeTarget, beginSacrifice, updateSacrifice } from './room-abilities.js';
 import { litTorches } from './lighting.js';
 import { equipDart, beginDartAim, fireDart, updateDarts, boundDartAim } from './darts.js';
 import { equipBell, beginBellAim, throwBell, updateBells } from './bells.js';
@@ -66,20 +67,22 @@ try {
 }
 let pressure, cart, cartOutside = null;
 let world, player, loot, run, guards, previous = 0, target = null, dragStart = null;
-let hidingSpots = [], hideTarget = null;
+let hidingSpots = [], hideTarget = null, rigTarget = null;
 let objects = [], searchSession = createSearchSession(), searchTarget = null, unlockTarget = null, doorTarget = null;
 let traps = [], placement = createPlacement(), clouds = [], darts = [], bells = [], scryPings = [], berryShots = [], quickType = null;
 let messageUntil = 0;
 const pointer = { x: 0, y: 0, active: false, overGame: false };
 const tell = text => { document.querySelector('#status').textContent = controlHint(text); messageUntil = performance.now() + 3500; };
 const updateTarget = () => {
-  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; unlockTarget = null; doorTarget = null; return; }
+  if (world.lair || placement.itemId || player.hiding) { target = null; searchTarget = null; hideTarget = null; unlockTarget = null; doorTarget = null; rigTarget = null; return; }
   const interaction = player.enteringHide ? { kind: 'hide', item: player.enteringHide.spot } : searchSession.active ? { kind: 'search', item: searchSession.active } : selectInteraction(world, player, loot.ground, objects, pointer.active && pointer.overGame ? screenToWorld(canvas, player, pointer) : null, hidingSpots);
   doorTarget = interaction?.kind === 'door' ? interaction.item : null;
   unlockTarget = interaction?.kind === 'unlock' ? interaction.item : null;
   hideTarget = interaction?.kind === 'hide' ? interaction.item : null;
   target = interaction?.kind === 'loot' ? interaction.item : null;
   searchTarget = interaction?.kind === 'search' ? interaction.item : null;
+  // Crate Trap: a searched crate is only offered when nothing else is in reach.
+  rigTarget = player.rigging?.object ?? (!interaction ? objects.find(o => canRig(world, player, o, objects)) ?? null : null);
 };
 const enterLair = () => {
   results.close();
@@ -109,7 +112,7 @@ const launchRun = (selection) => {
   const dungeon = generateDungeon(seed, dungeonConfig(GENERATOR_PRESETS[job.jobId]));
   const bag = departWithSack(camp, loot);
   if (!bag) return false;
-  world = dungeon; world.roomThemes=true; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), ...passiveEffects(profile), facing: 1, phase: 0, moving: false };
+  world = dungeon; world.roomThemes=true; world.job = job; player = { ...world.spawn, id: 'goblin', ...createVitality(), ...passiveEffects(profile), facing: 1, phase: 0, moving: false }; applyAbilityVitality(player);
   loot = createLoot(); loot.bag = bag;
   objects = createSearchables(world); hidingSpots = createHidingSpots(world, objects); createTreasureRoom(world, objects); loot.ground = createSurfaceLoot(world, objects); guards = createGuards(world); pressure = createPressure(world, [...objects, ...hidingSpots]); hideTarget = null; traps = []; placement = createPlacement(); clouds = []; darts = []; bells = []; scryPings = []; berryShots = []; quickType = null; searchSession = createSearchSession();
   createRoomDoors(world, [...guards, objects.find(o => o.id === world.treasure?.keyContainerId)].filter(Boolean));
@@ -153,13 +156,14 @@ const raidCartView = createRaidCartView(document.querySelector('#raid-cart-panel
   input.clear();cancelSearch(searchSession);
   if(message.type==='cart-board')return boardRunCart(run.cart,player.id,message.active);
   if(run.cart.aboard.includes(player.id))return false;
-  const moved=transferCart(run.cart,loot,message.id,message.toCart);
+  const moved=transferCart(run.cart,loot,message.id,message.toCart,player.id);
   if(moved){for(const field of ['dartId','bellId','potionId','orbId','berryId'])if(player[field]===message.id)player[field]=null;quickType=null;}
   return moved;
 },()=>{input.clear();canvas.focus();},{feedback:ok=>feedback.result(ok,'pickup','#raid-cart-action-icon')});
 const showRunResult = (result, message) => {
   if (!result) return;
   if(document.querySelector('#raid-cart-panel').open)raidCartView.close();
+  if (player.haggler) { markHagglerItems(loot.bag, () => true); markHagglerItems(run.cart.items, () => true); }
   if (bankEscape(camp, result, loot, run.cart)) persistCamp();
   result.personalXp = awardPersonalXp(profile, result); persistProfile();
   cancelSearch(searchSession); cancelHiding(player); leaveHiding(player);
@@ -242,6 +246,7 @@ window.addEventListener('blur', () => { pointer.active = false; pointer.overGame
 window.addEventListener('keyup', e => {
   if (e.code === 'KeyE' && player?.enteringHide) { cancelHiding(player); tell('Hiding cancelled. Hold E to try again.'); }
   if (e.code === 'KeyE' && searchSession.active) { cancelSearch(searchSession); tell('Search cancelled. Hold E again when it is safe.'); }
+  if (e.code === 'KeyE' && player?.rigging) { player.rigging = null; tell('Rigging cancelled. Hold E for 2 seconds to rig the crate.'); }
 });
 window.addEventListener('keydown', e => {
   if (document.querySelector('#departure-panel').open) return;
@@ -296,6 +301,8 @@ window.addEventListener('keydown', e => {
       return;
     }
     if (player.dartId && !placement.itemId && !sack.isNavigating()) { if (beginDartAim(placement, loot, player)) { cancelSearch(searchSession); input.clear(); player.moving = false; } return; }
+    const offering = quickType !== 'smoke' && !placement.itemId && !sack.isNavigating() && player.sackSacrifice ? sacrificeTarget(world, player, loot.ground, objects) : null;
+    if (offering && beginSacrifice(world, player, offering, objects)) { cancelSearch(searchSession); tell(`Sacrificing ${LOOT_TYPES[offering.type].name}. Hold Space and stay still for 10 seconds.`); return; }
     if (quickType === 'smoke' && !placement.itemId && !sack.isNavigating() && useSmoke(loot, player, clouds)) {
       cancelSearch(searchSession); tell('Smoke deployed! Break sight and move away before it clears.');
     } else tell(quickType === 'smoke' ? 'No smoke bomb ready. Close the sack and keep your hands free.' : 'Select a smoke bomb in the sack and press E to equip it, then Space to use.');
@@ -336,6 +343,10 @@ window.addEventListener('keydown', e => {
       cancelSearch(searchSession); cancelPlacement(placement); sack.reset();
       tell('Hold E and stay still for half a second to hide.');
     }
+    return;
+  }
+  if (rigTarget && !searchTarget) {
+    if (beginRig(world, player, rigTarget, objects)) { cancelSearch(searchSession); tell('Rigging the crate. Keep E held and stay still for 2 seconds.'); }
     return;
   }
   if (searchTarget) {
@@ -388,7 +399,7 @@ const frame = time => {
     }
     if (events.exposed) { input.clear(); tell('The guard pulled you out! Run!'); }
     if (events.spotted) tell('Spotted! Get out of sight or return to the cart.');
-    if (events.hit) { cancelRoomDoor(world,player); cancelHiding(player); interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Knocked back! Keep moving and dodge the next swing.`); }
+    if (events.hit) { cancelRoomDoor(world,player); cancelHiding(player); player.rigging = null; interruptPlacement(placement); cancelSearch(searchSession); tell(`Hit! ${player.health} health left. Knocked back! Keep moving and dodge the next swing.`); }
     if (tickRoomDoors(world,[player],dt,p => input.held('KeyE') && !loot.held && !placement.itemId && !sack.isNavigating() && !document.querySelector('#raid-cart-panel').open)) tell('Door open. It stays open.');
     if (player.state === 'down') showRunResult(loseRun(run, loot, performance.now()), 'You went down. With nobody left to recover you, this run is over.');
     else {
@@ -396,6 +407,11 @@ const frame = time => {
       const hidden = updateHiding(world, player, input.held('KeyE'), dt, hideWitnesses, !!loot.held || !!placement.itemId || sack.isNavigating());
       if (hidden?.type === 'hidden') { input.clear(); sack.reset(); tell(hidden.witnessed ? 'A guard saw you hide! It is coming to pull you out.' : 'Hidden. E to come out; guards keep searching.'); }
       else if (hidden?.type === 'cancelled') tell('Hiding cancelled. Hold E and stay still to try again.');
+      if (updateRig(world, player, input.held('KeyE'), dt, objects)?.type === 'rigged') tell('Crate rigged. The first guard to come close is stunned, but it raises the alarm count.');
+      const offered = updateSacrifice(world, player, input.held('Space'), dt, loot, objects);
+      if (offered?.type === 'sacrificed') tell(`${LOOT_TYPES[offered.item.type].name} sacrificed. ${offered.opened.length} ${offered.opened.length === 1 ? 'container springs' : 'containers spring'} open.`);
+      else if (offered?.type === 'cancelled') tell('Sacrifice cancelled. The item is still on the floor.');
+      for (const sprung of updateCrateTraps(objects, guards, pressure)) { void sprung; tell('Crate trap sprung! A guard is stunned, and the alarm count rises.'); }
       for (const item of loot.ground) if (item.spillAge !== undefined) item.spillAge += dt;
       const placed = updatePlacement(placement, world, player, loot, traps, [...objects, ...hidingSpots], placement.aimPoint ?? placementPoint(player), input.held('KeyE') && !aiming, dt);
       if (placed) tell('Snare placed. Step fully clear to arm it. Goblins can waste armed snares.');
@@ -436,6 +452,8 @@ const frame = time => {
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
   else if (player.hiding) targetText = `Hidden in barrel · E to exit${player.hidingAnchor ? ' · Space anchor' : ''} · guards still active`;
   else if (player.enteringHide) targetText = 'Hiding… hold E and stay still';
+  else if (player.rigging) targetText = 'Rigging crate… hold E and stay still';
+  else if (player.sacrificing) targetText = `Sacrificing ${LOOT_TYPES[player.sacrificing.item.type].name}… hold Space and stay still`;
   else if (hideTarget && !loot.held && !sack.isNavigating()) targetText = 'Hiding barrel · hold E for half a second';
   else if (placement.itemId) targetText = 'WASD aim snare · hold E for 1 second · Esc cancel';
   else if (sack.isNavigating()) targetText = 'Sack · WASD select · E equip gear · Tab close';
@@ -445,7 +463,8 @@ const frame = time => {
   else if (doorTarget) targetText = 'Door · hold E to open';
   else if (unlockTarget) targetText = 'Locked treasure room · E to use its key';
   else if (searchTarget) targetText = `${searchableName(searchTarget)} · hold E to search`;
-  else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift`;
+  else if (rigTarget) targetText = 'Searched crate · hold E for 2 seconds to rig a trap';
+  else if (target) targetText = `${itemLabel(target)}${LOOT_TYPES[target.type].sellValue ? ` · ${itemSaleValue(target)} gold` : ''} · E pack / click to lift${player.sackSacrifice && sacrificeTarget(world, player, [target], objects) ? ' · hold Space to sacrifice' : ''}`;
   else targetText = 'Explore · find something worth stealing';
   targetText = controlHint(targetText);
   if (document.querySelector('#target-label').textContent !== targetText) document.querySelector('#target-label').textContent = targetText;

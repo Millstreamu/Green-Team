@@ -13,7 +13,7 @@ test('passives unlock separately from activation, persist personally, migrate ol
  assert.equal(setPassiveActive(p,'quietHands',true),false);
  for(const id of ['quickSearch','quietHands','luckyGoblin']){assert.ok(buyPersonalUpgrade(p,id));assert.equal(activePassives(p).length,0);}
  for(const id of ['quickSearch','quietHands','luckyGoblin'])assert.ok(setPassiveActive(p,id,true));
- assert.deepEqual(passiveEffects(p),{searchRate:1.1,quietHands:true,passiveLuck:true,panicSprint:false,hideSense:false,searchVeil:false,hidingAnchor:false,shadowStillness:false});assert.equal(activePassives(p).length,3);
+ assert.deepEqual(passiveEffects(p),{searchRate:1.1,quietHands:true,passiveLuck:true,panicSprint:false,hideSense:false,searchVeil:false,hidingAnchor:false,shadowStillness:false,extraHeart:false,haggler:false,treasureBearing:false,crateTrap:false,sackSacrifice:false});assert.equal(activePassives(p).length,3);
  assert.equal(setPassiveActive(p,'quietHands',true),false);assert.equal(setPassiveActive(p,'smoke',true),false);assert.equal(setPassiveActive(p,'quietHands',1),false);
  const map=new Map(),storage={getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)};assert.ok(saveProfile(p,storage));assert.deepEqual(loadProfile(storage),p);
  assert.ok(setPassiveActive(p,'quietHands',false));assert.equal(passiveEffects(p).quietHands,false);assert.equal(activePassives(other).length,0);

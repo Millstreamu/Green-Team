@@ -3,13 +3,13 @@ export const CART_HOLD = Object.freeze({width:6,height:6});
 export function createRunCart(){return {items:[],aboard:[],countdown:null};}
 // Transfers move the exact instance, preserving count, rotation, sale multiplier
 // and test-item tags. Capacity is spatial; it never grows with stack counts.
-export function transferCart(cart,loot,id,toCart){
+export function transferCart(cart,loot,id,toCart,ownerId=null){
  if(loot.held||typeof id!=='string'||toCart!==true)return false;
  const source=loot.bag,target=cart.items;
  const index=source.findIndex(item=>item.id===id);if(index<0)return false;
  const item=source[index];if(LOOT_TYPES[item.type]?.runOnly)return false;
  const placed=findSpace(target,item,CART_HOLD);if(!placed)return false;
- source.splice(index,1);target.push(placed);return true;
+ source.splice(index,1);if(ownerId)placed.cartedBy=ownerId;target.push(placed);return true;
 }
 export function boardRunCart(cart,id,active){
  if(typeof active!=='boolean'||typeof id!=='string')return false;

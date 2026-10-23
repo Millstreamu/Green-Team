@@ -38,5 +38,30 @@
     "name": "Shadow Stillness",
     "width": 32,
     "height": 40
+  },
+  "extraHeart": {
+    "name": "Tough Hide",
+    "width": 32,
+    "height": 40
+  },
+  "haggler": {
+    "name": "Haggler",
+    "width": 32,
+    "height": 40
+  },
+  "treasureBearing": {
+    "name": "Treasure Sense",
+    "width": 32,
+    "height": 40
+  },
+  "crateTrap": {
+    "name": "Crate Trap",
+    "width": 32,
+    "height": 40
+  },
+  "sackSacrifice": {
+    "name": "Sack Sacrifice",
+    "width": 32,
+    "height": 40
   }
 }

@@ -37,6 +37,9 @@ export const LUCKY = Object.freeze({ goldChanceBonus: .05, passiveGoldChanceBonu
 export const VANISH = Object.freeze({ seconds: 8 });
 // Shadow Stillness: shadow is floor more than lightReach tiles from every torch that reaches it.
 export const SHADOW = Object.freeze({ lightReach: 4, stillSeconds: 1, closeRange: 1.5 });
+// Campfire ability trial values: extra hearts, sale bonus, treasure arrow timing,
+// crate trap (rig hold, trigger reach from the crate centre, stun) and sack sacrifice.
+export const ABILITY = Object.freeze({ extraHearts: 1, saleBonus: .2, bearingEvery: 20, bearingShow: 3, rigSeconds: 2, trapReach: 1.5, trapStun: 1, sacrificeSeconds: 10, sacrificeMinGold: 5 });
 export const DISGUISE = Object.freeze({ seconds: 10, recognitionRange: 1 });
 export const BELL = Object.freeze({ range: 5, hearingRange: 8, inspectSeconds: 2, investigateSeconds: 8, flightSeconds: .35 });
 export const BERRY = Object.freeze({ range: 4, speed: 10, blindSeconds: 1 });

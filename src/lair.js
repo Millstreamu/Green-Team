@@ -4,6 +4,7 @@ import { selectJob } from './jobs.js';
 import { PROGRESSION } from './config.js';
 import { knowsRecipe } from './profile.js';
 import { LOOT_TYPES, itemSaleValue, fits, itemCount, validItemCount, packItem, matchingStack } from './loot.js';
+import { ABILITY } from './config.js';
 import { buildTrapLoadout } from './loadout.js';
 import { clearPath } from './loot.js';
 
@@ -106,12 +107,13 @@ export function takeSupplies(camp, quantities, seed, debug = false) {
 }
 export function bankEscape(camp, result, loot, cart = null) {
   if (result.outcome !== 'escaped' || result.banked) return false;
-  let gold = 0;
+  let gold = 0, bonus = 0;
   for (const item of [...loot.bag, ...(cart?.items ?? [])]) if (!item.debugSupply && !LOOT_TYPES[item.type].runOnly) {
-    if (LOOT_TYPES[item.type].sellValue) gold += itemSaleValue(item);
+    if (LOOT_TYPES[item.type].sellValue) { gold += itemSaleValue(item); if (item.haggled) bonus += Math.round(itemSaleValue(item) * ABILITY.saleBonus); }
     else camp.counts[item.type]++;
   }
-  camp.counts.gold += gold; result.soldGold = gold;
+  // Haggler gold is extra sale gold only; personal XP still follows plain recovered value.
+  camp.counts.gold += gold + bonus; result.soldGold = gold + bonus; if (bonus) result.hagglerGold = bonus;
   loot.bag.length = 0; if (cart) cart.items.length = 0; result.banked = true; syncStashSlots(camp); return true;
 }
 const CAMP_SAVE_KEY = 'green-team-camp-v1';

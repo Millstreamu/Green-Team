@@ -12,6 +12,7 @@ import { createSearchables, createSearchSession, beginSearch, cancelSearch, upda
 import { createRun, atTunnel } from '../src/run.js';
 import { awardPersonalXp, personalSearchRate, passiveEffects } from '../src/profile.js';
 import { bankEscape } from '../src/lair.js';
+import { markHagglerItems } from '../src/passive-effects.js';
 
 // The same single-player rules operate on one shared dungeon and separate sacks.
 export function createDungeonSession(launch, participants, camp) {
@@ -38,7 +39,7 @@ export function createDungeonSession(launch, participants, camp) {
     settled = true;
     // Ghosts and expired goblins never bank their dungeon sacks on another's exit.
     const escaped = participants.filter(p => p.inRun && p.connected && p.state === 'active');
-    const recovered = outcome === 'escaped' ? [...escaped.flatMap(p => p.bag.map(item => ({ ...item }))), ...run.cart.items.map(item=>({...item}))] : [];
+    const recovered = outcome === 'escaped' ? [...escaped.flatMap(p => markHagglerItems(p.bag.map(item => ({ ...item })), () => p.haggler === true)), ...markHagglerItems(run.cart.items.map(item=>({...item})), item => participants.some(q => q.id === item.cartedBy && q.haggler === true))] : [];
     const recoveredIds = new Set(recovered.map(item => item.id));
     const items = recovered.filter(item => !LOOT_TYPES[item.type].equipment && !LOOT_TYPES[item.type].runOnly);
     const result = { runId: launch.id, outcome, job: launch.job, items, count: items.reduce((n, item) => n + itemCount(item), 0),
@@ -71,14 +72,14 @@ export function createDungeonSession(launch, participants, camp) {
         stopSearch(p);danger.cancel(p);
         if (message.type === 'cart-board') { p.input={x:0,y:0}; return boardRunCart(run.cart,p.id,message.active); }
         if(run.cart.aboard.includes(p.id))return false;
-        const moved=transferCart(run.cart,loot,message.id,message.toCart);
+        const moved=transferCart(run.cart,loot,message.id,message.toCart,p.id);
         if(moved){for(const field of ['dartId','bellId','potionId','orbId','berryId'])if(p[field]===message.id)p[field]=null;p.quickType=null;}
         return moved;
       }
       if(run.cart.aboard.includes(p.id))return false;
       if (message.type === 'cancel-search') { stopSearch(p);
         // Releasing E cancels hide entry, but keeps equipped traps available.
-        p.enteringHide = null; danger.rescue.cancel(p); return true; }
+        p.enteringHide = null; p.rigging = null; danger.rescue.cancel(p); return true; }
       if (p.hiding && !['hide', 'anchor'].includes(message.type)) return false;
       if (message.type === 'open-door') {
         stopSearch(p); danger.cancel(p);
@@ -93,7 +94,7 @@ export function createDungeonSession(launch, participants, camp) {
         if (typeof message.id !== 'string') return false;
         stopSearch(p); danger.cancel(p); return danger.rescue.start(p, message.id);
       }
-      if (['equip', 'aim', 'smoke', 'hide', 'cancel-placement', 'fire-dart', 'aim-dart', 'aim-bell', 'throw-bell', 'drink-disguise', 'drink-potion', 'use-orb', 'aim-berries', 'throw-berry', 'anchor'].includes(message.type)) {
+      if (['equip', 'aim', 'smoke', 'hide', 'cancel-placement', 'fire-dart', 'aim-dart', 'aim-bell', 'throw-bell', 'drink-disguise', 'drink-potion', 'use-orb', 'aim-berries', 'throw-berry', 'anchor', 'rig', 'sacrifice'].includes(message.type)) {
         if (message.type !== 'aim') { danger.rescue.cancel(p); stopSearch(p); p.enteringHide = null; }
         return danger.action(p, message);
       }
@@ -172,7 +173,7 @@ export function createDungeonSession(launch, participants, camp) {
       return { ...danger.snapshot(), id: launch.id, seed: launch.seed, layout: world.layout, roomTypes:world.rooms.map(r=>r.roomType??null), tuning: world.tuning, treasure: publicTreasure(world), roomDoors: structuredClone(world.roomDoors ?? []), job: launch.job, entrance: run.entrance, cart: structuredClone(run.cart),
         objects: objects.map(o => {
           const searcher = participants.find(p => p.inRun && p.connected && p.search?.active?.id === o.id);
-          return { id: o.id, type: o.type, roomType:o.roomType, roomFurniture:o.roomFurniture, x: o.x, y: o.y, tileX: o.tileX, tileY: o.tileY, width: o.width, height: o.height, facing: o.facing, approach: o.approach, searched: o.searched,
+          return { id: o.id, type: o.type, roomType:o.roomType, roomFurniture:o.roomFurniture, x: o.x, y: o.y, tileX: o.tileX, tileY: o.tileY, width: o.width, height: o.height, facing: o.facing, approach: o.approach, searched: o.searched, riggedBy: o.riggedBy ?? null,
             ...(searcher ? { searcherId: searcher.id, searcherName: searcher.name, elapsed: searcher.search.elapsed, duration: searcher.search.duration } : {}) };
         }), ground };
     }

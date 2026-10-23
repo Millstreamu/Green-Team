@@ -1028,3 +1028,9 @@ Publishing format: ready-made root-level index/game/creator HTML, relative asset
 **Agreed behaviour:** user picked the hiding-spot anchor (with cooldown, teammates cannot use it) and Shadow Stillness, and approved the suggested rules and numbers: Barrel Anchor 75 XP, Space set/travel, 30-second cooldown, personal, resets each raid, refused when occupied; Shadow Stillness 150 XP, shadow beyond 4 tiles of torch light, 1 second still, guards within 1.5 tiles still see. Torch lighting is now also a gameplay rule (shadow), shared by solo, server and the renderer. See future-items-and-abilities.md for details.
 
 **Still experimenting:** all numbers await playtesting, especially how strong shadows are in dark corridors. "Barrel Anchor" is a working name. R / Rotate to move the anchor was an implementation choice.
+
+## Five more campfire abilities — 23 October 2026
+
+**Agreed behaviour:** user approved Tough Hide, Haggler, Treasure Sense, Crate Trap and Sack Sacrifice with the suggested rules and numbers, plus their own rules for Sack Sacrifice (drop the item, hold Space 10 s, gold-value items only) and Haggler ownership (cart loader or sack owner at the end). Haggler adds sale gold only; personal XP still follows plain recovered value. See future-items-and-abilities.md.
+
+**Still experimenting:** all values await playtesting; names (Tough Hide, Haggler, Treasure Sense) are working names; the 5-gold sacrifice minimum, crate trigger reach and the icons are AI suggestions accepted for now.
