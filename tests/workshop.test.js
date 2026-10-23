@@ -13,7 +13,7 @@ import { LAIR_ART_SLOTS, lairArtBounds } from '../workshop/lair-art.js';
 import { createCamp,createLairWorld,lairTarget } from '../src/lair.js';
 
 test('old workshop exports migrate without losing choices and invalid lair assets are rejected',()=>{
- const current=createWorkshopDraft(),old=structuredClone(current);delete old.lair;delete old.furniture;delete old.abilities;delete old.words;old.version=1;old.costs.smoke=9;
+ const current=createWorkshopDraft(),old=structuredClone(current);delete old.lair;delete old.furniture;delete old.abilities;delete old.words;delete old.menu;old.version=1;old.costs.smoke=9;
  const upgraded=validateWorkshopDraft(old);assert.equal(upgraded.version,2);assert.equal(upgraded.costs.smoke,9);assert.deepEqual(upgraded.lair,{tiles:null,props:{}});assert.equal(old.version,1);assert.equal(old.lair,undefined);
  for(const change of [d=>d.lair.props.unknown='data:image/png;base64,AAAA',d=>d.lair.tiles='http://invalid',d=>d.lair.props=[],d=>d.version=99]){const bad=structuredClone(current);change(bad);assert.throws(()=>validateWorkshopDraft(bad));}
  const old2=structuredClone(current);delete old2.furniture;old2.costs.smoke=13;const migrated=validateWorkshopDraft(old2);assert.deepEqual(migrated.furniture,{});assert.equal(migrated.costs.smoke,13);
@@ -244,4 +244,23 @@ test('menu words keep live numbers, validate placeholders and rename items every
  assert.equal(result.snare.name,'Bear trap');assert.equal(result.snare.effect,`Clamps a guard for ${TRAPS.holdTime} seconds.`);assert.equal(result.snare.limits,gearDetails('snare').limits);
  assert.equal(result.bell.effect,gearDetails('bell').effect);
  assert.equal(result.PERSONAL_UPGRADES.panicSprint.name,'Leg it');assert.equal(result.PASSIVE_DETAILS.panicSprint.effect,'Run 20% faster.');assert.equal(result.PERSONAL_UPGRADES.panicSprint.cost,d.costs.panicSprint);
+});
+
+test('menu look saves colours and art, stays empty by default and styles every lair menu in a playtest',async()=>{
+ const {MENU_ART_SLOTS,GAME_MENU_SELECTORS,menuThemeCss}=await import('../workshop/menu-theme.js');
+ const manifest=JSON.parse(readFileSync(new URL('../workshop/templates/menu-manifest.json',import.meta.url)));assert.deepEqual(manifest,JSON.parse(JSON.stringify(MENU_ART_SLOTS)));
+ const d=createWorkshopDraft();assert.deepEqual(d.menu,{colors:{},art:{}});assert.equal(menuThemeCss(d.menu,GAME_MENU_SELECTORS),'');
+ const png=id=>'data:image/png;base64,'+readFileSync(new URL(`../workshop/templates/menu/${id}-example.png`,import.meta.url)).toString('base64');
+ d.menu.colors={paper:'#112233',accent:'#abcdef'};d.menu.art={frame:png('frame'),lock:png('lock')};
+ assert.deepEqual(validateWorkshopDraft(JSON.parse(JSON.stringify(d))),d);
+ for(const change of [m=>m.colors.paper='red',m=>m.colors.glow='#000000',m=>m.art.fake=png('lock'),m=>m.extra={}]){const bad=structuredClone(d);change(bad.menu);assert.throws(()=>validateWorkshopDraft(bad));}
+ const older=createWorkshopDraft();delete older.menu;assert.deepEqual(validateWorkshopDraft(older).menu,{colors:{},art:{}});
+ const css=menuThemeCss(d.menu,GAME_MENU_SELECTORS);
+ assert.match(css,/#lair-panel \.station-shell,\.route-shell\{background:#112233!important/);assert.match(css,/border-image:url\("data:image\/png;base64,[^"]+"\) 16 fill\/16px round/);
+ assert.match(css,/#lair-panel #book-action[^{]*\{background:#abcdef!important/);assert.match(css,/#lair-panel \.recipe-lock::before,#lair-panel \.recipe-lock::after\{display:none/);
+ const h=surfaceHarness(d,'manor','lair'),styles=[];h.sandbox.document.head={append:(...a)=>styles.push(...a)};
+ const result=await vm.runInNewContext('(async()=>{'+gameSource()+';return {world};})()',h.sandbox);
+ assert.ok(result.world.lair);assert.equal(styles.length,1);assert.equal(styles[0].textContent,css);
+ const wrong=structuredClone(d);wrong.menu.art.slot=png('frame');const w=surfaceHarness(wrong,'manor','lair');w.sandbox.document.head={append(){}};
+ await assert.rejects(vm.runInNewContext('(async()=>{'+gameSource()+';})()',w.sandbox),/wrong size/);
 });

@@ -1,0 +1,27 @@
+{
+  "frame": {
+    "name": "Window frame · 9-slice",
+    "width": 48,
+    "height": 48
+  },
+  "slot": {
+    "name": "Slot square",
+    "width": 32,
+    "height": 32
+  },
+  "slotSelected": {
+    "name": "Slot square · selected",
+    "width": 32,
+    "height": 32
+  },
+  "slotEmpty": {
+    "name": "Slot square · empty placeholder",
+    "width": 32,
+    "height": 32
+  },
+  "lock": {
+    "name": "Lock overlay",
+    "width": 32,
+    "height": 32
+  }
+}

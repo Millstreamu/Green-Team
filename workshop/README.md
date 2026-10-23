@@ -68,6 +68,10 @@ Choose a sound cue, upload WAV/MP3/OGG/WebM and Listen. Clip playback uses the g
 
 Open **Words** to rename workbench gear, potions and campfire abilities, and to reword their short line, effect and limits. Numbers in {braces}, such as {holdTime}, are filled from the game's real effect values, so the text stays true when balance changes; the buttons list each item's numbers with today's value. Typing a plain number changes only the words, not how the item works. A new name is used everywhere the game reads its item and ability lists: menus, sack, stash, Gear guide and the recipe unlock name. A few fixed tips and prompts written into the game, such as the smoke bomb hint, keep their original wording. Empty boxes or Restore original words return to the game's text. Words are saved in Export project.
 
+## Menus
+
+Open **Menus** to give every lair menu one shared look: workbench, potion station, campfire, stash, map table and departure. Pick paper, ink, faded text, frame & lines and accent colours, and watch the preview. Then upload any of five art pieces: a 48 × 48 window frame cut into nine 16 px pieces (corners stay fixed, edges and middle repeat to fit any window), and 32 × 32 squares for a normal slot, a selected slot, an empty placeholder slot and the lock overlay, which stretch to each slot. Text, buttons and layout stay as they are, and the light E and XP key caps keep dark text on any paper. The stash grid itself is drawn by the game and keeps its own colours. Files and guides are in templates/menu. Restore original look clears everything; the look is saved in Export project.
+
 ## Balance and charts
 
 Loot percentages and material weights belong to the selected map. Unlock XP and recipe ingredient costs apply across all maps. Run settings apply across all maps; generator parameters belong to the selected map. Only editable fields in the UI are supported: this does not yet edit sale prices, item effects, passive strengths or progression formulas.

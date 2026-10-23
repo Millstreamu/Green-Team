@@ -1267,3 +1267,11 @@ Task: second slice of "edit menu items" — editable names and text with numbers
 Checks: a before/after snapshot of every gear and ability text matched exactly. 469/469 tests pass; the new test checks live numbers, refused placeholders, migration, and a real sandbox lair where a renamed snare, smoke bomb and Panic sprint reach item, recipe, unlock and ability lists with filled numbers. In the browser: the Words tab rendered, previews filled {holdTime} as 3, an unknown {oops} showed a warning, and edits saved; a lair playtest showed "Leg it" with "Run 20% faster for 3 seconds when spotted." at the campfire, and the Gear guide list read "Bear trap". Not seen on screen: the workbench and sack with the new name (scripted movement could not reach the workbench; covered by the sandbox test). Phones not checked.
 
 Next: menu look (panel art), after the user confirms.
+
+## Menu look in the workshop — 23 October 2026
+
+Task: third slice of "edit menu items" — menu colours and menu art with one shared look. Added workshop/menu-theme.js (colour defaults, five art slots, the game selectors and a self-contained stylesheet builder), workshop/menu-editor.js and a Menus tab with colour pickers, art upload and a live mock workbench preview in workshop/shell.html. workshop/model.js validates and migrates the new menu field; workshop/game-adapter.js checks art sizes and adds the stylesheet in playtests; build wiring in scripts/build-workshop.mjs; new scripts/build-menu-templates.mjs with templates in workshop/templates/menu and menu-manifest.json. Rebuilt docs/.
+
+Checks: 470/470 tests pass (new test covers defaults, validation, migration, generated CSS, the stylesheet reaching a real sandbox lair, and wrong-size art being refused). Browser: a lair playtest with dark paper, a red/blue test frame and green/yellow slots showed the nine-slice frame and slot art on the campfire menu; an early pass found some fixed dark text (ability title, XP badge, hold prompt) unreadable on dark paper, which was fixed by theming those colours and keeping key caps dark-on-light, then rechecked. The Menus tab preview updated live from colour changes. Not checked on screen: workbench lock overlay, stash, map table and departure with custom art; phones.
+
+Next: discuss "new items" (copy an existing behaviour with its own name, art, recipe and numbers) before building.

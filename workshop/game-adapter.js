@@ -1,5 +1,6 @@
 import { FURNITURE_ART_SLOTS } from '../src/furniture-art.js';
 import { ABILITY_ART_SLOTS } from './ability-art.js';
+import { MENU_ART_SLOTS, GAME_MENU_SELECTORS, menuThemeCss } from './menu-theme.js';
 // Build-time adapter for an isolated V97 solo sandbox. Production source/save rules
 // remain untouched. Every source patch fails closed when its expected anchor changes.
 export function adaptWorkshopGame(source) {
@@ -13,6 +14,9 @@ for(const[id,src]of Object.entries(workshopDraft.furniture??{})){const img=new I
 const workshopAbilityImages = new Map();
 for(const[id,src]of Object.entries(workshopDraft.abilities??{})){const img=new Image();img.src=src;await img.decode();const slot=${JSON.stringify(ABILITY_ART_SLOTS)}[id];if(!slot||img.naturalWidth!==slot.width||img.naturalHeight!==slot.height)throw Error('Ability icon PNG has the wrong size.');workshopAbilityImages.set(id,img);}
 function workshopDrawAbility(canvas,id){const im=workshopAbilityImages.get(id);if(!im)return false;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);c.imageSmoothingEnabled=false;c.drawImage(im,0,0,canvas.width,canvas.height);return true;}
+for(const[id,src]of Object.entries(workshopDraft.menu?.art??{})){const img=new Image();img.src=src;await img.decode();const slot=${JSON.stringify(MENU_ART_SLOTS)}[id];if(!slot||img.naturalWidth!==slot.width||img.naturalHeight!==slot.height)throw Error('Menu art PNG has the wrong size.');}
+${menuThemeCss.toString()}
+{const css=menuThemeCss(workshopDraft.menu,${JSON.stringify(GAME_MENU_SELECTORS)});if(css){const style=document.createElement('style');style.id='workshop-menu-look';style.textContent=css;document.head.append(style);}}
 const workshopWords = workshopDraft.words ?? {};
 function workshopWordList(defaults){return Object.freeze(Object.fromEntries(Object.entries(defaults).map(([id,words])=>{const {name,...custom}=workshopWords[id]??{};return [id,{...words,...custom}];})));}
 const workshopTerrain = {};
