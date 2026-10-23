@@ -1,5 +1,6 @@
 import { DISGUISE, VANISH } from './config.js';
 import { cancelPlacement } from './traps.js';
+import { breakShadow } from './shadows.js';
 
 export const POTIONS = Object.freeze({
   lucky: Object.freeze({ runEffect: 'lucky' }),
@@ -31,7 +32,7 @@ export function drinkDisguise(loot, player, id = player.potionId) {
   return loot.bag.some(i => i.id === id && i.type === 'disguise') && drinkPotion(loot, player, id);
 }
 // Searching and successful gear use break either concealment effect.
-export function breakDisguise(player) { for (const p of concealmentPotions) player[p.timer] = 0; }
+export function breakDisguise(player) { for (const p of concealmentPotions) player[p.timer] = 0; breakShadow(player); }
 export function tickDisguise(player, dt) {
   for (const p of concealmentPotions) player[p.timer] = player.state === 'active' ? Math.max(0, (player[p.timer] ?? 0) - Math.max(0, dt)) : 0;
 }

@@ -7,6 +7,8 @@ import { transferCart, boardRunCart, tickRunCart } from './run-cart.js';
 import { equipBerries, beginBerryAim, throwBerry, updateBerries } from './berries.js';
 import { equipOrb, useOrb, updateScrying } from './scrying.js';
 import { equipPotion, drinkPotion, isPotion } from './potions.js';
+import { inShadow, updateShadowStillness } from './shadows.js';
+import { litTorches } from './lighting.js';
 import { equipDart, beginDartAim, fireDart, updateDarts, boundDartAim } from './darts.js';
 import { equipBell, beginBellAim, throwBell, updateBells } from './bells.js';
 import { DART, BELL, BERRY } from './config.js';
@@ -18,7 +20,7 @@ import { setupGameScreen, updateGameHud, controlHint } from './game-screen.js';
 import { loadProfile, saveProfile, awardPersonalXp, personalSearchRate, passiveEffects } from './profile.js';
 import { createPressure, updatePressure } from './pressure.js';
 import { pressureLabel } from './pressure-view.js';
-import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from './hiding.js';
+import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding, useHidingAnchor, anchorMessage } from './hiding.js';
 import { seesPlayer } from './guard.js';
 import { selectJob, createDeparture, setDestination, toggleCartSeat, tickDeparture } from './jobs.js';
 import { useSmoke, updateSmoke } from './smoke.js';
@@ -187,6 +189,7 @@ setupTouchSack({ canvas: sackCanvas, sack, getLoot: () => loot,
   onBegin: () => { input.clearMovement(); cancelSearch(searchSession); cancelHiding(player); },
   move: (id, x, y) => feedback.result(movePackedItem(loot, id, x, y), null), place: (x, y) => feedback.result(placeHeld(loot, x, y)), onBlocked: () => feedback.play('blocked') });
 canvas.addEventListener('touchrotate', () => {
+  if (run.phase === 'exploring' && player.hiding && player.hidingAnchor) { tell(anchorMessage(useHidingAnchor(player, hidingSpots, guards, true), player)); return; }
   if (run.phase !== 'exploring' || player.hiding || placement.itemId) return;
   if (loot.held) { loot.held.rotation = (loot.held.rotation + 1) % 4; }
   else { const item = sack.itemForEquip(loot, pointer); if (item) feedback.result(rotatePackedItem(loot, item.id), null); }
@@ -256,6 +259,7 @@ window.addEventListener('keydown', e => {
   if (player.hiding) {
     if (['KeyE', 'Tab', 'Space', 'KeyR'].includes(e.code)) e.preventDefault();
     if (e.code === 'KeyE' && !e.repeat) { leaveHiding(player); input.clear(); tell('Out of hiding. Watch the guards before moving.'); }
+    if (['Space', 'KeyR'].includes(e.code) && !e.repeat && player.hidingAnchor) tell(anchorMessage(useHidingAnchor(player, hidingSpots, guards, e.code === 'KeyR'), player));
     return;
   }
   if (['Tab', 'Space', 'Escape'].includes(e.code)) cancelHiding(player);
@@ -371,6 +375,8 @@ const frame = time => {
     const aiming = !!placement.itemId && moveTrapAim(placement, player, direction, dt);
     boundDartAim(placement, player, canvas);
     movePlayer(world, player, placement.itemId || sack.isNavigating() ? { x: 0, y: 0 } : direction, dt); tickVitality(player, dt, world);
+    // Same torch list and obstacles the renderer lights the scene with.
+    if (player.shadowStillness) updateShadowStillness(player, dt, inShadow(litTorches(world, [...objects, ...hidingSpots, ...(run.cages ?? []), ...(pressure?.doors ?? []).map(d => d.spawn)]), player), !!searchSession.active || !!player.enteringHide);
     for (const event of updateTraps(traps, [player], guards, dt)) {
       if (event.type === 'goblin-triggered') tell('A goblin triggered the snare. No harm, but the trap is spent.');
       if (event.type === 'guard-triggered') tell('Guard snared! You have three seconds to get away.');
@@ -428,7 +434,7 @@ const frame = time => {
   else if (run.phase === 'lair-panel') targetText = 'Lair station · Esc to return';
   else if (run.phase === 'planning') targetText = 'Map table · choose destination and difficulty';
   else if (run.phase === 'results') targetText = run.result.outcome === 'down' ? 'You went down · run complete' : 'Back through the tunnel · run complete';
-  else if (player.hiding) targetText = 'Hidden in barrel · E to exit · guards still active';
+  else if (player.hiding) targetText = `Hidden in barrel · E to exit${player.hidingAnchor ? ' · Space anchor' : ''} · guards still active`;
   else if (player.enteringHide) targetText = 'Hiding… hold E and stay still';
   else if (hideTarget && !loot.held && !sack.isNavigating()) targetText = 'Hiding barrel · hold E for half a second';
   else if (placement.itemId) targetText = 'WASD aim snare · hold E for 1 second · Esc cancel';

@@ -151,6 +151,7 @@ export async function createRenderer(canvas, mapCanvas) {
         rect(sx - Math.floor(shadowWidth / 2), sy - 2, shadowWidth, shadowHeight, '#182222');
         ctx.save(); ctx.translate(sx, sy - hop);
         if (player.vanishLeft > 0) ctx.globalAlpha = .3;
+        else if (player.shadowHidden) ctx.globalAlpha = .45;
         if (player.ghost) { ctx.globalAlpha = .35; ctx.filter = 'grayscale(1)'; } ctx.scale(player.facing / GOBLIN_ART.faces, 1);
         if (player.state === 'carried') ctx.translate(0, -10);
         if (player.state === 'down' || player.state === 'carried') ctx.rotate(Math.PI / 2);
@@ -193,6 +194,8 @@ export async function createRenderer(canvas, mapCanvas) {
     map.fillStyle = '#ead48c'; map.fillRect(Math.floor(run.entrance.x) * 2 - 2, Math.floor(run.entrance.y) * 2 - 2, 6, 6);
     drawScrying(map, scryPings);
     drawHiddenGuardMark(map, player, guards);
+    const anchor = player.anchorSpotId && hidingSpots.find(spot => spot.id === player.anchorSpotId);
+    if (anchor) { map.fillStyle = '#b48ce0'; map.fillRect(Math.floor(anchor.x) * 2 - 1, Math.floor(anchor.y) * 2 - 1, 4, 4); }
     map.fillStyle = '#c7ee7b'; map.fillRect(Math.floor(player.x) * 2, Math.floor(player.y) * 2, 2, 2);
   };
 }

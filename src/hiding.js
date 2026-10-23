@@ -29,6 +29,36 @@ export function enterHiding(world, player, spot, witnesses = []) {
   player.x = spot.x; player.y = spot.y; player.moving = false; player.phase = 0; player.knockbackLeft = 0;
   return true;
 }
+// Barrel Anchor: one personal barrel per raid, reached from any other barrel.
+export function setHidingAnchor(player) {
+  if (!player.hidingAnchor || !player.hiding || player.state !== 'active') return false;
+  player.anchorSpotId = player.hiding.spot.id; return true;
+}
+export function travelToAnchor(player, spots, guards = []) {
+  if (!player.hidingAnchor || !player.hiding || player.state !== 'active') return 'unavailable';
+  const from = player.hiding.spot, to = spots.find(spot => spot.id === player.anchorSpotId);
+  if (!to) return 'none';
+  if (to.id === from.id) return 'here';
+  if (player.anchorCooldown > 0) return 'cooldown';
+  if (to.occupantId != null) return 'occupied';
+  // Guards who saw the goblin hide head for the barrel it left and search from there.
+  for (const guard of guards) if (guard.knownHiding?.playerId === player.id) { guard.lastSeen = { x: guard.knownHiding.x, y: guard.knownHiding.y }; guard.knownHiding = null; }
+  if (from.occupantId === player.id) from.occupantId = null;
+  to.occupantId = player.id;
+  player.hiding = { spot: to, outside: { x: to.approach.x, y: to.approach.y } };
+  player.x = to.x; player.y = to.y; player.anchorCooldown = HIDING.anchorCooldown;
+  return 'moved';
+}
+// Space returns to the anchor (or sets the first one); R / Rotate moves it to this barrel.
+export function useHidingAnchor(player, spots, guards = [], moveHere = false) {
+  if (moveHere || !player.anchorSpotId) return setHidingAnchor(player) ? 'set' : 'unavailable';
+  return travelToAnchor(player, spots, guards);
+}
+export function anchorMessage(result, player) {
+  return { set: 'Anchor set on this barrel. From another barrel, Space brings you back here.', moved: `Back in your anchor barrel, still hidden. Next jump in ${Math.ceil(player.anchorCooldown)}s.`,
+    here: 'This is your anchor barrel. R or Rotate moves the anchor to the barrel you are in.', cooldown: `Anchor recharging · ${Math.ceil(player.anchorCooldown)}s.`,
+    occupied: 'Someone is in your anchor barrel. Try again soon.', none: 'Your anchor barrel is gone.', unavailable: '' }[result] ?? '';
+}
 export function leaveHiding(player) {
   if (!player.hiding) return false;
   const { spot, outside } = player.hiding;

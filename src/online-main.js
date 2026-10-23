@@ -223,7 +223,9 @@ window.addEventListener('keydown', event => {
   if (!activeDungeon()) return;
   if (player.hiding) {
     if (['KeyE', 'Tab', 'Space', 'KeyR'].includes(event.code)) event.preventDefault();
-    if (event.code === 'KeyE' && !event.repeat) { clear(); send({ type: 'hide' }); } return;
+    if (event.code === 'KeyE' && !event.repeat) { clear(); send({ type: 'hide' }); }
+    if (['Space', 'KeyR'].includes(event.code) && !event.repeat && player.hidingAnchor) send({ type: 'anchor', here: event.code === 'KeyR' });
+    return;
   }
   if (event.code === 'Escape' && state.placement?.itemId) { event.preventDefault(); clear(); send({ type: 'cancel-placement' }); return; }
   if (event.code === 'Space') {
@@ -297,6 +299,7 @@ setupTouchSack({ canvas: $('#sack-grid'), sack, getLoot: () => loot,
   onBegin: () => { input.clearMovement(); stopSearch(); },
   move: (id, x, y) => send({ type: 'move-packed', id, x, y }), place: (x, y) => send({ type: 'place', x, y }), onBlocked: () => feedback.play('blocked') });
 $('#game').addEventListener('touchrotate', () => {
+  if (activeDungeon() && self().hiding && self().hidingAnchor && !modal()) { send({ type: 'anchor', here: true }); return; }
   if (!activeDungeon() || self().hiding || state.placement?.itemId || modal()) return;
   if (loot.held) send({ type: 'rotate' });
   else { const item = sack.itemForEquip(loot, pointer); if (item) send({ type: 'rotate-packed', id: item.id }); }
@@ -382,7 +385,7 @@ function frame(time) {
     const rescuing = dungeon?.rescues?.find(a => a.actorId === player.id);
     const searching = dungeon?.objects.find(o => o.searcherId === player.id);
     $('#target-label').textContent = controlHint(!connected ? 'Connection lost' : player.waiting ? 'Waiting in the lair for the next run' : dungeon
-      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? 'Hidden · E to exit' : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · cargo / Hold E · hop in' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${searchableName(target.item)}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'door' ? 'Hold E · open door' : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
+      ? player.state === 'down' ? 'Downed · teammate needs Packed Lunch' : player.state === 'carried' ? 'Captured · guard taking you to a cage' : player.state === 'caged' ? 'Caged · teammates can hold E to rescue you' : player.hiding ? `Hidden · E to exit${player.hidingAnchor ? ' · Space anchor' : ''}` : player.enteringHide ? 'Hiding · hold E' : state.placement?.itemId ? 'WASD aim · hold E to place · Esc cancel' : rescuing ? 'Rescuing · hold E and stay still' : loot.held ? `Holding ${itemLabel(loot.held)} · R rotate · E drop` : searching ? 'Searching · hold E' : atTunnel(runView(), world, player) ? 'E · cargo / Hold E · hop in' : target?.kind === 'loot' ? `E · pack ${itemLabel(target.item)}` : target?.kind === 'search' ? target.item.searcherId ? `${target.item.searcherName} is searching` : `Hold E · ${searchableName(target.item)}` : target?.kind === 'revive' ? `Hold E · revive ${target.item.name} · Packed Lunch` : target?.kind === 'rescue' ? `Hold E · rescue ${target.item.name}` : target?.kind === 'door' ? 'Hold E · open door' : target?.kind === 'unlock' ? 'E · unlock treasure room with its key' : target?.kind === 'hide' ? 'Hold E · hide' : 'Explore · Tab opens sack'
       : aboard ? `${state.cart.aboard.length}/${state.cart.participants.length} aboard · ${state.cart.countdown === null ? 'waiting for team' : `${Math.ceil(state.cart.countdown)}s`} · E hop out` : station ? `E · ${station.name}` : 'Tab · shared stash');
     sack.updateVisibility({ moving: player.moving && !sack.isNavigating(), targetId: target?.kind === 'loot' ? target.item.id : null, held: loot.held, pointer, active: !!dungeon && connected && player.state === 'active' && !player.hiding && !state.placement?.itemId && !modal() }, dt);
     sack.paint(loot, pointer);

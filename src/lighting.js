@@ -3,7 +3,7 @@ import { CONFIG } from './config.js';
 import { isSightOpen } from './world.js';
 import { placeProp } from './prop-placement.js';
 
-// Visual balance only. These values never enter guard sight or server rules.
+// Visual balance. Torch placement and light shapes also define shadow for Shadow Stillness.
 export const LIGHTING = Object.freeze({ ambientDarkness: .38, radius: 5.5, warmth: .14, flicker: .045, rays: 96, step: .12 });
 
 export function createTorches(world, obstacles = []) {
@@ -22,6 +22,20 @@ export function createTorches(world, obstacles = []) {
       phase: (((world.seed >>> 0) ^ Math.imul(index + 1, 2654435761)) >>> 0) / 4294967296 * Math.PI * 2 });
   });
   return torches;
+}
+
+// One torch list per world for drawing and the shadow rule. Light shapes are
+// recomputed when a treasure door opens (sight version change).
+const torchScenes = new WeakMap();
+export function litTorches(world, obstacles = []) {
+  if (world.lair) return [];
+  let scene = torchScenes.get(world);
+  if (!scene) { scene = { torches: createTorches(world, obstacles), version: null }; torchScenes.set(world, scene); }
+  if (scene.version !== (world.sightVersion ?? 0)) {
+    scene.torches = scene.torches.map(torch => ({ ...torch, polygon: lightPolygon(world, torch) }));
+    scene.version = world.sightVersion ?? 0;
+  }
+  return scene.torches;
 }
 
 // Cache static wall occlusion. Rays stop at the first solid cell, lighting its
@@ -67,17 +81,9 @@ export function drawTorches(ctx, torches, ox, oy, seconds) {
 }
 
 export function createLightingRenderer(makeCanvas = () => document.createElement('canvas')) {
-  const scenes = new WeakMap(), versions = new WeakMap(); let mask = null;
+  let mask = null;
   return {
-    scene(world, obstacles) {
-      if (world.lair) return null;
-      if (!scenes.has(world)) scenes.set(world, createTorches(world, obstacles));
-      if (versions.get(world) !== (world.sightVersion ?? 0)) {
-        scenes.set(world, scenes.get(world).map(torch => ({ ...torch, polygon: lightPolygon(world, torch) })));
-        versions.set(world, world.sightVersion ?? 0);
-      }
-      return scenes.get(world);
-    },
+    scene(world, obstacles) { return world.lair ? null : litTorches(world, obstacles); },
     draw(ctx, width, height, torches, ox, oy, seconds) {
       if (!torches) return;
       mask ??= makeCanvas();

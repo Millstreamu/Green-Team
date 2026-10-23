@@ -79,7 +79,7 @@ export function createDungeonSession(launch, participants, camp) {
       if (message.type === 'cancel-search') { stopSearch(p);
         // Releasing E cancels hide entry, but keeps equipped traps available.
         p.enteringHide = null; danger.rescue.cancel(p); return true; }
-      if (p.hiding && message.type !== 'hide') return false;
+      if (p.hiding && !['hide', 'anchor'].includes(message.type)) return false;
       if (message.type === 'open-door') {
         stopSearch(p); danger.cancel(p);
         if (typeof message.id !== 'string' || !beginRoomDoor(world,p,message.id)) return false;
@@ -93,7 +93,7 @@ export function createDungeonSession(launch, participants, camp) {
         if (typeof message.id !== 'string') return false;
         stopSearch(p); danger.cancel(p); return danger.rescue.start(p, message.id);
       }
-      if (['equip', 'aim', 'smoke', 'hide', 'cancel-placement', 'fire-dart', 'aim-dart', 'aim-bell', 'throw-bell', 'drink-disguise', 'drink-potion', 'use-orb', 'aim-berries', 'throw-berry'].includes(message.type)) {
+      if (['equip', 'aim', 'smoke', 'hide', 'cancel-placement', 'fire-dart', 'aim-dart', 'aim-bell', 'throw-bell', 'drink-disguise', 'drink-potion', 'use-orb', 'aim-berries', 'throw-berry', 'anchor'].includes(message.type)) {
         if (message.type !== 'aim') { danger.rescue.cancel(p); stopSearch(p); p.enteringHide = null; }
         return danger.action(p, message);
       }

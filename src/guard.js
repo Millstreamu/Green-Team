@@ -1,6 +1,6 @@
 import { tickPassiveEffects, triggerPanicSprint, passiveNoticeRate } from './passive-effects.js';
 import { tickDisguise, breakDisguise } from './potions.js';
-import { DISGUISE } from './config.js';
+import { DISGUISE, SHADOW } from './config.js';
 import { updateBellInvestigation, cancelBellInvestigation } from './bells.js';
 import { leaveHiding } from './hiding.js';
 import { smokeBlocksSight } from './smoke.js';
@@ -10,7 +10,7 @@ import { canStand, moveActor } from './world.js';
 import { clearPath } from './loot.js';
 import { findPath, followPath } from './navigation.js';
 
-export function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active', knockbackLeft: 0, knockbackX: 0, knockbackY: 0, disguiseLeft: 0, vanishLeft: 0, lucky: false, panicLeft: 0, panicCooldown: 0, searchVeilLeft: 0 }; }
+export function createVitality() { return { health: COMBAT.health, maxHealth: COMBAT.health, invulnerable: 0, state: 'active', knockbackLeft: 0, knockbackX: 0, knockbackY: 0, disguiseLeft: 0, vanishLeft: 0, lucky: false, panicLeft: 0, panicCooldown: 0, searchVeilLeft: 0, anchorSpotId: null, anchorCooldown: 0, shadowStill: 0, inShadow: false, shadowHidden: false }; }
 export function tickVitality(player, dt, world = null) {
   tickPassiveEffects(player, dt);
   tickDisguise(player, dt);
@@ -23,7 +23,7 @@ export function tickVitality(player, dt, world = null) {
 }
 export function hurtPlayer(player, damage = 1) {
   if (player.state !== 'active' || player.invulnerable > 0) return false;
-  player.vanishLeft = 0;
+  player.vanishLeft = 0; player.shadowStill = 0; player.shadowHidden = false;
   player.health = Math.max(0, player.health - damage); player.invulnerable = COMBAT.invulnerable;
   if (!player.health) { breakDisguise(player); player.state = 'down'; player.panicLeft = 0; player.searchVeilLeft = 0; player.moving = false; player.phase = 0; }
   return true;
@@ -105,7 +105,7 @@ function clearGuardTrail(guard) {
 
 function recordGuardTrail(world, guard, player, dt) {
   const combat = world.tuning?.combat ?? COMBAT;
-  if (guard.sleepLeft > 0 || guard.blindLeft > 0 || player.hiding || player.unavailable || player.vanishLeft > 0 || player.disguiseLeft > 0 && Math.hypot(player.x - guard.x, player.y - guard.y) > DISGUISE.recognitionRange) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
+  if (guard.sleepLeft > 0 || guard.blindLeft > 0 || player.hiding || player.unavailable || player.vanishLeft > 0 || (player.disguiseLeft > 0 && Math.hypot(player.x - guard.x, player.y - guard.y) > DISGUISE.recognitionRange) || (player.shadowHidden && Math.hypot(player.x - guard.x, player.y - guard.y) > SHADOW.closeRange)) { guard.trailLeft = Math.max(0, guard.trailLeft - dt); return; }
   if (guard.trailLeft <= 0) return;
   const previous = guard.trailSource;
   // Trace only continuous valid movement, never a teleport or an off-map target.
@@ -169,7 +169,7 @@ export function seesPlayer(world, guard, player, alerted = false, clouds = [], f
   const combat = world.tuning?.combat ?? COMBAT;
   if (guard.sleepLeft > 0 || guard.blindLeft > 0 || player.hiding || player.unavailable || player.vanishLeft > 0 || player.ghost || player.state && player.state !== 'active') return false;
   const dx = player.x - guard.x, dy = player.y - guard.y, distance = Math.hypot(dx, dy);
-  if (player.disguiseLeft > 0 && distance > DISGUISE.recognitionRange) return false;
+  if (player.disguiseLeft > 0 && distance > DISGUISE.recognitionRange || player.shadowHidden && distance > SHADOW.closeRange) return false;
   if (distance > (alerted ? combat.alertSight : combat.sight) || !clearPath(world, guard, player) || smokeBlocksSight(guard, player, clouds)) return false;
   if (distance === 0 || !forwardOnly && (alerted || distance < 1.2)) return true;
   return (dx * Math.cos(guard.angle) + dy * Math.sin(guard.angle)) / distance >= Math.cos(combat.halfCone);

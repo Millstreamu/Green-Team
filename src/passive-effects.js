@@ -6,7 +6,7 @@ export function triggerPanicSprint(player) {
 }
 export function tickPassiveEffects(player, dt) {
  const step = Math.max(0, dt);
- for (const key of ['panicLeft','panicCooldown','searchVeilLeft']) player[key] = Math.max(0, (player[key] ?? 0) - step);
+ for (const key of ['panicLeft','panicCooldown','searchVeilLeft','anchorCooldown']) player[key] = Math.max(0, (player[key] ?? 0) - step);
  if (player.state !== 'active') { player.panicLeft = 0; player.searchVeilLeft = 0; }
 }
 export function passiveMoveRate(player) { return player.state === 'active' && player.panicSprint && player.panicLeft > 0 ? 1 + AWARENESS.sprintBonus : 1; }
@@ -23,5 +23,5 @@ export function drawHiddenGuardMark(ctx, player, guards) {
  ctx.fillStyle = '#49352b'; ctx.fillRect(x,y,2,2);
 }
 export function passiveStatus(player) {
- return [player.panicLeft > 0 ? `HASTE ${Math.ceil(player.panicLeft)}s` : '', player.searchVeilLeft > 0 ? `VEIL ${Math.ceil(player.searchVeilLeft)}s` : ''].filter(Boolean).join(' · ');
+ return [player.panicLeft > 0 ? `HASTE ${Math.ceil(player.panicLeft)}s` : '', player.searchVeilLeft > 0 ? `VEIL ${Math.ceil(player.searchVeilLeft)}s` : '', player.anchorCooldown > 0 ? `ANCHOR ${Math.ceil(player.anchorCooldown)}s` : '', player.shadowHidden ? 'UNSEEN IN SHADOW' : player.inShadow ? 'SHADOW' : ''].filter(Boolean).join(' · ');
 }

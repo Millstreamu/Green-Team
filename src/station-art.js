@@ -8,6 +8,8 @@ export function drawStationSprite(canvas, type) {
   const outline='#3b4634',metal='#b1b8a5',shine='#e7e6c7',wood='#957049',green='#7e9355';
   if(type==='sprint'){r(12,8,8,17,outline);r(14,10,4,13,green);r(12,23,15,9,outline);r(14,24,11,5,wood);r(4,14,6,2,metal);r(2,19,8,2,metal);r(5,24,5,2,metal);}
   if(type==='sense'){r(5,16,23,10,outline);r(9,12,15,18,outline);r(8,18,17,6,shine);r(12,15,9,12,shine);r(14,17,5,8,green);r(16,19,2,4,outline);}
+  if(type==='anchor'){const ink='#b48ce0';r(12,3,8,7,outline);c.clearRect(14,5,4,3);r(13,4,6,1,ink);r(13,8,6,1,ink);r(13,4,1,5,ink);r(18,4,1,5,ink);r(9,11,14,3,outline);r(10,12,12,1,ink);r(14,10,4,22,outline);r(15,11,2,20,ink);r(6,26,20,4,outline);r(7,27,18,2,ink);r(4,20,4,9,outline);r(5,21,2,7,ink);r(24,20,4,9,outline);r(25,21,2,7,ink);r(3,19,6,3,outline);r(23,19,6,3,outline);}
+  if(type==='shadow'){r(4,30,24,5,'#2a2f3a');r(6,29,20,2,'#3c4352');r(11,12,10,17,'#20252e');r(9,16,14,9,'#20252e');r(12,8,8,6,'#20252e');r(13,10,2,2,'#c7ee7b');r(17,10,2,2,'#c7ee7b');const moon='#6f6a8c';r(22,5,2,5,moon);r(23,4,2,1,moon);r(23,10,2,1,moon);r(24,3,3,1,moon);r(24,11,3,1,moon);}
   if(type==='veil'){r(7,9,19,20,outline);r(9,11,15,16,'#78bbbd');r(12,15,3,3,shine);r(19,15,3,3,shine);r(10,29,4,3,metal);r(17,32,4,3,metal);r(24,27,3,3,metal);}
   if(['gold','coin','silverCoin','copperCoin'].includes(type)){
     const coinColor = type === 'silverCoin' ? '#bdc6b6' : type === 'copperCoin' ? '#b7825d' : '#d4b85f';

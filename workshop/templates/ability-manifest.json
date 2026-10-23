@@ -28,5 +28,15 @@
     "name": "Fade Away",
     "width": 32,
     "height": 40
+  },
+  "hidingAnchor": {
+    "name": "Barrel Anchor",
+    "width": 32,
+    "height": 40
+  },
+  "shadowStillness": {
+    "name": "Shadow Stillness",
+    "width": 32,
+    "height": 40
   }
 }

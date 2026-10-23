@@ -234,7 +234,7 @@ test('native focus selects the intended recipe and a changed shared build cost c
 
 test('campfire gets future slots and both keyboards follow the measured column count',t=>{
  const {get}=fixture(t,false),profile=createProfile();const view=createLairView(get('lair-panel'),createCamp(),profile,()=>({bag:[],held:null}),()=>{},()=>{});
- view.open('campfire');assert.equal(get('passive-grid').children.filter(n=>n.className==='passive-placeholder'&&!n.hidden).length,6);
+ view.open('campfire');assert.equal(get('passive-grid').children.filter(n=>n.className==='passive-placeholder'&&!n.hidden).length,4);
  get('passive-grid').dataset.columns='4';get('station-passives').send('keydown',{code:'KeyS'});assert.equal(get('passive-title').textContent,'Hideout Sense');
  view.open('craft');get('book-choices').dataset.columns='4';get('station-book').send('keydown',{code:'KeyS'});assert.equal(get('book-title').textContent,'Scrying orb');
  get('station-book').send('keydown',{code:'KeyD'});assert.equal(get('book-title').textContent,'Packed Lunch');get('station-book').send('keydown',{code:'KeyD'});assert.equal(get('book-title').textContent,'Packed Lunch');

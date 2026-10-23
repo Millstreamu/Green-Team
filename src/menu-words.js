@@ -1,4 +1,4 @@
-import { TRAPS, SMOKE, DART, BELL, DISGUISE, VANISH, SCRY, RESCUE, BERRY, LUCKY, PROGRESSION } from './config.js';
+import { TRAPS, SMOKE, DART, BELL, DISGUISE, VANISH, SCRY, RESCUE, BERRY, LUCKY, PROGRESSION, HIDING, SHADOW } from './config.js';
 import { AWARENESS } from './passive-effects.js';
 
 // Menu wording for gear and abilities. {placeholders} are filled from the live effect
@@ -20,7 +20,9 @@ export const MENU_WORD_VALUES = Object.freeze({
   luckyGoblin: () => ({ bonus: percent(LUCKY.passiveGoldChanceBonus), withPotion: percent(LUCKY.passiveGoldChanceBonus + LUCKY.goldChanceBonus) }),
   panicSprint: () => ({ bonus: percent(AWARENESS.sprintBonus), seconds: AWARENESS.sprintSeconds, cooldown: AWARENESS.sprintCooldown }),
   hideSense: () => ({}),
-  searchVeil: () => ({ seconds: AWARENESS.veilSeconds })
+  searchVeil: () => ({ seconds: AWARENESS.veilSeconds }),
+  hidingAnchor: () => ({ cooldown: HIDING.anchorCooldown }),
+  shadowStillness: () => ({ stillSeconds: SHADOW.stillSeconds, lightReach: SHADOW.lightReach, closeRange: SHADOW.closeRange })
 });
 export const GEAR_WORDS = Object.freeze({
   berries: { summary: '{blindSeconds}s blind / lunch ingredient', effect: 'A thrown berry up to {range} tiles blinds the first guard hit for {blindSeconds}s and breaks their chase.', limits: 'Throwing spends one portion, including misses, and breaks disguise. Walls/solid props/locks stop it. No refresh while already blind; sleeping guards stay asleep. Keep berries for workbench lunches instead if needed.' },
@@ -40,7 +42,9 @@ export const ABILITY_WORDS = Object.freeze({
   luckyGoblin: { effect: '+{bonus} percentage points to finding gold coins.', limits: 'Your searches only. With Lucky potion: +{withPotion} points. No effect on sale prices.' },
   panicSprint: { effect: 'Move {bonus}% faster for {seconds} seconds when a guard spots you.', limits: '{cooldown}-second cooldown. Further guards do not stack or refresh it.' },
   hideSense: { effect: 'While hiding, see the nearest guard on your map.', limits: 'Amber square · your map only. Ends when you leave hiding.' },
-  searchVeil: { effect: 'After searching, guards take twice as long to notice you for {seconds} seconds.', limits: 'Completed searches only, including empty containers. Existing chases continue.' }
+  searchVeil: { effect: 'After searching, guards take twice as long to notice you for {seconds} seconds.', limits: 'Completed searches only, including empty containers. Existing chases continue.' },
+  hidingAnchor: { effect: 'In a hiding barrel, Space sets it as your anchor. From any other barrel, Space takes you back to it, still hidden.', limits: 'Your anchor only; teammates cannot use it. {cooldown}-second cooldown. Fails if someone is inside. R or Rotate moves it. Resets each raid.' },
+  shadowStillness: { effect: 'Stand still in shadow for {stillSeconds} second and guards cannot see you.', limits: 'Shadow is anywhere more than {lightReach} tiles from torch light. Guards within {closeRange} tiles still spot you. Moving, searching, using gear or a hit ends it.' }
 });
 export function fillMenuWords(text, id) {
   const values = MENU_WORD_VALUES[id]?.() ?? {};

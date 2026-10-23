@@ -1022,3 +1022,9 @@ Publishing format: ready-made root-level index/game/creator HTML, relative asset
 ## New items stay with AI coding — 23 October 2026
 
 **Agreed behaviour:** user decided new items will be made through AI code changes, not a workshop feature. The workshop "edit menu items" work ends with ability icons, menu words and menu look. This replaces the earlier "Next: new items" notes above.
+
+## Barrel Anchor and Shadow Stillness — 23 October 2026
+
+**Agreed behaviour:** user picked the hiding-spot anchor (with cooldown, teammates cannot use it) and Shadow Stillness, and approved the suggested rules and numbers: Barrel Anchor 75 XP, Space set/travel, 30-second cooldown, personal, resets each raid, refused when occupied; Shadow Stillness 150 XP, shadow beyond 4 tiles of torch light, 1 second still, guards within 1.5 tiles still see. Torch lighting is now also a gameplay rule (shadow), shared by solo, server and the renderer. See future-items-and-abilities.md for details.
+
+**Still experimenting:** all numbers await playtesting, especially how strong shadows are in dark corridors. "Barrel Anchor" is a working name. R / Rotate to move the anchor was an implementation choice.

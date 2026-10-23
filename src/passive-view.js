@@ -2,7 +2,7 @@ import { createFillingStationGrid } from './station-grid.js';
 import { PASSIVE_IDS, PASSIVE_LIMIT, PERSONAL_UPGRADES, ownsUpgrade, activePassives, passiveActive } from './profile.js';
 import { ABILITY_WORDS, fillMenuWords } from './menu-words.js';
 import { drawStationSprite } from './station-art.js';
-const PASSIVE_SPRITES = {panicSprint:'sprint',hideSense:'sense',searchVeil:'veil',quickSearch:'quickSearch',quietHands:'vanish',luckyGoblin:'coin'};
+const PASSIVE_SPRITES = {panicSprint:'sprint',hideSense:'sense',searchVeil:'veil',quickSearch:'quickSearch',quietHands:'vanish',luckyGoblin:'coin',hidingAnchor:'anchor',shadowStillness:'shadow'};
 export const PASSIVE_DETAILS = Object.freeze(Object.fromEntries(Object.entries(PASSIVE_SPRITES).map(([id,sprite])=>[id,{sprite,effect:fillMenuWords(ABILITY_WORDS[id].effect,id),limits:fillMenuWords(ABILITY_WORDS[id].limits,id)}])));
 export function createPassiveView(dialog, profile, onAction) {
  const get=id=>document.querySelector(`#${id}`);let selected=0,pending=false,hold=null,keyHeld=false,suppressClick=null;

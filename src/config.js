@@ -25,7 +25,7 @@ export const DEPARTURE = Object.freeze({ countdown: 3 });
 
 export const HEAT = Object.freeze({ riseSeconds: 30, coolDelay: 4, coolSeconds: 20, maxSpeedRatio: 1.08, alertsPerGuard: 3, arrivalWarning: 2, doorRoomInterval: 3 });
 
-export const HIDING = Object.freeze({ enterTime: 0.5, reach: 1.6, roomInterval: 2, pullReach: 0.8 });
+export const HIDING = Object.freeze({ enterTime: 0.5, reach: 1.6, roomInterval: 2, pullReach: 0.8, anchorCooldown: 30 });
 
 export const SMOKE = Object.freeze({ radius: 2, duration: 5 });
 
@@ -35,6 +35,8 @@ export const RESCUE = Object.freeze({ reach: 1.6, reviveSeconds: 2, cageSeconds:
 export const SCRY = Object.freeze({ count: 3, seconds: 5 });
 export const LUCKY = Object.freeze({ goldChanceBonus: .05, passiveGoldChanceBonus: .05 });
 export const VANISH = Object.freeze({ seconds: 8 });
+// Shadow Stillness: shadow is floor more than lightReach tiles from every torch that reaches it.
+export const SHADOW = Object.freeze({ lightReach: 4, stillSeconds: 1, closeRange: 1.5 });
 export const DISGUISE = Object.freeze({ seconds: 10, recognitionRange: 1 });
 export const BELL = Object.freeze({ range: 5, hearingRange: 8, inspectSeconds: 2, investigateSeconds: 8, flightSeconds: .35 });
 export const BERRY = Object.freeze({ range: 4, speed: 10, blindSeconds: 1 });

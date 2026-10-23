@@ -1,6 +1,8 @@
 import { equipBerries, beginBerryAim, throwBerry, updateBerries } from '../src/berries.js';
 import { equipOrb, useOrb, updateScrying } from '../src/scrying.js';
 import { equipPotion, drinkPotion, drinkDisguise, isPotion } from '../src/potions.js';
+import { inShadow, updateShadowStillness } from '../src/shadows.js';
+import { litTorches } from '../src/lighting.js';
 import { equipDart, beginDartAim, fireDart, updateDarts } from '../src/darts.js';
 import { equipBell, beginBellAim, throwBell, updateBells } from '../src/bells.js';
 import { DART, BELL, BERRY } from '../src/config.js';
@@ -8,7 +10,7 @@ import { createTreasureRoom } from '../src/treasure.js';
 import { createRescue } from './rescue.js';
 import { createGuards, createVitality, tickVitality, seesPlayer } from '../src/guard.js';
 import { createPressure, updatePressure } from '../src/pressure.js';
-import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding } from '../src/hiding.js';
+import { createHidingSpots, beginHiding, cancelHiding, updateHiding, leaveHiding, useHidingAnchor, anchorMessage } from '../src/hiding.js';
 import { createPlacement, cancelPlacement, interruptPlacement, equipSnare, placementPoint, moveTrapAim, updatePlacement, updateTraps } from '../src/traps.js';
 import { useSmoke, updateSmoke } from '../src/smoke.js';
 import { updateTeamGuard } from './team-guards.js';
@@ -24,6 +26,7 @@ export function createDanger(world, participants, objects) {
   }
   const rescue = createRescue(world, participants, guards, [...obstacles, ...pressure.doors.map(d => d.spawn)]);
   obstacles.push(...rescue.cages.map(c => ({ x: c.x, y: c.y })));
+  let anchorNotices = 0;
   const witnesses = p => guards.filter(g => seesPlayer(world, g, p, ['chase', 'search'].includes(g.state), clouds));
   return {
     guards, hidingSpots, traps, clouds, darts, bells, pressure, rescue,
@@ -103,6 +106,11 @@ export function createDanger(world, participants, objects) {
         if (p.quickType !== 'smoke' || p.placement.itemId || p.hiding) return false;
         return useSmoke(p.loot, p, clouds);
       }
+      if (m.type === 'anchor') {
+        const result = useHidingAnchor(p, hidingSpots, guards, m.here === true), text = anchorMessage(result, p);
+        if (text) p.notice = { id: `${world.seed}-${p.id}-anchor-${++anchorNotices}`, text };
+        return ['set', 'moved'].includes(result);
+      }
       if (m.type === 'hide') {
         if (p.hiding) return leaveHiding(p);
         const spot = hidingSpots.find(spot => spot.id === m.id);
@@ -145,6 +153,8 @@ export function createDanger(world, participants, objects) {
         }
         const holding = p.inputAge <= .4 && p.searchHeld;
         updateHiding(world, p, holding, dt, witnesses(p), !!p.loot.held || !!p.placement.itemId);
+        // Same torches clients draw from the snapshot's furniture, barrels, cages and guard doors.
+        if (p.shadowStillness) updateShadowStillness(p, dt, inShadow(litTorches(world, [...objects, ...hidingSpots, ...rescue.cages, ...pressure.doors.map(d => d.spawn)]), p), !!p.search?.active || !!p.enteringHide);
         const point = p.placement.aimPoint ?? placementPoint(p);
         updatePlacement(p.placement, world, p, p.loot, traps, obstacles, point, holding, dt);
       }

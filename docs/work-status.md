@@ -1279,3 +1279,11 @@ Next: discuss "new items" (copy an existing behaviour with its own name, art, re
 ## Workshop menu work closed — 23 October 2026
 
 User dropped the planned "new items" workshop slice: new items will be added through AI code changes instead. No code changed. The menu-editing work (ability icons, words, menu look) is complete apart from on-screen checks of the stash, map table and departure with custom menu art, and phone testing.
+
+## Barrel Anchor and Shadow Stillness — 23 October 2026
+
+Task: two new campfire abilities. Anchor: src/hiding.js (setHidingAnchor, travelToAnchor, useHidingAnchor, anchorMessage), HIDING.anchorCooldown, cooldown tick/status in src/passive-effects.js, keys in src/main.js and src/online-main.js, server 'anchor' action in server/danger.js and server/dungeon-session.js, personal snapshot fields in server/lair-session.js, map mark in src/render.js. Shadows: new src/shadows.js (inShadow, updateShadowStillness, breakShadow), SHADOW in src/config.js, shared litTorches() cache in src/lighting.js used by the renderer and the rule, guard sight/trail check in src/guard.js, breaks via breakDisguise and hurtPlayer, updates in solo main and server danger tick, goblin fade in src/render.js. Both: entries in src/profile.js, campfire buttons in index.html, words in src/menu-words.js, new icons in src/station-art.js, workshop icon templates regenerated (two new sets). Updated two tests for eight abilities. Rebuilt docs/.
+
+Checks: 477/477 tests pass; new tests/anchor.test.js and tests/shadows.test.js cover the rules, server actions (set, travel, here, personal), a server goblin going unseen in a real dark tile, and lit and dark floor in real dungeons. Browser (debug copy of the playtest with both abilities on): goblin standing still in a corridor faded with UNSEEN IN SHADOW; moving broke it and it returned after a second; a guard at 3 tiles stayed on patrol, at 1.2 tiles it gave chase. Anchor via real key presses: set, leave, hide elsewhere, Space travelled back with ANCHOR 30s, exit at the anchor barrel's own side, cooldown message, R moved the anchor, purple map mark present. Not checked: two-player online play in browsers, phone controls, the campfire menu on screen with the new icons.
+
+Next: user playtest and tune the numbers.
